@@ -1,11 +1,4 @@
-import React, {
-  useRef,
-  useState,
-  useMemo,
-  useEffect,
-  Suspense,
-  useCallback,
-} from "react";
+import React, { useRef, useState, useMemo, useEffect, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Grid, Stars } from "@react-three/drei";
 import * as THREE from "three";
@@ -39,6 +32,7 @@ const COLOR_MAP = {
   orange: "#fb923c",
   pink: "#f472b6",
   gold: "#fbbf24",
+  rainbow: "#f472b6",
 };
 
 function heightToColor(h, scheme) {
@@ -56,11 +50,11 @@ function heightToColor(h, scheme) {
       return [t * 0.9 + 0.1, t * 0.7 + 0.2, 0.0];
     case "rainbow":
       return [
-        Math.sin(t * Math.PI),
-        Math.sin(t * Math.PI * 0.7 + 1),
-        Math.cos(t * Math.PI),
-      ].map((v) => Math.abs(v));
-    default:
+        Math.abs(Math.sin(t * Math.PI)),
+        Math.abs(Math.sin(t * Math.PI * 0.7 + 1)),
+        Math.abs(Math.cos(t * Math.PI)),
+      ];
+    default: // cyan
       return [0.0, t * 0.7 + 0.15, 0.85];
   }
 }
@@ -68,9 +62,9 @@ function heightToColor(h, scheme) {
 /* ─── Axis Lines ─── */
 function AxisLines({ size = 6 }) {
   const axes = [
-    { dir: [1, 0, 0], color: "#ef4444", label: "X" },
-    { dir: [0, 1, 0], color: "#22c55e", label: "Y" },
-    { dir: [0, 0, 1], color: "#3b82f6", label: "Z" },
+    { dir: [1, 0, 0], color: "#ef4444" },
+    { dir: [0, 1, 0], color: "#22c55e" },
+    { dir: [0, 0, 1], color: "#3b82f6" },
   ];
   return (
     <group>
@@ -90,9 +84,11 @@ function AxisLines({ size = 6 }) {
   );
 }
 
-/* ─── Attractor Line (for Lorenz/Rossler) ─── */
+/* ─── Attractor Line (animated draw-in) ─── */
 function AttractorLine({ preset, colorScheme }) {
-  const geo = useMemo(() => {
+  const lineRef = useRef();
+
+  const { geo, total } = useMemo(() => {
     const pts = [];
     const p = preset.attractor;
     let [x, y, z] = p.init;
@@ -105,24 +101,32 @@ function AttractorLine({ preset, colorScheme }) {
       y += dy * dt;
       z += dz * dt;
     }
-    return new THREE.BufferGeometry().setFromPoints(pts);
-  }, [preset]);
-  const color = COLOR_MAP[colorScheme] || "#22d3ee";
-  const colorsArr = useMemo(() => {
-    const count = geo.attributes.position.count;
+    const g = new THREE.BufferGeometry().setFromPoints(pts);
+    const count = pts.length;
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
       const t = i / count;
-      const [r, g, b] = heightToColor(t, colorScheme);
+      const [r, gb, b] = heightToColor(t, colorScheme);
       arr[i * 3] = r;
-      arr[i * 3 + 1] = g;
+      arr[i * 3 + 1] = gb;
       arr[i * 3 + 2] = b;
     }
-    return arr;
-  }, [geo, colorScheme]);
-  geo.setAttribute("color", new THREE.Float32BufferAttribute(colorsArr, 3));
+    g.setAttribute("color", new THREE.Float32BufferAttribute(arr, 3));
+    g.setDrawRange(0, 2);
+    return { geo: g, total: count };
+  }, [preset, colorScheme]);
+
+  useFrame(({ clock }) => {
+    if (!lineRef.current) return;
+    const progress = Math.min(1, clock.getElapsedTime() / 5);
+    lineRef.current.geometry.setDrawRange(
+      0,
+      Math.max(2, Math.floor(progress * total)),
+    );
+  });
+
   return (
-    <line geometry={geo}>
+    <line ref={lineRef} geometry={geo}>
       <lineBasicMaterial vertexColors />
     </line>
   );
@@ -133,7 +137,8 @@ function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
   const meshRef = useRef();
   const N = 60;
 
-  const geometry = useMemo(() => {
+  // Build geometry — recompute only when preset changes
+  const { geometry, rawPts, yMinBase, yMaxBase } = useMemo(() => {
     const geom = new THREE.BufferGeometry();
     const positions = [],
       colors = [],
@@ -142,9 +147,7 @@ function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
       [-4, 4],
       [-4, 4],
     ];
-    const [uRange, vRange] = range;
-    const [uMin, uMax] = uRange,
-      [vMin, vMax] = vRange;
+    const [[uMin, uMax], [vMin, vMax]] = range;
     let yMin = Infinity,
       yMax = -Infinity;
     const rawPts = [];
@@ -183,9 +186,26 @@ function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
     geom.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
     geom.setIndex(indices);
     geom.computeVertexNormals();
-    return geom;
-  }, [preset, colorScheme]);
+    return { geometry: geom, rawPts, yMinBase: yMin, yMaxBase: yMax };
+  }, [preset]); // eslint-disable-line
 
+  // Re-color when colorScheme changes (no geometry rebuild)
+  useEffect(() => {
+    const colorAttr = geometry.attributes.color;
+    const yRange = yMaxBase - yMinBase || 1;
+    let idx = 0;
+    for (let i = 0; i <= N; i++)
+      for (let j = 0; j <= N; j++) {
+        const h = (rawPts[i][j][1] - yMinBase) / yRange;
+        const [r, g, b] = heightToColor(h, colorScheme);
+        colorAttr.array[idx++] = r;
+        colorAttr.array[idx++] = g;
+        colorAttr.array[idx++] = b;
+      }
+    colorAttr.needsUpdate = true;
+  }, [colorScheme, geometry, rawPts, yMinBase, yMaxBase]);
+
+  // Animate vertices + recolor live
   useFrame(({ clock }) => {
     if (!meshRef.current || !preset.animated) return;
     const t = clock.getElapsedTime();
@@ -193,21 +213,35 @@ function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
       [-4, 4],
       [-4, 4],
     ];
-    const [uRange, vRange] = range;
-    const [uMin, uMax] = uRange,
-      [vMin, vMax] = vRange;
+    const [[uMin, uMax], [vMin, vMax]] = range;
     const pos = meshRef.current.geometry.attributes.position;
+    const colorAttr = meshRef.current.geometry.attributes.color;
+    let yMin = Infinity,
+      yMax = -Infinity;
+    const ys = new Float32Array((N + 1) * (N + 1));
     for (let i = 0; i <= N; i++)
       for (let j = 0; j <= N; j++) {
         const u = uMin + (i / N) * (uMax - uMin),
           v = vMin + (j / N) * (vMax - vMin);
         const p = preset.fn(u, v, t) || [0, 0, 0];
-        const idx = (i * (N + 1) + j) * 3;
-        pos.array[idx] = p[0];
-        pos.array[idx + 1] = p[1];
-        pos.array[idx + 2] = p[2];
+        const k = i * (N + 1) + j;
+        pos.array[k * 3] = p[0];
+        pos.array[k * 3 + 1] = p[1];
+        pos.array[k * 3 + 2] = p[2];
+        ys[k] = p[1];
+        if (p[1] < yMin) yMin = p[1];
+        if (p[1] > yMax) yMax = p[1];
       }
+    const yRange = yMax - yMin || 1;
+    for (let k = 0; k < ys.length; k++) {
+      const h = (ys[k] - yMin) / yRange;
+      const [r, g, b] = heightToColor(h, colorScheme);
+      colorAttr.array[k * 3] = r;
+      colorAttr.array[k * 3 + 1] = g;
+      colorAttr.array[k * 3 + 2] = b;
+    }
     pos.needsUpdate = true;
+    colorAttr.needsUpdate = true;
     meshRef.current.geometry.computeVertexNormals();
   });
 
@@ -221,7 +255,7 @@ function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
           roughness={0.25}
           metalness={0.4}
           emissive={color}
-          emissiveIntensity={0.06}
+          emissiveIntensity={0.08}
           transparent
           opacity={opacity}
         />
@@ -244,26 +278,43 @@ function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
 function ParametricLine({ preset, colorScheme, animated }) {
   const ref = useRef();
   const N = 800;
-  const points = useMemo(() => {
-    const pts = [];
+
+  const geometry = useMemo(() => {
     const range = preset.range || [
       [-1, 1],
       [-1, 1],
     ];
-    const vRange = range[1];
-    const [vMin, vMax] = vRange;
+    const [vMin, vMax] = range[1];
+    const pts = [];
     for (let i = 0; i < N; i++) {
       const v = vMin + (i / N) * (vMax - vMin);
       const p = preset.fn(0, v, 0) || [0, 0, 0];
       pts.push(new THREE.Vector3(p[0], p[1], p[2]));
     }
-    return pts;
-  }, [preset]);
+    const g = new THREE.BufferGeometry().setFromPoints(pts);
+    // gradient colors
+    const arr = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) {
+      const [r, gb, b] = heightToColor(i / N, colorScheme);
+      arr[i * 3] = r;
+      arr[i * 3 + 1] = gb;
+      arr[i * 3 + 2] = b;
+    }
+    g.setAttribute("color", new THREE.Float32BufferAttribute(arr, 3));
+    return g;
+  }, [preset]); // eslint-disable-line
 
-  const geometry = useMemo(
-    () => new THREE.BufferGeometry().setFromPoints(points),
-    [points],
-  );
+  // Re-color on scheme change
+  useEffect(() => {
+    const colorAttr = geometry.attributes.color;
+    for (let i = 0; i < N; i++) {
+      const [r, g, b] = heightToColor(i / N, colorScheme);
+      colorAttr.array[i * 3] = r;
+      colorAttr.array[i * 3 + 1] = g;
+      colorAttr.array[i * 3 + 2] = b;
+    }
+    colorAttr.needsUpdate = true;
+  }, [colorScheme, geometry]);
 
   useFrame(({ clock }) => {
     if (!ref.current || !animated) return;
@@ -274,27 +325,33 @@ function ParametricLine({ preset, colorScheme, animated }) {
     ];
     const [vMin, vMax] = range[1];
     const pos = ref.current.geometry.attributes.position;
+    const colorAttr = ref.current.geometry.attributes.color;
     for (let i = 0; i < N; i++) {
       const v = vMin + (i / N) * (vMax - vMin);
       const p = preset.fn(0, v, t) || [0, 0, 0];
       pos.setXYZ(i, p[0], p[1], p[2]);
+      const h = (Math.sin((i / N) * Math.PI * 2 + t * 1.5) + 1) / 2;
+      const [r, gb, b] = heightToColor(h, colorScheme);
+      colorAttr.array[i * 3] = r;
+      colorAttr.array[i * 3 + 1] = gb;
+      colorAttr.array[i * 3 + 2] = b;
     }
     pos.needsUpdate = true;
+    colorAttr.needsUpdate = true;
   });
 
-  const color = COLOR_MAP[colorScheme] || "#22d3ee";
   return (
     <line ref={ref} geometry={geometry}>
-      <lineBasicMaterial color={color} linewidth={2} />
+      <lineBasicMaterial vertexColors linewidth={2} />
     </line>
   );
 }
 
 /* ─── Custom Surface ─── */
 function CustomSurface({ expr, colorScheme, wireframe, opacity }) {
-  const meshRef = useRef();
   const N = 55;
-  const geometry = useMemo(() => {
+
+  const { geometry, rawY, yMinBase, yMaxBase } = useMemo(() => {
     const geom = new THREE.BufferGeometry();
     const positions = [],
       colors = [],
@@ -319,10 +376,10 @@ function CustomSurface({ expr, colorScheme, wireframe, opacity }) {
       }
       rawY.push(row);
     }
-    const yRange2 = yMax - yMin || 1;
+    const yRange = yMax - yMin || 1;
     for (let i = 0; i <= N; i++)
       for (let j = 0; j <= N; j++) {
-        const h = (rawY[i][j] - yMin) / yRange2;
+        const h = (rawY[i][j] - yMin) / yRange;
         const [r, g, b] = heightToColor(h, colorScheme);
         colors.push(r, g, b);
       }
@@ -341,20 +398,35 @@ function CustomSurface({ expr, colorScheme, wireframe, opacity }) {
     geom.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
     geom.setIndex(indices);
     geom.computeVertexNormals();
-    return geom;
-  }, [expr, colorScheme]);
+    return { geometry: geom, rawY, yMinBase: yMin, yMaxBase: yMax };
+  }, [expr]); // eslint-disable-line
+
+  useEffect(() => {
+    const colorAttr = geometry.attributes.color;
+    const yRange = yMaxBase - yMinBase || 1;
+    let idx = 0;
+    for (let i = 0; i <= N; i++)
+      for (let j = 0; j <= N; j++) {
+        const h = (rawY[i][j] - yMinBase) / yRange;
+        const [r, g, b] = heightToColor(h, colorScheme);
+        colorAttr.array[idx++] = r;
+        colorAttr.array[idx++] = g;
+        colorAttr.array[idx++] = b;
+      }
+    colorAttr.needsUpdate = true;
+  }, [colorScheme, geometry, rawY, yMinBase, yMaxBase]);
 
   const color = COLOR_MAP[colorScheme] || "#22d3ee";
   return (
     <group>
-      <mesh ref={meshRef} geometry={geometry}>
+      <mesh geometry={geometry}>
         <meshStandardMaterial
           vertexColors
           side={THREE.DoubleSide}
           roughness={0.25}
           metalness={0.4}
           emissive={color}
-          emissiveIntensity={0.06}
+          emissiveIntensity={0.08}
           transparent
           opacity={opacity}
         />
@@ -386,11 +458,11 @@ function SceneLighting({ colorScheme }) {
   );
 }
 
-/* ──────────────────────────────────────────────
-   ALL PRESETS (original + 30 new)
-────────────────────────────────────────────── */
+/* ══════════════════════════════════════════
+   ALL PRESETS
+══════════════════════════════════════════ */
 const PRESETS = [
-  /* ── Original Presets ── */
+  /* ── Classic ── */
   {
     id: "wave",
     name: "Wave Surface",
@@ -432,19 +504,19 @@ const PRESETS = [
     name: "Torus",
     icon: "◎",
     color: "violet",
-    animated: false,
+    animated: true,
     category: "Classic",
     range: [
       [0, Math.PI * 2],
       [0, Math.PI * 2],
     ],
-    fn: (u, v) => {
+    fn: (u, v, t = 0) => {
       const R = 2.2,
         r = 0.8;
       return [
-        (R + r * Math.cos(v)) * Math.cos(u),
+        (R + r * Math.cos(v)) * Math.cos(u + t * 0.3),
         r * Math.sin(v),
-        (R + r * Math.cos(v)) * Math.sin(u),
+        (R + r * Math.cos(v)) * Math.sin(u + t * 0.3),
       ];
     },
     type: "surface",
@@ -498,16 +570,20 @@ const PRESETS = [
     name: "Sphere",
     icon: "○",
     color: "violet",
+    animated: true,
     category: "Classic",
     range: [
       [0, Math.PI * 2],
       [0, Math.PI],
     ],
-    fn: (u, v) => [
-      Math.sin(v) * Math.cos(u) * 2.5,
-      Math.cos(v) * 2.5,
-      Math.sin(v) * Math.sin(u) * 2.5,
-    ],
+    fn: (u, v, t = 0) => {
+      const pulse = 1 + 0.05 * Math.sin(t * 2);
+      return [
+        Math.sin(v) * Math.cos(u) * 2.5 * pulse,
+        Math.cos(v) * 2.5 * pulse,
+        Math.sin(v) * Math.sin(u) * 2.5 * pulse,
+      ];
+    },
     type: "surface",
   },
   {
@@ -549,13 +625,14 @@ const PRESETS = [
     name: "Parametric Flower",
     icon: "❀",
     color: "pink",
+    animated: true,
     category: "Classic",
     range: [
       [0, Math.PI * 2],
       [0, Math.PI],
     ],
-    fn: (u, v) => {
-      const r = Math.sin(u * 3) * 0.5 + 1.5;
+    fn: (u, v, t = 0) => {
+      const r = Math.sin(u * 3 + t * 0.5) * 0.5 + 1.5;
       return [
         r * Math.sin(v) * Math.cos(u) * 1.5,
         r * Math.cos(v) * 1.5,
@@ -569,15 +646,16 @@ const PRESETS = [
     name: "Hyperboloid",
     icon: "X",
     color: "emerald",
+    animated: true,
     category: "Classic",
     range: [
       [0, Math.PI * 2],
       [-2, 2],
     ],
-    fn: (u, v) => [
-      Math.cosh(v) * Math.cos(u) * 1.5,
+    fn: (u, v, t = 0) => [
+      Math.cosh(v) * Math.cos(u + t * 0.4) * 1.5,
       v * 1.5,
-      Math.cosh(v) * Math.sin(u) * 1.5,
+      Math.cosh(v) * Math.sin(u + t * 0.4) * 1.5,
     ],
     type: "surface",
   },
@@ -599,21 +677,23 @@ const PRESETS = [
     type: "surface",
   },
 
-  /* ── NEW: Mathematical Surfaces ── */
+  /* ── Mathematical ── */
   {
     id: "spherical_harmonics",
     name: "Spherical Harmonics",
     icon: "Yₗₘ",
     color: "violet",
+    animated: true,
     category: "Mathematical",
     range: [
       [0, Math.PI * 2],
       [0, Math.PI],
     ],
-    fn: (phi, theta) => {
+    fn: (phi, theta, t = 0) => {
       const m = 3,
         n = 2;
-      const r = Math.abs(Math.sin(m * theta) * Math.cos(n * phi)) * 2 + 0.3;
+      const r =
+        Math.abs(Math.sin(m * theta + t * 0.3) * Math.cos(n * phi)) * 2 + 0.3;
       return [
         r * Math.sin(theta) * Math.cos(phi),
         r * Math.cos(theta),
@@ -655,6 +735,79 @@ const PRESETS = [
     type: "surface",
   },
   {
+    id: "wave_interference",
+    name: "Wave Interference",
+    icon: "≋",
+    color: "cyan",
+    animated: true,
+    category: "Mathematical",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (u, v, t = 0) => [
+      u,
+      Math.sin(u * u + v * v + t) *
+        Math.cos(3 * u + t * 0.5) *
+        Math.sin(3 * v) *
+        0.8,
+      v,
+    ],
+    type: "surface",
+  },
+  {
+    id: "fractal_noise",
+    name: "Fractal Noise Surface",
+    icon: "🌊",
+    color: "emerald",
+    animated: true,
+    category: "Mathematical",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (u, v, t = 0) => {
+      let z = 0;
+      for (let n = 1; n <= 5; n++)
+        z +=
+          (Math.sin(Math.pow(2, n) * u + t * 0.5) *
+            Math.cos(Math.pow(2, n) * v)) /
+          Math.pow(2, n);
+      return [u, z * 0.8, v];
+    },
+    type: "surface",
+  },
+  {
+    id: "heart_surface",
+    name: "Heart Surface",
+    icon: "❤",
+    color: "pink",
+    animated: true,
+    category: "Mathematical",
+    range: [
+      [-2, 2],
+      [-2, 2],
+    ],
+    fn: (u, v, t = 0) => {
+      const tt = u * Math.PI,
+        s = (v * Math.PI) / 2;
+      const scale = 1 + 0.05 * Math.sin(t * 2);
+      return [
+        4 * Math.pow(Math.sin(tt), 3) * Math.cos(s) * 0.6 * scale,
+        (13 * Math.cos(tt) -
+          5 * Math.cos(2 * tt) -
+          2 * Math.cos(3 * tt) -
+          Math.cos(4 * tt)) *
+          0.12 *
+          Math.abs(Math.cos(s)),
+        4 * Math.pow(Math.sin(tt), 3) * Math.sin(s) * 0.6 * scale,
+      ];
+    },
+    type: "surface",
+  },
+
+  /* ── Minimal Surfaces ── */
+  {
     id: "gyroid",
     name: "Gyroid",
     icon: "⬡",
@@ -665,10 +818,8 @@ const PRESETS = [
       [-Math.PI * 1.5, Math.PI * 1.5],
     ],
     fn: (u, v) => {
-      // Gyroid approximation: marching iso-surface slice
       const x = u,
         z = v;
-      // Find y where sin(x)cos(y)+sin(y)cos(z)+sin(z)cos(x)=0 approximately
       const y = Math.asin(
         Math.max(
           -1,
@@ -708,32 +859,75 @@ const PRESETS = [
     name: "Enneper Surface",
     icon: "𝔼",
     color: "gold",
+    animated: true,
     category: "Minimal Surfaces",
     range: [
       [-1.5, 1.5],
       [-1.5, 1.5],
     ],
-    fn: (u, v) => [
-      (u - (u * u * u) / 3 + u * v * v) * 0.6,
-      (u * u - v * v) * 0.6,
-      (v - (v * v * v) / 3 + v * u * u) * 0.6,
+    fn: (u, v, t = 0) => {
+      const s = Math.sin(t * 0.3) * 0.3;
+      return [
+        (u - (u * u * u) / 3 + u * v * v) * 0.6,
+        (u * u - v * v + s) * 0.6,
+        (v - (v * v * v) / 3 + v * u * u) * 0.6,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "catenoid",
+    name: "Catenoid",
+    icon: "🪣",
+    color: "cyan",
+    animated: true,
+    category: "Minimal Surfaces",
+    range: [
+      [0, Math.PI * 2],
+      [-2, 2],
+    ],
+    fn: (u, v, t = 0) => [
+      Math.cosh(v) * Math.cos(u + t * 0.3) * 1.2,
+      v * 1.2,
+      Math.cosh(v) * Math.sin(u + t * 0.3) * 1.2,
     ],
     type: "surface",
   },
+  {
+    id: "helicoid",
+    name: "Helicoid",
+    icon: "🐚",
+    color: "emerald",
+    animated: true,
+    category: "Minimal Surfaces",
+    range: [
+      [0, Math.PI * 4],
+      [-2, 2],
+    ],
+    fn: (u, v, t = 0) => [
+      v * Math.cos(u + t * 0.3) * 1.2,
+      u * 0.5 - Math.PI,
+      v * Math.sin(u + t * 0.3) * 1.2,
+    ],
+    type: "surface",
+  },
+
+  /* ── Topology ── */
   {
     id: "mobius",
     name: "Möbius Strip",
     icon: "∞",
     color: "pink",
+    animated: true,
     category: "Topology",
     range: [
       [0, Math.PI * 2],
       [-0.6, 0.6],
     ],
-    fn: (u, v) => [
-      (1 + v * Math.cos(u / 2)) * Math.cos(u) * 2,
+    fn: (u, v, t = 0) => [
+      (1 + v * Math.cos(u / 2)) * Math.cos(u + t * 0.4) * 2,
       v * Math.sin(u / 2) * 2,
-      (1 + v * Math.cos(u / 2)) * Math.sin(u) * 2,
+      (1 + v * Math.cos(u / 2)) * Math.sin(u + t * 0.4) * 2,
     ],
     type: "surface",
   },
@@ -766,220 +960,20 @@ const PRESETS = [
     type: "surface",
   },
   {
-    id: "lorenz",
-    name: "Lorenz Attractor",
-    icon: "🦋",
-    color: "cyan",
-    category: "Attractors",
-    type: "attractor",
-    attractor: {
-      init: [0.1, 0, 0],
-      scale: 0.09,
-      dt: 0.005,
-      steps: 10000,
-      deriv: (x, y, z) => {
-        const sigma = 10,
-          rho = 28,
-          beta = 8 / 3;
-        return [sigma * (y - x), x * (rho - z) - y, x * y - beta * z];
-      },
-    },
-  },
-  {
-    id: "rossler",
-    name: "Rössler Attractor",
-    icon: "🌀",
-    color: "violet",
-    category: "Attractors",
-    type: "attractor",
-    attractor: {
-      init: [1, 1, 1],
-      scale: 0.12,
-      dt: 0.008,
-      steps: 8000,
-      deriv: (x, y, z) => {
-        const a = 0.2,
-          b = 0.2,
-          c = 5.7;
-        return [-y - z, x + a * y, b + z * (x - c)];
-      },
-    },
-  },
-  {
-    id: "torus_knot",
-    name: "Torus Knot (2,3)",
-    icon: "🪢",
-    color: "orange",
-    category: "Knots",
-    range: [
-      [-1, 1],
-      [0, Math.PI * 2],
-    ],
-    fn: (u, v) => {
-      const p = 2,
-        q = 3,
-        R = 2,
-        r = 0.5;
-      return [
-        (R + r * Math.cos(q * v)) * Math.cos(p * v),
-        r * Math.sin(q * v),
-        (R + r * Math.cos(q * v)) * Math.sin(p * v),
-      ];
-    },
-    type: "line",
-  },
-  {
-    id: "lissajous_knot",
-    name: "Lissajous Knot",
-    icon: "⊛",
-    color: "emerald",
-    category: "Knots",
-    animated: true,
-    range: [
-      [-1, 1],
-      [0, Math.PI * 2],
-    ],
-    fn: (u, v, t = 0) => [
-      Math.sin(3 * v + t * 0.2) * 2,
-      Math.sin(4 * v) * 2,
-      Math.sin(5 * v + Math.PI / 6) * 2,
-    ],
-    type: "line",
-  },
-  {
-    id: "trefoil_knot",
-    name: "Trefoil Knot",
-    icon: "✶",
-    color: "violet",
-    category: "Knots",
-    range: [
-      [-1, 1],
-      [0, Math.PI * 2],
-    ],
-    fn: (u, v) => [
-      (Math.sin(v) + 2 * Math.sin(2 * v)) * 1.2,
-      (Math.cos(v) - 2 * Math.cos(2 * v)) * 1.2,
-      -Math.sin(3 * v) * 1.2,
-    ],
-    type: "line",
-  },
-  {
-    id: "figure_eight_knot",
-    name: "Figure-Eight Knot",
-    icon: "∞",
-    color: "pink",
-    category: "Knots",
-    range: [
-      [-1, 1],
-      [0, Math.PI * 2],
-    ],
-    fn: (u, v) => [
-      (2 + Math.cos(2 * v)) * Math.cos(3 * v) * 0.7,
-      (2 + Math.cos(2 * v)) * Math.sin(3 * v) * 0.7,
-      Math.sin(4 * v) * 0.7,
-    ],
-    type: "line",
-  },
-  {
-    id: "heart_surface",
-    name: "Heart Surface",
-    icon: "❤",
-    color: "pink",
-    category: "Mathematical",
-    range: [
-      [-2, 2],
-      [-2, 2],
-    ],
-    fn: (u, v) => {
-      // Heart parametric (approximate level set)
-      const x = u * 1.5;
-      const z = v * 1.5;
-      // y = cube root of (x^2 z^3 / (x^2 + 9y^2/4 + z^2 - 1)^3 ...)
-      // Simple parametric heart surface
-      const t = u * Math.PI,
-        s = (v * Math.PI) / 2;
-      const px = 4 * Math.pow(Math.sin(t), 3) * Math.cos(s) * 0.6;
-      const py =
-        (13 * Math.cos(t) -
-          5 * Math.cos(2 * t) -
-          2 * Math.cos(3 * t) -
-          Math.cos(4 * t)) *
-        0.12 *
-        Math.abs(Math.cos(s));
-      const pz = 4 * Math.pow(Math.sin(t), 3) * Math.sin(s) * 0.6;
-      return [px, py, pz];
-    },
-    type: "surface",
-  },
-  {
-    id: "hyperbolic_paraboloid",
-    name: "Hyperbolic Paraboloid",
-    icon: "⌗",
-    color: "gold",
-    category: "Quadrics",
-    range: [
-      [-3, 3],
-      [-3, 3],
-    ],
-    fn: (u, v) => [u, (u * u - v * v) * 0.3, v],
-    type: "surface",
-  },
-  {
-    id: "wave_interference",
-    name: "Wave Interference",
-    icon: "≋",
-    color: "cyan",
-    animated: true,
-    category: "Mathematical",
-    range: [
-      [-3, 3],
-      [-3, 3],
-    ],
-    fn: (u, v, t = 0) => [
-      u,
-      Math.sin(u * u + v * v + t) *
-        Math.cos(3 * u + t * 0.5) *
-        Math.sin(3 * v) *
-        0.8,
-      v,
-    ],
-    type: "surface",
-  },
-  {
-    id: "fractal_noise",
-    name: "Fractal Noise Surface",
-    icon: "🌊",
-    color: "emerald",
-    category: "Mathematical",
-    range: [
-      [-3, 3],
-      [-3, 3],
-    ],
-    fn: (u, v) => {
-      let z = 0;
-      for (let n = 1; n <= 5; n++)
-        z +=
-          (Math.sin(Math.pow(2, n) * u) * Math.cos(Math.pow(2, n) * v)) /
-          Math.pow(2, n);
-      return [u, z * 0.8, v];
-    },
-    type: "surface",
-  },
-  {
     id: "boys_surface",
     name: "Boy's Surface",
     icon: "𝔹",
     color: "violet",
+    animated: true,
     category: "Topology",
     range: [
       [0, Math.PI],
       [0, Math.PI],
     ],
-    fn: (u, v) => {
-      // Boy's surface parametric approximation
-      const x = Math.cos(u) * Math.sin(v);
-      const y = Math.sin(u) * Math.sin(v);
-      const z = Math.cos(v);
+    fn: (u, v, t = 0) => {
+      const x = Math.cos(u + t * 0.2) * Math.sin(v),
+        y = Math.sin(u + t * 0.2) * Math.sin(v),
+        z = Math.cos(v);
       const denom = Math.sqrt(2) - Math.sin(2 * u) * Math.sin(3 * v);
       const bx = Math.sqrt(2) * x * x - y * y - z * z + Math.sqrt(2) * x * z;
       const by = Math.sqrt(2) * (y * y - x * x) + Math.sqrt(2) * y * z;
@@ -1006,6 +1000,179 @@ const PRESETS = [
     type: "surface",
   },
   {
+    id: "whitney_umbrella",
+    name: "Whitney Umbrella",
+    icon: "☂",
+    color: "pink",
+    category: "Topology",
+    range: [
+      [-2, 2],
+      [-2, 2],
+    ],
+    fn: (u, v) => [u * v * 0.8, u * 0.8, v * v * 0.8],
+    type: "surface",
+  },
+  {
+    id: "hopf_fibration",
+    name: "Hopf Fibration",
+    icon: "ℍ",
+    color: "violet",
+    animated: true,
+    category: "Topology",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v, t = 0) => {
+      const theta = v,
+        phi = u,
+        psi = u * 2 + t * 0.2;
+      const x = Math.cos((theta + phi) / 2) * Math.cos((theta - phi) / 2 + psi);
+      const y = Math.cos((theta + phi) / 2) * Math.sin((theta - phi) / 2 + psi);
+      const z = Math.sin((theta + phi) / 2) * Math.cos((theta - phi) / 2);
+      const w = Math.sin((theta + phi) / 2) * Math.sin((theta - phi) / 2);
+      const d = 1 - w + 0.01;
+      return [(x / d) * 1.5, (y / d) * 1.5, (z / d) * 1.5];
+    },
+    type: "surface",
+  },
+
+  /* ── Attractors ── */
+  {
+    id: "lorenz",
+    name: "Lorenz Attractor",
+    icon: "🦋",
+    color: "cyan",
+    category: "Attractors",
+    type: "attractor",
+    attractor: {
+      init: [0.1, 0, 0],
+      scale: 0.09,
+      dt: 0.005,
+      steps: 10000,
+      deriv: (x, y, z) => {
+        const s = 10,
+          rho = 28,
+          b = 8 / 3;
+        return [s * (y - x), x * (rho - z) - y, x * y - b * z];
+      },
+    },
+  },
+  {
+    id: "rossler",
+    name: "Rössler Attractor",
+    icon: "🌀",
+    color: "violet",
+    category: "Attractors",
+    type: "attractor",
+    attractor: {
+      init: [1, 1, 1],
+      scale: 0.12,
+      dt: 0.008,
+      steps: 8000,
+      deriv: (x, y, z) => {
+        const a = 0.2,
+          b = 0.2,
+          c = 5.7;
+        return [-y - z, x + a * y, b + z * (x - c)];
+      },
+    },
+  },
+
+  /* ── Knots ── */
+  {
+    id: "torus_knot",
+    name: "Torus Knot (2,3)",
+    icon: "🪢",
+    color: "orange",
+    animated: true,
+    category: "Knots",
+    range: [
+      [-1, 1],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v, t = 0) => {
+      const p = 2,
+        q = 3,
+        R = 2,
+        r = 0.5;
+      return [
+        (R + r * Math.cos(q * v)) * Math.cos(p * v + t * 0.3),
+        r * Math.sin(q * v),
+        (R + r * Math.cos(q * v)) * Math.sin(p * v + t * 0.3),
+      ];
+    },
+    type: "line",
+  },
+  {
+    id: "lissajous_knot",
+    name: "Lissajous Knot",
+    icon: "⊛",
+    color: "emerald",
+    animated: true,
+    category: "Knots",
+    range: [
+      [-1, 1],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v, t = 0) => [
+      Math.sin(3 * v + t * 0.2) * 2,
+      Math.sin(4 * v) * 2,
+      Math.sin(5 * v + Math.PI / 6) * 2,
+    ],
+    type: "line",
+  },
+  {
+    id: "trefoil_knot",
+    name: "Trefoil Knot",
+    icon: "✶",
+    color: "violet",
+    animated: true,
+    category: "Knots",
+    range: [
+      [-1, 1],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v, t = 0) => [
+      (Math.sin(v) + 2 * Math.sin(2 * v)) * 1.2,
+      (Math.cos(v) - 2 * Math.cos(2 * v)) * 1.2,
+      -Math.sin(3 * v + t * 0.2) * 1.2,
+    ],
+    type: "line",
+  },
+  {
+    id: "figure_eight_knot",
+    name: "Figure-Eight Knot",
+    icon: "∞",
+    color: "pink",
+    category: "Knots",
+    range: [
+      [-1, 1],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v) => [
+      (2 + Math.cos(2 * v)) * Math.cos(3 * v) * 0.7,
+      (2 + Math.cos(2 * v)) * Math.sin(3 * v) * 0.7,
+      Math.sin(4 * v) * 0.7,
+    ],
+    type: "line",
+  },
+
+  /* ── Other ── */
+  {
+    id: "hyperbolic_paraboloid",
+    name: "Hyperbolic Paraboloid",
+    icon: "⌗",
+    color: "gold",
+    category: "Quadrics",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (u, v) => [u, (u * u - v * v) * 0.3, v],
+    type: "surface",
+  },
+  {
     id: "dini_surface",
     name: "Dini's Surface",
     icon: "ð",
@@ -1026,80 +1193,577 @@ const PRESETS = [
     },
     type: "surface",
   },
+
+  /* ══ 30 COSMIC PRESETS ══ */
   {
-    id: "catenoid",
-    name: "Catenoid",
-    icon: "🪣",
-    color: "cyan",
-    category: "Minimal Surfaces",
+    id: "nebula_surface",
+    name: "Nebula Surface",
+    icon: "🌌",
+    color: "violet",
+    animated: true,
+    category: "Cosmic",
     range: [
       [0, Math.PI * 2],
-      [-2, 2],
+      [0, Math.PI],
     ],
-    fn: (u, v) => {
-      const a = 1;
+    fn: (theta, phi, t = 0) => {
+      const r =
+        1 +
+        0.4 * Math.sin(12 * theta + t) * Math.cos(9 * phi) +
+        0.2 * Math.sin(24 * phi);
       return [
-        a * Math.cosh(v / a) * Math.cos(u) * 1.2,
-        v * 1.2,
-        a * Math.cosh(v / a) * Math.sin(u) * 1.2,
+        r * Math.sin(phi) * Math.cos(theta) * 2.5,
+        r * Math.cos(phi) * 2.5,
+        r * Math.sin(phi) * Math.sin(theta) * 2.5,
       ];
     },
     type: "surface",
   },
   {
-    id: "helicoid",
-    name: "Helicoid",
-    icon: "🐚",
-    color: "emerald",
-    category: "Minimal Surfaces",
+    id: "galaxy_spiral",
+    name: "Galaxy Spiral",
+    icon: "🌠",
+    color: "cyan",
     animated: true,
+    category: "Cosmic",
     range: [
-      [0, Math.PI * 4],
+      [-1, 1],
+      [0, Math.PI * 6],
+    ],
+    fn: (u, r, t = 0) => {
+      const theta = r;
+      return [
+        r * Math.cos(theta + 0.3 * r + t * 0.3) * 0.5,
+        0.5 * Math.sin(8 * theta) * Math.exp(-0.1 * r),
+        r * Math.sin(theta + 0.3 * r + t * 0.3) * 0.5,
+      ];
+    },
+    type: "line",
+  },
+  {
+    id: "pulsar_field",
+    name: "Pulsar Field",
+    icon: "✦",
+    color: "cyan",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-4, 4],
+      [-4, 4],
+    ],
+    fn: (x, z, t = 0) => {
+      const r = Math.sqrt(x * x + z * z) + 0.001;
+      return [x, Math.sin(20 * r - t * 4) / (1 + 0.1 * r * r), z];
+    },
+    type: "surface",
+  },
+  {
+    id: "black_hole_funnel",
+    name: "Black Hole Funnel",
+    icon: "⚫",
+    color: "violet",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-4, 4],
+      [-4, 4],
+    ],
+    fn: (x, z, t = 0) => {
+      const r = Math.sqrt(x * x + z * z) + 0.1;
+      return [x, Math.max(-5 / r + 0.05 * Math.sin(t * 2 + r * 3), -4), z];
+    },
+    type: "surface",
+  },
+  {
+    id: "wormhole_surface",
+    name: "Wormhole Surface",
+    icon: "🕳",
+    color: "violet",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [0, Math.PI * 2],
       [-2, 2],
+    ],
+    fn: (theta, v, t = 0) => {
+      const r = Math.cosh(v);
+      return [r * Math.cos(theta + t * 0.2), v, r * Math.sin(theta + t * 0.2)];
+    },
+    type: "surface",
+  },
+  {
+    id: "event_horizon_ripple",
+    name: "Event Horizon Ripple",
+    icon: "🕳",
+    color: "pink",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-4, 4],
+      [-4, 4],
+    ],
+    fn: (x, z, t = 0) => {
+      const r = Math.sqrt(x * x + z * z);
+      return [x, Math.exp(-0.05 * r * r) * Math.sin(15 * r - t * 3) * 0.8, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "cosmic_web",
+    name: "Cosmic Web",
+    icon: "🕸",
+    color: "emerald",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-Math.PI, Math.PI],
+      [-Math.PI, Math.PI],
+    ],
+    fn: (x, z, t = 0) => {
+      const val =
+        Math.sin(x) * Math.cos(z) + Math.sin(z + t * 0.5) * Math.cos(x);
+      return [x, val * 0.6, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "starburst_sphere",
+    name: "Starburst Sphere",
+    icon: "✨",
+    color: "gold",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (theta, phi, t = 0) => {
+      const r =
+        1 + 0.5 * Math.abs(Math.sin(20 * theta + t) * Math.sin(20 * phi));
+      return [
+        r * Math.sin(phi) * Math.cos(theta) * 2,
+        r * Math.cos(phi) * 2,
+        r * Math.sin(phi) * Math.sin(theta) * 2,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "meteor_crater",
+    name: "Meteor Crater Terrain",
+    icon: "☄",
+    color: "orange",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-4, 4],
+      [-4, 4],
+    ],
+    fn: (x, z, t = 0) => {
+      const r = Math.sqrt(x * x + z * z);
+      return [x, (-Math.exp(-0.5 * r * r) + 0.1 * Math.sin(10 * r + t)) * 2, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "saturn_ring_wave",
+    name: "Saturn Ring Wave",
+    icon: "🪐",
+    color: "gold",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [0, Math.PI * 2],
+      [0.5, 4],
+    ],
+    fn: (theta, r, t = 0) => [
+      r * Math.cos(theta + (t * 0.5) / r),
+      0.1 * Math.sin(30 * r - t * 2) * Math.exp(-0.05 * r),
+      r * Math.sin(theta + (t * 0.5) / r),
+    ],
+    type: "surface",
+  },
+  {
+    id: "solar_flare",
+    name: "Solar Flare Surface",
+    icon: "☀",
+    color: "orange",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (theta, phi, t = 0) => {
+      const r = 1 + 0.3 * Math.exp(-3 * phi) * Math.sin(25 * theta + t * 2);
+      return [
+        r * Math.sin(phi) * Math.cos(theta) * 2.5,
+        r * Math.cos(phi) * 2.5,
+        r * Math.sin(phi) * Math.sin(theta) * 2.5,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "aurora_shell",
+    name: "Aurora Shell",
+    icon: "🌈",
+    color: "emerald",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (theta, phi, t = 0) => {
+      const r = 1 + 0.2 * Math.sin(6 * phi + 12 * theta + t * 1.5);
+      return [
+        r * Math.sin(phi) * Math.cos(theta) * 2.5,
+        r * Math.cos(phi) * 2.5,
+        r * Math.sin(phi) * Math.sin(theta) * 2.5,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "supernova_blast",
+    name: "Supernova Blast",
+    icon: "💥",
+    color: "orange",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (theta, phi, t = 0) => {
+      const r =
+        (1 +
+          0.8 *
+            Math.exp(-0.2 * phi) *
+            Math.sin(30 * theta + t * 3) *
+            Math.cos(20 * phi)) *
+        (1 + 0.1 * Math.sin(t));
+      return [
+        r * Math.sin(phi) * Math.cos(theta) * 2,
+        r * Math.cos(phi) * 2,
+        r * Math.sin(phi) * Math.sin(theta) * 2,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "quasar_jet",
+    name: "Quasar Jet",
+    icon: "⚡",
+    color: "cyan",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-1, 1],
+      [0, Math.PI * 6],
+    ],
+    fn: (u, tp, t = 0) => [
+      Math.cos(tp + t * 0.5),
+      tp * 0.4,
+      Math.sin(tp + t * 0.5) + 0.5 * Math.sin(10 * tp + t),
+    ],
+    type: "line",
+  },
+  {
+    id: "accretion_disk",
+    name: "Accretion Disk",
+    icon: "💫",
+    color: "gold",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [0, Math.PI * 2],
+      [0.5, 4],
+    ],
+    fn: (theta, r, t = 0) => [
+      r * Math.cos(theta + (t * 0.5) / r),
+      0.05 * Math.sin(40 * theta - t * 3) * Math.exp(-0.02 * r * r),
+      r * Math.sin(theta + (t * 0.5) / r),
+    ],
+    type: "surface",
+  },
+  {
+    id: "dark_matter_halo",
+    name: "Dark Matter Halo",
+    icon: "🌑",
+    color: "violet",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (theta, phi, t = 0) => {
+      const r =
+        1 / (1 + 0.2 * Math.sin(8 * theta + t * 0.5) * Math.cos(8 * phi));
+      return [
+        r * Math.sin(phi) * Math.cos(theta) * 3,
+        r * Math.cos(phi) * 3,
+        r * Math.sin(phi) * Math.sin(theta) * 3,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "cosmic_bubble",
+    name: "Cosmic Bubble",
+    icon: "🫧",
+    color: "cyan",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (u, v, t = 0) => {
+      const r = 1 + 0.2 * Math.sin(10 * u + t) * Math.sin(10 * v);
+      return [
+        r * Math.sin(v) * Math.cos(u) * 2.5,
+        r * Math.cos(v) * 2.5,
+        r * Math.sin(v) * Math.sin(u) * 2.5,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "gravity_well",
+    name: "Gravity Well",
+    icon: "🌀",
+    color: "violet",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-4, 4],
+      [-4, 4],
+    ],
+    fn: (x, z, t = 0) => [
+      x,
+      -10 / (1 + x * x + z * z) + 0.05 * Math.sin(t * 2),
+      z,
+    ],
+    type: "surface",
+  },
+  {
+    id: "planetary_terrain",
+    name: "Planetary Terrain",
+    icon: "🌍",
+    color: "emerald",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (x, z, t = 0) => {
+      const y =
+        0.2 * Math.sin(5 * x + t * 0.3) * Math.cos(5 * z) +
+        0.1 * Math.sin(20 * x) * Math.cos(20 * z);
+      return [x, y * 2, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "lunar_surface",
+    name: "Lunar Surface",
+    icon: "🌙",
+    color: "gold",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-4, 4],
+      [-4, 4],
+    ],
+    fn: (x, z, t = 0) => {
+      const r = Math.sqrt(x * x + z * z) + 0.1;
+      return [
+        x,
+        ((0.3 * Math.sin(x * x + z * z + t * 0.5)) / (1 + 0.1 * r * r)) * 3,
+        z,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "comet_tail",
+    name: "Comet Tail",
+    icon: "☄",
+    color: "cyan",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-1, 1],
+      [0, 10],
+    ],
+    fn: (u, tp, t = 0) => [
+      tp,
+      Math.sin(3 * tp + t) * Math.exp(-0.1 * tp),
+      Math.cos(5 * tp + t * 0.5) * Math.exp(-0.1 * tp),
+    ],
+    type: "line",
+  },
+  {
+    id: "spiral_galaxy",
+    name: "Logarithmic Galaxy Arms",
+    icon: "🌌",
+    color: "gold",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-1, 1],
+      [0, Math.PI * 4],
+    ],
+    fn: (u, theta, t = 0) => {
+      const r = 0.3 * Math.exp(0.15 * theta);
+      return [
+        r * Math.cos(theta + t * 0.2),
+        0.2 * Math.sin(6 * theta + t),
+        r * Math.sin(theta + t * 0.2),
+      ];
+    },
+    type: "line",
+  },
+  {
+    id: "cosmic_vortex",
+    name: "Cosmic Vortex",
+    icon: "🌪",
+    color: "pink",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-1, 1],
+      [0.1, Math.PI * 4],
+    ],
+    fn: (u, r, t = 0) => [
+      r * Math.cos(r + 5 / r + t * 0.3),
+      Math.sin(10 * r + t * 2) * 0.5,
+      r * Math.sin(r + 5 / r + t * 0.3),
+    ],
+    type: "line",
+  },
+  {
+    id: "radiation_shell",
+    name: "Radiation Shell",
+    icon: "☢",
+    color: "orange",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (theta, phi, t = 0) => {
+      const r = 1 + 0.25 * Math.sin(50 * theta + t * 2) * Math.sin(50 * phi);
+      return [
+        r * Math.sin(phi) * Math.cos(theta) * 2.5,
+        r * Math.cos(phi) * 2.5,
+        r * Math.sin(phi) * Math.sin(theta) * 2.5,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "plasma_sphere",
+    name: "Plasma Sphere",
+    icon: "⚛",
+    color: "cyan",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (theta, phi, t = 0) => {
+      const r = 1 + 0.15 * Math.sin(20 * theta + 10 * phi + t * 3);
+      return [
+        r * Math.sin(phi) * Math.cos(theta) * 2.5,
+        r * Math.cos(phi) * 2.5,
+        r * Math.sin(phi) * Math.sin(theta) * 2.5,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "exoplanet_mountains",
+    name: "Exoplanet Mountains",
+    icon: "⛰",
+    color: "emerald",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (x, z, t = 0) => {
+      let y = 0;
+      for (let n = 1; n <= 4; n++)
+        y +=
+          (Math.sin(Math.pow(2, n) * x + t * 0.3) *
+            Math.cos(Math.pow(2, n) * z)) /
+          Math.pow(2, n);
+      return [x, y, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "time_warp",
+    name: "Time Warp Surface",
+    icon: "⏱",
+    color: "pink",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (x, z, t = 0) => [
+      x,
+      Math.sin(x * x - z * z + t * 2) / (1 + 0.05 * (x * x + z * z)),
+      z,
+    ],
+    type: "surface",
+  },
+  {
+    id: "photon_wave",
+    name: "Photon Wave",
+    icon: "🌊",
+    color: "cyan",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (x, z, t = 0) => [
+      x,
+      Math.sin(30 * x + 30 * z - t * 5) *
+        Math.exp(-0.02 * (x * x + z * z)) *
+        0.5,
+      z,
+    ],
+    type: "surface",
+  },
+  {
+    id: "interstellar_portal",
+    name: "Interstellar Portal",
+    icon: "🌀",
+    color: "violet",
+    animated: true,
+    category: "Cosmic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI * 2],
     ],
     fn: (u, v, t = 0) => [
-      v * Math.cos(u + t * 0.3) * 1.2,
-      u * 0.5 - Math.PI,
-      v * Math.sin(u + t * 0.3) * 1.2,
+      (2 + Math.cos(8 * v)) * Math.cos(u + t * 0.3),
+      (2 + Math.cos(8 * v)) * Math.sin(u + t * 0.3),
+      Math.sin(8 * v),
     ],
-    type: "surface",
-  },
-  {
-    id: "whitney_umbrella",
-    name: "Whitney Umbrella",
-    icon: "☂",
-    color: "pink",
-    category: "Topology",
-    range: [
-      [-2, 2],
-      [-2, 2],
-    ],
-    fn: (u, v) => [u * v * 0.8, u * 0.8, v * v * 0.8],
-    type: "surface",
-  },
-  {
-    id: "hopf_fibration",
-    name: "Hopf Fibration",
-    icon: "ℍ",
-    color: "violet",
-    category: "Topology",
-    range: [
-      [0, Math.PI * 2],
-      [0, Math.PI * 2],
-    ],
-    fn: (u, v) => {
-      // Hopf fibration fiber visualization
-      const theta = v,
-        phi = u,
-        psi = u * 2;
-      const x = Math.cos((theta + phi) / 2) * Math.cos((theta - phi) / 2 + psi);
-      const y = Math.cos((theta + phi) / 2) * Math.sin((theta - phi) / 2 + psi);
-      const z = Math.sin((theta + phi) / 2) * Math.cos((theta - phi) / 2);
-      const w = Math.sin((theta + phi) / 2) * Math.sin((theta - phi) / 2);
-      // Project from S³ to R³ via stereographic
-      const denom = 1 - w + 0.01;
-      return [(x / denom) * 1.5, (y / denom) * 1.5, (z / denom) * 1.5];
-    },
     type: "surface",
   },
 ];
@@ -1114,6 +1778,7 @@ const CATEGORY_COLORS = {
   Knots: "#fbbf24",
   Quadrics: "#60a5fa",
   "Differential Geometry": "#e879f9",
+  Cosmic: "#818cf8",
 };
 
 const ALL_CATEGORIES = [
@@ -1140,12 +1805,13 @@ export default function Plotter3DPage() {
       ? PRESETS
       : PRESETS.filter((p) => (p.category || "Classic") === activeCategory);
 
+  const activeColor = COLOR_MAP[colorScheme] || "#22d3ee";
+
   return (
     <div
       className="flex flex-1 overflow-hidden"
       style={{ height: "calc(100vh - 56px)" }}
     >
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 lg:hidden"
@@ -1157,7 +1823,6 @@ export default function Plotter3DPage() {
         />
       )}
 
-      {/* Mobile toggle */}
       <button
         onClick={() => setSidebarOpen((o) => !o)}
         className="lg:hidden fixed bottom-6 left-4 z-50 w-12 h-12 rounded-full flex items-center justify-center"
@@ -1190,7 +1855,6 @@ export default function Plotter3DPage() {
           }}
         />
 
-        {/* Header */}
         <div
           className="px-3 py-3 border-b"
           style={{ borderColor: "rgba(139,92,246,0.1)" }}
@@ -1214,7 +1878,6 @@ export default function Plotter3DPage() {
           </div>
         </div>
 
-        {/* Controls */}
         <div
           className="p-3 flex flex-col gap-3 border-b"
           style={{ borderColor: "rgba(139,92,246,0.08)" }}
@@ -1289,7 +1952,12 @@ export default function Plotter3DPage() {
                 >
                   <div
                     className="w-1.5 h-1.5 rounded-full"
-                    style={{ background: s.c }}
+                    style={{
+                      background:
+                        s.id === "rainbow"
+                          ? "linear-gradient(90deg,#f472b6,#22d3ee)"
+                          : s.c,
+                    }}
                   />
                   {s.id}
                 </button>
@@ -1352,7 +2020,7 @@ export default function Plotter3DPage() {
           </div>
         </div>
 
-        {/* Category filter */}
+        {/* Category filter + preset list */}
         <div className="px-3 pt-3">
           <div className="section-label text-[10px] mb-1.5">Category</div>
           <div className="flex flex-wrap gap-1 mb-3">
@@ -1375,7 +2043,6 @@ export default function Plotter3DPage() {
             ))}
           </div>
 
-          {/* Preset list */}
           <div className="section-label text-[10px] mb-1.5">
             Presets ({filteredPresets.length})
           </div>
@@ -1445,7 +2112,7 @@ export default function Plotter3DPage() {
         </div>
       </aside>
 
-      {/* Main 3D Canvas */}
+      {/* Main Canvas */}
       <main className="flex flex-col flex-1 overflow-hidden min-w-0">
         {/* Top bar */}
         <div
@@ -1458,7 +2125,7 @@ export default function Plotter3DPage() {
           <div className="flex items-center gap-2 flex-wrap min-w-0">
             <span
               className="font-orbitron text-xs font-bold truncate max-w-[200px]"
-              style={{ color: "#a78bfa" }}
+              style={{ color: activeColor }}
             >
               {customMode ? `f(x,y) = ${customExpr}` : preset.name}
             </span>
@@ -1486,14 +2153,12 @@ export default function Plotter3DPage() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <span
-              className="font-mono-code text-[8px] hidden sm:block"
-              style={{ color: "#1e293b" }}
-            >
-              Drag·Scroll·RightClick
-            </span>
-          </div>
+          <span
+            className="font-mono-code text-[8px] hidden sm:block"
+            style={{ color: "#1e293b" }}
+          >
+            Drag·Scroll·RightClick
+          </span>
         </div>
 
         {/* Canvas */}
@@ -1501,7 +2166,6 @@ export default function Plotter3DPage() {
           <Canvas
             camera={{ position: [6, 5, 8], fov: 50 }}
             gl={{ antialias: true, alpha: false }}
-            style={{ background: "transparent" }}
           >
             <color attach="background" args={["#020810"]} />
             <SceneLighting
@@ -1521,7 +2185,6 @@ export default function Plotter3DPage() {
                 speed={0.3}
               />
             )}
-
             {showAxes && <AxisLines size={5} />}
 
             <Suspense fallback={null}>
@@ -1546,7 +2209,7 @@ export default function Plotter3DPage() {
               ) : (
                 <SurfaceMesh
                   preset={preset}
-                  colorScheme={preset.color || colorScheme}
+                  colorScheme={colorScheme}
                   wireframe={wireframe}
                   opacity={opacity}
                 />
@@ -1582,7 +2245,7 @@ export default function Plotter3DPage() {
             />
           </Canvas>
 
-          {/* Axis legend overlay */}
+          {/* Axis legend */}
           {showAxes && (
             <div
               className="absolute bottom-10 right-3 flex flex-col gap-1 pointer-events-none"
@@ -1613,6 +2276,31 @@ export default function Plotter3DPage() {
               ))}
             </div>
           )}
+
+          {/* Color scheme badge */}
+          <div
+            className="absolute top-3 right-3 flex items-center gap-1.5 pointer-events-none"
+            style={{
+              background: "rgba(2,4,16,0.75)",
+              border: `1px solid ${activeColor}30`,
+              borderRadius: 8,
+              padding: "4px 10px",
+            }}
+          >
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{
+                background: activeColor,
+                boxShadow: `0 0 6px ${activeColor}`,
+              }}
+            />
+            <span
+              className="font-mono-code text-[9px] capitalize"
+              style={{ color: activeColor }}
+            >
+              {colorScheme}
+            </span>
+          </div>
         </div>
 
         {/* Bottom info */}
@@ -1625,14 +2313,13 @@ export default function Plotter3DPage() {
         >
           <div className="flex items-center gap-3">
             {[
-              ["Three.js", "Renderer", "#a78bfa"],
-              ["R3F", "Bridge", "#f472b6"],
-              ["WebGL", "GPU", "#22d3ee"],
-            ].map(([n, l, c]) => (
+              ["Three.js", "#a78bfa"],
+              ["R3F", "#f472b6"],
+              ["WebGL", "#22d3ee"],
+            ].map(([n, c]) => (
               <span
                 key={n}
                 className="font-mono-code text-[9px] flex items-center gap-1"
-                style={{ color: "#334155" }}
               >
                 <span
                   className="w-1 h-1 rounded-full"
