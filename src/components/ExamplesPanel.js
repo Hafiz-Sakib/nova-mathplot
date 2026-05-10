@@ -292,22 +292,15 @@ const CATEGORIES = [
         desc: "Smooth step from −1 to +1",
       },
       {
-        label: "Witch of Agnesi",
-        expr: "1 / (1 + x^2)",
-        xMin: -6,
-        xMax: 6,
-        desc: "Bell curve; Cauchy distribution",
-      },
-      {
         label: "Sign function",
         expr: "sign(x)",
-        xMin: -3,
-        xMax: 3,
+        xMin: -5,
+        xMax: 5,
         desc: "Returns −1, 0, or +1",
       },
       {
-        label: "Step / Heaviside",
-        expr: "(sign(x) + 1) / 2",
+        label: "Heaviside step",
+        expr: "(sign(x)+1)/2",
         xMin: -5,
         xMax: 5,
         desc: "0 for x<0, 1 for x>0",
@@ -315,81 +308,17 @@ const CATEGORIES = [
     ],
   },
   {
-    name: "Beautiful Curves",
-    icon: "✧",
-    color: "#a78bfa",
-    desc: "Visually striking mathematical shapes",
-    examples: [
-      {
-        label: "Chirp sin(x²)",
-        expr: "sin(x^2)",
-        xMin: -10,
-        xMax: 10,
-        desc: "Frequency increases — like a radar chirp",
-      },
-      {
-        label: "Fourier square wave",
-        expr: "sin(x) + sin(3*x)/3 + sin(5*x)/5 + sin(7*x)/7",
-        xMin: -10,
-        xMax: 10,
-        desc: "Odd harmonics approximate a square wave",
-      },
-      {
-        label: "Dragon curve",
-        expr: "sin(x) * cos(x^2/4)",
-        xMin: -6,
-        xMax: 6,
-        desc: "Amplitude-modulated oscillation",
-      },
-      {
-        label: "Superposition",
-        expr: "sin(x) + sin(sqrt(2)*x)",
-        xMin: -30,
-        xMax: 30,
-        desc: "Incommensurable frequencies — never repeats",
-      },
-      {
-        label: "Butterfly",
-        expr: "e^(cos(x)) - 2*cos(4*x) - sin(x/12)^5",
-        xMin: -10,
-        xMax: 10,
-        desc: "Famed butterfly curve component",
-      },
-      {
-        label: "Spiral decay",
-        expr: "x * e^(-x^2/10) * sin(x)",
-        xMin: -12,
-        xMax: 12,
-        desc: "Outward spiral then inward decay",
-      },
-      {
-        label: "Twin peaks",
-        expr: "e^(-x^2)*sin(3*x) + e^(-(x-4)^2)*sin(2*x)",
-        xMin: -4,
-        xMax: 8,
-        desc: "Interference between two Gaussian packets",
-      },
-      {
-        label: "Clover spiral",
-        expr: "sin(3*x) * cos(x)",
-        xMin: -8,
-        xMax: 8,
-        desc: "Three-petal rose function projected to 1D",
-      },
-    ],
-  },
-  {
-    name: "Physics & Engineering",
+    name: "Physics",
     icon: "⚛",
-    color: "#60a5fa",
-    desc: "Functions from real-world models",
+    color: "#a78bfa",
+    desc: "Waves, oscillations and physical laws",
     examples: [
       {
         label: "Simple harmonic",
         expr: "cos(2*pi*x)",
         xMin: 0,
         xMax: 4,
-        desc: "One oscillation per unit — simple harmonic motion",
+        desc: "One oscillation per unit",
       },
       {
         label: "Damped spring",
@@ -410,7 +339,7 @@ const CATEGORIES = [
         expr: "sin(x)^2",
         xMin: 0,
         xMax: 15,
-        desc: "Instantaneous power in AC circuit (always ≥ 0)",
+        desc: "Instantaneous power in AC circuit",
       },
       {
         label: "Resonance peak",
@@ -510,32 +439,65 @@ export default function ExamplesPanel({ onLoad }) {
       })).filter((cat) => cat.examples.length > 0)
     : CATEGORIES;
 
+  const totalCount = CATEGORIES.reduce((n, c) => n + c.examples.length, 0);
+
   return (
     <div className="p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <div className="section-label">Examples</div>
-        <span
-          className="font-mono-code text-[9px]"
-          style={{ color: "#334155" }}
+        <div
+          className="font-orbitron text-[9px] tracking-[3px] uppercase"
+          style={{ color: "#164e63" }}
         >
-          {CATEGORIES.reduce((n, c) => n + c.examples.length, 0)} functions
+          Examples
+        </div>
+        <span
+          className="font-mono-code text-[9px] px-2 py-0.5 rounded-full"
+          style={{
+            background: "rgba(6,182,212,0.07)",
+            border: "1px solid rgba(6,182,212,0.12)",
+            color: "#22d3ee",
+          }}
+        >
+          {totalCount} functions
         </span>
       </div>
 
       {/* Search */}
       <div className="relative mb-3">
+        <span
+          className="absolute left-3 top-1/2 -translate-y-1/2 font-mono-code text-[11px] pointer-events-none"
+          style={{ color: "#334155" }}
+        >
+          🔍
+        </span>
         <input
-          className="nova-input w-full text-xs"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="🔍 Search examples…"
+          placeholder="Search examples…"
+          spellCheck={false}
+          style={{
+            width: "100%",
+            background: "rgba(2,10,20,0.9)",
+            border: "1px solid rgba(6,182,212,0.15)",
+            borderRadius: 10,
+            color: "#64748b",
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "0.78rem",
+            padding: "7px 32px 7px 30px",
+            outline: "none",
+            transition: "border-color 0.2s",
+          }}
+          onFocus={(e) => (e.target.style.borderColor = "rgba(6,182,212,0.45)")}
+          onBlur={(e) => (e.target.style.borderColor = "rgba(6,182,212,0.15)")}
         />
         {search && (
           <button
             onClick={() => setSearch("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 font-mono-code text-[10px]"
-            style={{ color: "#475569" }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 font-mono-code text-[10px] w-5 h-5 flex items-center justify-center rounded"
+            style={{ color: "#334155" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#f87171")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#334155")}
           >
             ✕
           </button>
@@ -544,122 +506,144 @@ export default function ExamplesPanel({ onLoad }) {
 
       {/* Category accordion */}
       <div className="flex flex-col gap-2">
-        {filtered.map((cat) => (
-          <div key={cat.name}>
-            {/* Category header */}
-            <button
-              onClick={() => setOpenCat(openCat === cat.name ? null : cat.name)}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all"
-              style={{
-                background:
-                  openCat === cat.name ? `${cat.color}10` : "rgba(4,10,24,0.5)",
-                border: `1px solid ${openCat === cat.name ? cat.color + "35" : "rgba(6,182,212,0.07)"}`,
-              }}
-            >
-              <span className="text-sm flex-shrink-0">{cat.icon}</span>
-              <div className="flex-1 text-left">
-                <div
-                  className="font-rajdhani text-xs font-semibold"
+        {filtered.map((cat) => {
+          const isOpen = openCat === cat.name || !!search;
+          return (
+            <div key={cat.name}>
+              {/* Category header */}
+              <button
+                onClick={() =>
+                  setOpenCat(openCat === cat.name ? null : cat.name)
+                }
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-200"
+                style={{
+                  background: isOpen ? `${cat.color}0d` : "rgba(2,8,20,0.5)",
+                  border: `1px solid ${isOpen ? cat.color + "30" : "rgba(6,182,212,0.07)"}`,
+                }}
+              >
+                {/* Icon */}
+                <span
+                  className="w-7 h-7 flex items-center justify-center rounded-lg flex-shrink-0 text-sm"
                   style={{
-                    color: openCat === cat.name ? cat.color : "#64748b",
+                    background: `${cat.color}12`,
+                    border: `1px solid ${cat.color}25`,
                   }}
                 >
-                  {cat.name}
-                </div>
-                {!search && (
+                  {cat.icon}
+                </span>
+
+                {/* Name + desc */}
+                <div className="flex-1 text-left min-w-0">
                   <div
-                    className="font-rajdhani text-[9px]"
-                    style={{ color: "#1e3a5f" }}
+                    className="font-rajdhani text-xs font-semibold"
+                    style={{ color: isOpen ? cat.color : "#475569" }}
                   >
-                    {cat.desc}
+                    {cat.name}
                   </div>
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <span
-                  className="font-mono-code text-[9px] px-1.5 py-0.5 rounded"
-                  style={{ background: `${cat.color}15`, color: cat.color }}
-                >
-                  {cat.examples.length}
-                </span>
-                <span
-                  className="font-mono-code text-[10px]"
-                  style={{ color: "#334155" }}
-                >
-                  {openCat === cat.name ? "▲" : "▼"}
-                </span>
-              </div>
-            </button>
-
-            {/* Examples list */}
-            {(openCat === cat.name || search) && (
-              <div className="mt-1 ml-1 flex flex-col gap-1">
-                {cat.examples.map((ex) => (
-                  <button
-                    key={ex.label}
-                    onClick={() => onLoad(ex)}
-                    className="w-full text-left px-3 py-2 rounded-xl transition-all group"
-                    style={{
-                      background: "transparent",
-                      border: "1px solid rgba(6,182,212,0.06)",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = `${cat.color}08`;
-                      e.currentTarget.style.borderColor = `${cat.color}30`;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.borderColor =
-                        "rgba(6,182,212,0.06)";
-                    }}
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1 min-w-0">
-                        {/* Label + expression */}
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span
-                            className="font-rajdhani text-xs font-semibold"
-                            style={{ color: "#94a3b8" }}
-                          >
-                            {ex.label}
-                          </span>
-                          <code
-                            className="font-mono-code text-[9px] px-1.5 py-0.5 rounded flex-shrink-0"
-                            style={{
-                              background: `${cat.color}12`,
-                              color: cat.color,
-                            }}
-                          >
-                            {ex.expr}
-                          </code>
-                        </div>
-                        {/* Description */}
-                        {ex.desc && (
-                          <div
-                            className="font-rajdhani text-[10px] mt-0.5"
-                            style={{ color: "#334155" }}
-                          >
-                            {ex.desc}
-                          </div>
-                        )}
-                      </div>
-                      {/* Load arrow */}
-                      <span
-                        className="font-mono-code text-[10px] flex-shrink-0 mt-0.5"
-                        style={{ color: "#1e3a5f" }}
-                      >
-                        →
-                      </span>
+                  {!search && (
+                    <div
+                      className="font-rajdhani text-[9px] truncate"
+                      style={{ color: "#164e63" }}
+                    >
+                      {cat.desc}
                     </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+                  )}
+                </div>
 
+                {/* Count + arrow */}
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <span
+                    className="font-mono-code text-[9px] px-1.5 py-0.5 rounded-md"
+                    style={{ background: `${cat.color}15`, color: cat.color }}
+                  >
+                    {cat.examples.length}
+                  </span>
+                  <span
+                    className="font-mono-code text-[9px]"
+                    style={{ color: "#334155" }}
+                  >
+                    {isOpen ? "▲" : "▼"}
+                  </span>
+                </div>
+              </button>
+
+              {/* Examples list */}
+              {isOpen && (
+                <div className="mt-1.5 ml-1 flex flex-col gap-1">
+                  {cat.examples.map((ex) => (
+                    <button
+                      key={ex.label}
+                      onClick={() => onLoad(ex)}
+                      className="w-full text-left px-3 py-2.5 rounded-xl transition-all duration-150 group"
+                      style={{
+                        background: "rgba(2,8,20,0.4)",
+                        border: "1px solid rgba(6,182,212,0.05)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = `${cat.color}09`;
+                        e.currentTarget.style.borderColor = `${cat.color}28`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "rgba(2,8,20,0.4)";
+                        e.currentTarget.style.borderColor =
+                          "rgba(6,182,212,0.05)";
+                      }}
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          {/* Label + expression */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span
+                              className="font-rajdhani text-xs font-semibold"
+                              style={{ color: "#64748b" }}
+                            >
+                              {ex.label}
+                            </span>
+                            <code
+                              className="font-mono-code text-[9px] px-1.5 py-0.5 rounded flex-shrink-0"
+                              style={{
+                                background: `${cat.color}12`,
+                                color: cat.color,
+                              }}
+                            >
+                              {ex.expr}
+                            </code>
+                          </div>
+                          {/* Description */}
+                          {ex.desc && (
+                            <div
+                              className="font-rajdhani text-[9px] mt-0.5 leading-relaxed"
+                              style={{ color: "#1e3a5f" }}
+                            >
+                              {ex.desc}
+                            </div>
+                          )}
+                        </div>
+                        {/* Arrow */}
+                        <span
+                          className="font-mono-code text-[10px] flex-shrink-0 mt-0.5 transition-all"
+                          style={{ color: "#164e63" }}
+                        >
+                          →
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Empty state */}
         {filtered.length === 0 && (
-          <div className="text-center py-6">
+          <div className="text-center py-8 flex flex-col items-center gap-2">
+            <div
+              className="font-mono-code text-2xl"
+              style={{ color: "rgba(6,182,212,0.1)" }}
+            >
+              ∿
+            </div>
             <div
               className="font-mono-code text-xs"
               style={{ color: "#334155" }}
@@ -667,8 +651,8 @@ export default function ExamplesPanel({ onLoad }) {
               No examples match
             </div>
             <div
-              className="font-rajdhani text-[10px] mt-1"
-              style={{ color: "#1e293b" }}
+              className="font-rajdhani text-[10px]"
+              style={{ color: "#164e63" }}
             >
               Try: sin, cos, log, x^2…
             </div>
