@@ -466,6 +466,7 @@ const PRESETS = [
   {
     id: "wave",
     name: "Wave Surface",
+    equation: "y = sin(√(x²+z²) − t)",
     icon: "〜",
     color: "cyan",
     animated: true,
@@ -484,6 +485,7 @@ const PRESETS = [
   {
     id: "helix",
     name: "Helix",
+    equation: "(cos(8t), 3t, sin(8t))",
     icon: "⟳",
     color: "cyan",
     animated: true,
@@ -502,6 +504,7 @@ const PRESETS = [
   {
     id: "torus",
     name: "Torus",
+    equation: "((R+r·cos v)cos u, r·sin v, (R+r·cos v)sin u)",
     icon: "◎",
     color: "violet",
     animated: true,
@@ -524,6 +527,7 @@ const PRESETS = [
   {
     id: "saddle",
     name: "Saddle Surface",
+    equation: "y = x² − z²",
     icon: "∩",
     color: "orange",
     category: "Classic",
@@ -537,6 +541,7 @@ const PRESETS = [
   {
     id: "paraboloid",
     name: "Paraboloid",
+    equation: "y = (x² + z²) / 4",
     icon: "∪",
     color: "emerald",
     category: "Classic",
@@ -550,6 +555,7 @@ const PRESETS = [
   {
     id: "ripple",
     name: "Ripple Surface",
+    equation: "y = sin(x+t)·cos(z+t)",
     icon: "◉",
     color: "cyan",
     animated: true,
@@ -568,6 +574,7 @@ const PRESETS = [
   {
     id: "sphere",
     name: "Sphere",
+    equation: "x²+y²+z² = r²",
     icon: "○",
     color: "violet",
     animated: true,
@@ -589,6 +596,7 @@ const PRESETS = [
   {
     id: "gaussian",
     name: "Gaussian",
+    equation: "y = e^(−(x²+z²)/2)",
     icon: "⌒",
     color: "orange",
     category: "Classic",
@@ -602,6 +610,7 @@ const PRESETS = [
   {
     id: "spiral",
     name: "Spiral",
+    equation: "(r·cos t, t/2, r·sin t), r=t/3+½",
     icon: "🌀",
     color: "pink",
     animated: true,
@@ -623,6 +632,7 @@ const PRESETS = [
   {
     id: "flower",
     name: "Parametric Flower",
+    equation: "r = sin(3u)·½ + 1.5",
     icon: "❀",
     color: "pink",
     animated: true,
@@ -644,6 +654,7 @@ const PRESETS = [
   {
     id: "hyperboloid",
     name: "Hyperboloid",
+    equation: "(cosh v·cos u, v, cosh v·sin u)",
     icon: "X",
     color: "emerald",
     animated: true,
@@ -662,6 +673,7 @@ const PRESETS = [
   {
     id: "complexwave",
     name: "Complex Exp",
+    equation: "y = e^(−r²/4)·cos(x+y+t)",
     icon: "ℂ",
     color: "violet",
     animated: true,
@@ -681,6 +693,7 @@ const PRESETS = [
   {
     id: "spherical_harmonics",
     name: "Spherical Harmonics",
+    equation: "r = |sin(mθ)·cos(nφ)|",
     icon: "Yₗₘ",
     color: "violet",
     animated: true,
@@ -705,6 +718,7 @@ const PRESETS = [
   {
     id: "superformula",
     name: "Superformula",
+    equation: "r = (|cos(mφ/4)/a|^n₂ + |sin(mφ/4)/b|^n₃)^(−1/n₁)",
     icon: "🌸",
     color: "pink",
     category: "Mathematical",
@@ -737,6 +751,7 @@ const PRESETS = [
   {
     id: "wave_interference",
     name: "Wave Interference",
+    equation: "y = sin(r²+t)·cos(3x+t)·sin(3z)",
     icon: "≋",
     color: "cyan",
     animated: true,
@@ -758,6 +773,7 @@ const PRESETS = [
   {
     id: "fractal_noise",
     name: "Fractal Noise Surface",
+    equation: "y = Σ sin(2ⁿx)·cos(2ⁿz) / 2ⁿ",
     icon: "🌊",
     color: "emerald",
     animated: true,
@@ -780,6 +796,7 @@ const PRESETS = [
   {
     id: "heart_surface",
     name: "Heart Surface",
+    equation: "(x²+y²+z²−1)³ = x²z³+y²z³/9",
     icon: "❤",
     color: "pink",
     animated: true,
@@ -810,6 +827,7 @@ const PRESETS = [
   {
     id: "gyroid",
     name: "Gyroid",
+    equation: "sin x·cos y + sin y·cos z + sin z·cos x = 0",
     icon: "⬡",
     color: "emerald",
     category: "Minimal Surfaces",
@@ -837,6 +855,7 @@ const PRESETS = [
   {
     id: "schwarz_p",
     name: "Schwarz P Surface",
+    equation: "cos x + cos y + cos z = 0",
     icon: "𝒫",
     color: "cyan",
     category: "Minimal Surfaces",
@@ -857,6 +876,7 @@ const PRESETS = [
   {
     id: "enneper",
     name: "Enneper Surface",
+    equation: "(u−u³/3+uv², u²−v², v−v³/3+vu²)",
     icon: "𝔼",
     color: "gold",
     animated: true,
@@ -878,6 +898,7 @@ const PRESETS = [
   {
     id: "catenoid",
     name: "Catenoid",
+    equation: "(cosh v·cos u, v, cosh v·sin u)",
     icon: "🪣",
     color: "cyan",
     animated: true,
@@ -896,6 +917,7 @@ const PRESETS = [
   {
     id: "helicoid",
     name: "Helicoid",
+    equation: "(v·cos u, u/2, v·sin u)",
     icon: "🐚",
     color: "emerald",
     animated: true,
@@ -916,6 +938,7 @@ const PRESETS = [
   {
     id: "mobius",
     name: "Möbius Strip",
+    equation: "((1+v·cos u/2)cos u, v·sin u/2, (1+v·cos u/2)sin u)",
     icon: "∞",
     color: "pink",
     animated: true,
@@ -934,6 +957,7 @@ const PRESETS = [
   {
     id: "klein",
     name: "Klein Bottle",
+    equation: "Non-orientable closed surface in ℝ⁴",
     icon: "∮",
     color: "gold",
     category: "Topology",
@@ -962,6 +986,7 @@ const PRESETS = [
   {
     id: "boys_surface",
     name: "Boy's Surface",
+    equation: "Apéry immersion of RP² in ℝ³",
     icon: "𝔹",
     color: "violet",
     animated: true,
@@ -985,6 +1010,7 @@ const PRESETS = [
   {
     id: "roman_surface",
     name: "Roman Surface (Steiner)",
+    equation: "x²y²+y²z²+z²x² = xyz",
     icon: "🏛",
     color: "orange",
     category: "Topology",
@@ -1002,6 +1028,7 @@ const PRESETS = [
   {
     id: "whitney_umbrella",
     name: "Whitney Umbrella",
+    equation: "x²z = y²",
     icon: "☂",
     color: "pink",
     category: "Topology",
@@ -1015,6 +1042,7 @@ const PRESETS = [
   {
     id: "hopf_fibration",
     name: "Hopf Fibration",
+    equation: "S³ → S² fiber bundle, S¹ fibers",
     icon: "ℍ",
     color: "violet",
     animated: true,
@@ -1041,6 +1069,7 @@ const PRESETS = [
   {
     id: "lorenz",
     name: "Lorenz Attractor",
+    equation: "ẋ=σ(y−x), ẏ=x(ρ−z)−y, ż=xy−βz",
     icon: "🦋",
     color: "cyan",
     category: "Attractors",
@@ -1061,6 +1090,7 @@ const PRESETS = [
   {
     id: "rossler",
     name: "Rössler Attractor",
+    equation: "ẋ=−y−z, ẏ=x+ay, ż=b+z(x−c)",
     icon: "🌀",
     color: "violet",
     category: "Attractors",
@@ -1083,6 +1113,7 @@ const PRESETS = [
   {
     id: "torus_knot",
     name: "Torus Knot (2,3)",
+    equation: "((R+r·cos 3t)cos 2t, r·sin 3t, (R+r·cos 3t)sin 2t)",
     icon: "🪢",
     color: "orange",
     animated: true,
@@ -1107,6 +1138,7 @@ const PRESETS = [
   {
     id: "lissajous_knot",
     name: "Lissajous Knot",
+    equation: "(sin 3t, sin 4t, sin(5t+π/6))",
     icon: "⊛",
     color: "emerald",
     animated: true,
@@ -1125,6 +1157,7 @@ const PRESETS = [
   {
     id: "trefoil_knot",
     name: "Trefoil Knot",
+    equation: "(sin t+2sin 2t, cos t−2cos 2t, −sin 3t)",
     icon: "✶",
     color: "violet",
     animated: true,
@@ -1143,6 +1176,7 @@ const PRESETS = [
   {
     id: "figure_eight_knot",
     name: "Figure-Eight Knot",
+    equation: "((2+cos 2t)cos 3t, (2+cos 2t)sin 3t, sin 4t)",
     icon: "∞",
     color: "pink",
     category: "Knots",
@@ -1162,6 +1196,7 @@ const PRESETS = [
   {
     id: "hyperbolic_paraboloid",
     name: "Hyperbolic Paraboloid",
+    equation: "y = (x² − z²) · k",
     icon: "⌗",
     color: "gold",
     category: "Quadrics",
@@ -1175,6 +1210,7 @@ const PRESETS = [
   {
     id: "dini_surface",
     name: "Dini's Surface",
+    equation: "(cos u·sin v, sin u·sin v, cos v+ln tan(v/2)+bu)",
     icon: "ð",
     color: "gold",
     category: "Differential Geometry",
@@ -1198,6 +1234,7 @@ const PRESETS = [
   {
     id: "nebula_surface",
     name: "Nebula Surface",
+    equation: "r = 1+0.4·sin(12θ+t)·cos 9φ",
     icon: "🌌",
     color: "violet",
     animated: true,
@@ -1222,6 +1259,7 @@ const PRESETS = [
   {
     id: "galaxy_spiral",
     name: "Galaxy Spiral",
+    equation: "(r·cos(θ+0.3r), 0.5·sin(8θ)·e^(−0.1r), r·sin(θ+0.3r))",
     icon: "🌠",
     color: "cyan",
     animated: true,
@@ -1243,6 +1281,7 @@ const PRESETS = [
   {
     id: "pulsar_field",
     name: "Pulsar Field",
+    equation: "y = sin(20r−4t) / (1+0.1r²)",
     icon: "✦",
     color: "cyan",
     animated: true,
@@ -1260,6 +1299,7 @@ const PRESETS = [
   {
     id: "black_hole_funnel",
     name: "Black Hole Funnel",
+    equation: "y = −5/r (Flamm's paraboloid)",
     icon: "⚫",
     color: "violet",
     animated: true,
@@ -1277,6 +1317,7 @@ const PRESETS = [
   {
     id: "wormhole_surface",
     name: "Wormhole Surface",
+    equation: "(cosh v·cos θ, v, cosh v·sin θ)",
     icon: "🕳",
     color: "violet",
     animated: true,
@@ -1294,6 +1335,7 @@ const PRESETS = [
   {
     id: "event_horizon_ripple",
     name: "Event Horizon Ripple",
+    equation: "y = e^(−0.05r²)·sin(15r−3t)",
     icon: "🕳",
     color: "pink",
     animated: true,
@@ -1311,6 +1353,7 @@ const PRESETS = [
   {
     id: "cosmic_web",
     name: "Cosmic Web",
+    equation: "y = sin x·cos z + sin(z+t)·cos x",
     icon: "🕸",
     color: "emerald",
     animated: true,
@@ -1329,6 +1372,7 @@ const PRESETS = [
   {
     id: "starburst_sphere",
     name: "Starburst Sphere",
+    equation: "r = 1+0.5|sin(20θ+t)·sin(20φ)|",
     icon: "✨",
     color: "gold",
     animated: true,
@@ -1351,6 +1395,7 @@ const PRESETS = [
   {
     id: "meteor_crater",
     name: "Meteor Crater Terrain",
+    equation: "y = −e^(−r²/2) + 0.1·sin(10r+t)",
     icon: "☄",
     color: "orange",
     animated: true,
@@ -1368,6 +1413,7 @@ const PRESETS = [
   {
     id: "saturn_ring_wave",
     name: "Saturn Ring Wave",
+    equation: "y = 0.1·sin(30r−2t)·e^(−0.05r)",
     icon: "🪐",
     color: "gold",
     animated: true,
@@ -1386,6 +1432,7 @@ const PRESETS = [
   {
     id: "solar_flare",
     name: "Solar Flare Surface",
+    equation: "r = 1+0.3·e^(−3φ)·sin(25θ+2t)",
     icon: "☀",
     color: "orange",
     animated: true,
@@ -1407,6 +1454,7 @@ const PRESETS = [
   {
     id: "aurora_shell",
     name: "Aurora Shell",
+    equation: "r = 1+0.2·sin(6φ+12θ+1.5t)",
     icon: "🌈",
     color: "emerald",
     animated: true,
@@ -1428,6 +1476,7 @@ const PRESETS = [
   {
     id: "supernova_blast",
     name: "Supernova Blast",
+    equation: "r = (1+0.8·e^(−0.2φ)·sin(30θ+3t)·cos 20φ)",
     icon: "💥",
     color: "orange",
     animated: true,
@@ -1455,6 +1504,7 @@ const PRESETS = [
   {
     id: "quasar_jet",
     name: "Quasar Jet",
+    equation: "(cos(t+t), 0.4t, sin(t+t)+0.5·sin(10t))",
     icon: "⚡",
     color: "cyan",
     animated: true,
@@ -1473,6 +1523,7 @@ const PRESETS = [
   {
     id: "accretion_disk",
     name: "Accretion Disk",
+    equation: "y = 0.05·sin(40θ−3t)·e^(−0.02r²)",
     icon: "💫",
     color: "gold",
     animated: true,
@@ -1491,6 +1542,7 @@ const PRESETS = [
   {
     id: "dark_matter_halo",
     name: "Dark Matter Halo",
+    equation: "r = 1/(1+0.2·sin(8θ)·cos(8φ))",
     icon: "🌑",
     color: "violet",
     animated: true,
@@ -1513,6 +1565,7 @@ const PRESETS = [
   {
     id: "cosmic_bubble",
     name: "Cosmic Bubble",
+    equation: "r = 1+0.2·sin(10u+t)·sin(10v)",
     icon: "🫧",
     color: "cyan",
     animated: true,
@@ -1534,6 +1587,7 @@ const PRESETS = [
   {
     id: "gravity_well",
     name: "Gravity Well",
+    equation: "y = −10/(1+x²+z²)",
     icon: "🌀",
     color: "violet",
     animated: true,
@@ -1552,6 +1606,7 @@ const PRESETS = [
   {
     id: "planetary_terrain",
     name: "Planetary Terrain",
+    equation: "y = 0.2·sin(5x)·cos(5z)+0.1·sin(20x)·cos(20z)",
     icon: "🌍",
     color: "emerald",
     animated: true,
@@ -1571,6 +1626,7 @@ const PRESETS = [
   {
     id: "lunar_surface",
     name: "Lunar Surface",
+    equation: "y = 0.3·sin(x²+z²) / (1+0.1r²)",
     icon: "🌙",
     color: "gold",
     animated: true,
@@ -1592,6 +1648,7 @@ const PRESETS = [
   {
     id: "comet_tail",
     name: "Comet Tail",
+    equation: "(t, sin(3t+τ)·e^(−0.1t), cos(5t+0.5τ)·e^(−0.1t))",
     icon: "☄",
     color: "cyan",
     animated: true,
@@ -1610,6 +1667,7 @@ const PRESETS = [
   {
     id: "spiral_galaxy",
     name: "Logarithmic Galaxy Arms",
+    equation: "r = 0.3·e^(0.15θ)",
     icon: "🌌",
     color: "gold",
     animated: true,
@@ -1631,6 +1689,7 @@ const PRESETS = [
   {
     id: "cosmic_vortex",
     name: "Cosmic Vortex",
+    equation: "(r·cos(r+5/r), 0.5·sin(10r+2t), r·sin(r+5/r))",
     icon: "🌪",
     color: "pink",
     animated: true,
@@ -1649,6 +1708,7 @@ const PRESETS = [
   {
     id: "radiation_shell",
     name: "Radiation Shell",
+    equation: "r = 1+0.25·sin(50θ+2t)·sin(50φ)",
     icon: "☢",
     color: "orange",
     animated: true,
@@ -1670,6 +1730,7 @@ const PRESETS = [
   {
     id: "plasma_sphere",
     name: "Plasma Sphere",
+    equation: "r = 1+0.15·sin(20θ+10φ+3t)",
     icon: "⚛",
     color: "cyan",
     animated: true,
@@ -1691,6 +1752,7 @@ const PRESETS = [
   {
     id: "exoplanet_mountains",
     name: "Exoplanet Mountains",
+    equation: "y = Σ sin(2ⁿx)·cos(2ⁿz) / 2ⁿ  (n=1..4)",
     icon: "⛰",
     color: "emerald",
     animated: true,
@@ -1713,6 +1775,7 @@ const PRESETS = [
   {
     id: "time_warp",
     name: "Time Warp Surface",
+    equation: "y = sin(x²−z²+2t) / (1+0.05r²)",
     icon: "⏱",
     color: "pink",
     animated: true,
@@ -1731,6 +1794,7 @@ const PRESETS = [
   {
     id: "photon_wave",
     name: "Photon Wave",
+    equation: "y = sin(30x+30z−5t)·e^(−0.02r²)",
     icon: "🌊",
     color: "cyan",
     animated: true,
@@ -1751,6 +1815,7 @@ const PRESETS = [
   {
     id: "interstellar_portal",
     name: "Interstellar Portal",
+    equation: "((2+cos 8v)cos u, (2+cos 8v)sin u, sin 8v)",
     icon: "🌀",
     color: "violet",
     animated: true,
@@ -2086,6 +2151,18 @@ export default function Plotter3DPage() {
                     >
                       {p.name}
                     </div>
+                    {p.equation && (
+                      <div
+                        className="font-mono-code truncate"
+                        style={{
+                          color: catColor + "bb",
+                          fontSize: "0.6rem",
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {p.equation}
+                      </div>
+                    )}
                     <div
                       className="font-mono-code text-[7px]"
                       style={{ color: catColor + "80" }}
