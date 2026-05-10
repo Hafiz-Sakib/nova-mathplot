@@ -1,33 +1,31 @@
 import React, { useRef, useState } from "react";
 
+/* Quick-insert symbols */
 const SYMBOLS = [
-  { label: "π", insert: "pi" },
-  { label: "e", insert: "e" },
-  { label: "ω", insert: "omega" },
-  { label: "φ", insert: "phi" },
-  { label: "τ", insert: "tau" },
-  { label: "√", insert: "sqrt(" },
-  { label: "|x|", insert: "abs(" },
-  { label: "ln", insert: "log(" },
-  { label: "lg", insert: "log10(" },
-  { label: "sin", insert: "sin(" },
-  { label: "cos", insert: "cos(" },
-  { label: "tan", insert: "tan(" },
-  { label: "asin", insert: "asin(" },
-  { label: "acos", insert: "acos(" },
-  { label: "atan", insert: "atan(" },
-  { label: "sinh", insert: "sinh(" },
-  { label: "cosh", insert: "cosh(" },
-  { label: "tanh", insert: "tanh(" },
-  { label: "x²", insert: "x^2" },
-  { label: "x³", insert: "x^3" },
-  { label: "eˣ", insert: "e^x" },
-  { label: "⌊x⌋", insert: "floor(" },
-  { label: "⌈x⌉", insert: "ceil(" },
-  { label: "sgn", insert: "sign(" },
-  { label: "mod", insert: " mod " },
-  { label: "max", insert: "max(" },
-  { label: "min", insert: "min(" },
+  { label: "sin", insert: "sin(", desc: "Sine" },
+  { label: "cos", insert: "cos(", desc: "Cosine" },
+  { label: "tan", insert: "tan(", desc: "Tangent" },
+  { label: "√x", insert: "sqrt(", desc: "Square root" },
+  { label: "|x|", insert: "abs(", desc: "Absolute value" },
+  { label: "ln", insert: "log(", desc: "Natural log" },
+  { label: "log₁₀", insert: "log10(", desc: "Log base 10" },
+  { label: "eˣ", insert: "e^x", desc: "Exponential" },
+  { label: "x²", insert: "x^2", desc: "Squared" },
+  { label: "x³", insert: "x^3", desc: "Cubed" },
+  { label: "π", insert: "pi", desc: "Pi ≈ 3.14159" },
+  { label: "e", insert: "e", desc: "Euler ≈ 2.718" },
+  { label: "φ", insert: "phi", desc: "Golden ratio" },
+  { label: "sinh", insert: "sinh(", desc: "Hyperbolic sin" },
+  { label: "cosh", insert: "cosh(", desc: "Hyperbolic cos" },
+  { label: "asin", insert: "asin(", desc: "Arcsin" },
+  { label: "acos", insert: "acos(", desc: "Arccos" },
+  { label: "atan", insert: "atan(", desc: "Arctan" },
+  { label: "⌊x⌋", insert: "floor(", desc: "Floor / round down" },
+  { label: "⌈x⌉", insert: "ceil(", desc: "Ceiling / round up" },
+  { label: "sign", insert: "sign(", desc: "Sign: −1, 0, or +1" },
+  { label: "mod", insert: " mod ", desc: "Modulo / remainder" },
+  { label: "max", insert: "max(", desc: "Maximum of values" },
+  { label: "min", insert: "min(", desc: "Minimum of values" },
 ];
 
 const PLOT_COLORS = [
@@ -41,159 +39,27 @@ const PLOT_COLORS = [
   "#4ade80",
 ];
 
-function PowerModal({ onInsert, onClose }) {
-  const [base, setBase] = useState("x");
-  const [exp, setExp] = useState("2");
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
-    >
-      <div
-        className="rounded-2xl p-6 w-80 animate-fade"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "rgba(4,10,28,0.95)",
-          border: "1px solid rgba(6,182,212,0.25)",
-          boxShadow: "0 0 40px rgba(6,182,212,0.15)",
-        }}
-      >
-        <div className="flex items-center gap-2 mb-5">
-          <span style={{ color: "#22d3ee", fontSize: "1.2rem" }}>xⁿ</span>
-          <span
-            className="font-orbitron text-xs tracking-widest uppercase"
-            style={{ color: "#22d3ee" }}
-          >
-            Power Input
-          </span>
-        </div>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1">
-            <div
-              className="font-mono-code text-[10px] mb-1.5"
-              style={{ color: "#475569" }}
-            >
-              Base
-            </div>
-            <input
-              className="nova-input"
-              value={base}
-              onChange={(e) => setBase(e.target.value)}
-              placeholder="x"
-              autoFocus
-            />
-          </div>
-          <span
-            className="font-orbitron text-xl mt-5"
-            style={{ color: "#22d3ee" }}
-          >
-            ^
-          </span>
-          <div className="flex-1">
-            <div
-              className="font-mono-code text-[10px] mb-1.5"
-              style={{ color: "#475569" }}
-            >
-              Exponent
-            </div>
-            <input
-              className="nova-input"
-              value={exp}
-              onChange={(e) => setExp(e.target.value)}
-              placeholder="2"
-              onKeyDown={(e) =>
-                e.key === "Enter" && (onInsert(`(${base})^(${exp})`), onClose())
-              }
-            />
-          </div>
-        </div>
-        <div
-          className="mb-4 px-3 py-2 rounded-lg font-mono-code text-sm text-center"
-          style={{
-            background: "rgba(6,182,212,0.06)",
-            border: "1px solid rgba(6,182,212,0.15)",
-            color: "#22d3ee",
-          }}
-        >
-          ({base || "…"}) ^ ({exp || "…"})
-        </div>
-        <div className="mb-4">
-          <div
-            className="font-mono-code text-[9px] tracking-widest uppercase mb-2"
-            style={{ color: "#334155" }}
-          >
-            Quick Presets
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {[
-              ["x²", "x", "2"],
-              ["x³", "x", "3"],
-              ["x⁴", "x", "4"],
-              ["x½", "x", "0.5"],
-              ["eˣ", "e", "x"],
-              ["10ˣ", "10", "x"],
-            ].map(([lbl, b, ex]) => (
-              <button
-                key={lbl}
-                className="sym-btn-nova"
-                onClick={() => {
-                  setBase(b);
-                  setExp(ex);
-                }}
-              >
-                {lbl}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={onClose}
-            className="flex-1 py-2 rounded-xl font-mono-code text-xs transition-all"
-            style={{
-              background: "transparent",
-              border: "1px solid rgba(6,182,212,0.2)",
-              color: "#475569",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "rgba(6,182,212,0.4)";
-              e.currentTarget.style.color = "#22d3ee";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "rgba(6,182,212,0.2)";
-              e.currentTarget.style.color = "#475569";
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              onInsert(`(${base})^(${exp})`);
-              onClose();
-            }}
-            className="flex-1 py-2 rounded-xl font-mono-code text-xs font-semibold transition-all"
-            style={{
-              background: "rgba(6,182,212,0.12)",
-              border: "1px solid rgba(6,182,212,0.35)",
-              color: "#22d3ee",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(6,182,212,0.22)";
-              e.currentTarget.style.boxShadow = "0 0 15px rgba(6,182,212,0.25)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(6,182,212,0.12)";
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          >
-            Insert xⁿ
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+/* Quick range presets */
+const RANGE_PRESETS = [
+  { label: "−10…10", xMin: -10, xMax: 10 },
+  { label: "−π…π", xMin: -Math.PI, xMax: Math.PI },
+  { label: "−2π…2π", xMin: -2 * Math.PI, xMax: 2 * Math.PI },
+  { label: "0…10", xMin: 0, xMax: 10 },
+  { label: "−5…5", xMin: -5, xMax: 5 },
+  { label: "−20…20", xMin: -20, xMax: 20 },
+];
+
+/* Syntax reference */
+const SYNTAX_GUIDE = [
+  { input: "x^2", means: "x squared (x²)" },
+  { input: "2*x", means: "2 times x (2x)" },
+  { input: "sin(x)", means: "Sine of x" },
+  { input: "e^(-x)", means: "e to the power −x" },
+  { input: "sqrt(x)", means: "Square root of x" },
+  { input: "abs(x)", means: "Absolute value |x|" },
+  { input: "x mod 2", means: "x remainder ÷ 2" },
+  { input: "pi, e, phi", means: "Constants π, e, φ" },
+];
 
 export default function InputPanel({
   plots,
@@ -216,7 +82,7 @@ export default function InputPanel({
   setError,
 }) {
   const inputRef = useRef(null);
-  const [showPower, setShowPower] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const activePlot = plots.find((p) => p.id === activeId);
 
   const handleExprChange = (val) => {
@@ -227,8 +93,8 @@ export default function InputPanel({
   const insertSymbol = (sym) => {
     const input = inputRef.current;
     if (!input) return;
-    const start = input.selectionStart;
-    const end = input.selectionEnd;
+    const start = input.selectionStart,
+      end = input.selectionEnd;
     const current = activePlot?.expr || "";
     const newVal = current.slice(0, start) + sym + current.slice(end);
     updatePlot(activeId, { expr: newVal, label: newVal });
@@ -240,21 +106,32 @@ export default function InputPanel({
     }, 0);
   };
 
+  const applyRangePreset = (preset) => {
+    setXMin(preset.xMin);
+    setXMax(preset.xMax);
+  };
+
   return (
     <div className="flex flex-col font-rajdhani">
-      {showPower && (
-        <PowerModal
-          onInsert={insertSymbol}
-          onClose={() => setShowPower(false)}
-        />
-      )}
-
-      {/* Functions list */}
+      {/* ── Functions List ── */}
       <div
         className="p-4 border-b"
         style={{ borderColor: "rgba(6,182,212,0.08)" }}
       >
-        <div className="section-label">Functions</div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="section-label">Functions</div>
+          <span
+            className="font-mono-code text-[9px] px-1.5 py-0.5 rounded"
+            style={{
+              background: "rgba(6,182,212,0.07)",
+              color: "#22d3ee",
+              border: "1px solid rgba(6,182,212,0.15)",
+            }}
+          >
+            {plots.filter((p) => p.visible && p.expr).length} active
+          </span>
+        </div>
+
         <div className="flex flex-col gap-1.5 mb-3">
           {plots.map((plot) => (
             <div
@@ -269,14 +146,27 @@ export default function InputPanel({
                   boxShadow: `0 0 ${plot.id === activeId ? "8px" : "4px"} ${plot.color}`,
                 }}
               />
-              <span
-                className="flex-1 font-mono-code text-xs truncate"
-                style={{ color: plot.expr ? "#94a3b8" : "#334155" }}
-              >
-                {plot.expr || "empty function…"}
-              </span>
+              <div className="flex-1 min-w-0">
+                <div
+                  className="font-mono-code text-xs truncate"
+                  style={{ color: plot.expr ? "#94a3b8" : "#334155" }}
+                >
+                  {plot.expr || "empty — click to edit"}
+                </div>
+                {plot.expr && (
+                  <div
+                    className="font-rajdhani text-[9px]"
+                    style={{ color: "#1e3a5f" }}
+                  >
+                    f(x) ={" "}
+                    {plot.expr.length > 20
+                      ? plot.expr.slice(0, 20) + "…"
+                      : plot.expr}
+                  </div>
+                )}
+              </div>
               <div
-                className="flex items-center gap-1 opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity"
+                className="flex items-center gap-1"
                 style={{ opacity: plot.id === activeId ? 1 : undefined }}
               >
                 <button
@@ -284,8 +174,9 @@ export default function InputPanel({
                     e.stopPropagation();
                     updatePlot(plot.id, { visible: !plot.visible });
                   }}
-                  className="w-5 h-5 flex items-center justify-center rounded text-[10px] transition-colors"
+                  className="w-5 h-5 flex items-center justify-center rounded text-[10px]"
                   style={{ color: plot.visible ? plot.color : "#334155" }}
+                  title={plot.visible ? "Hide" : "Show"}
                 >
                   {plot.visible ? "●" : "○"}
                 </button>
@@ -303,6 +194,7 @@ export default function InputPanel({
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.color = "#334155")
                     }
+                    title="Remove"
                   >
                     ✕
                   </button>
@@ -311,6 +203,7 @@ export default function InputPanel({
             </div>
           ))}
         </div>
+
         <button
           onClick={() => addPlot()}
           className="w-full py-2 rounded-xl font-mono-code text-xs tracking-widest transition-all duration-300"
@@ -334,46 +227,97 @@ export default function InputPanel({
         </button>
       </div>
 
-      {/* Expression editor */}
+      {/* ── Expression Editor ── */}
       {activePlot && (
         <div
           className="p-4 border-b animate-fade"
           style={{ borderColor: "rgba(6,182,212,0.08)" }}
         >
-          <div className="section-label">Expression Editor</div>
+          <div className="flex items-center justify-between mb-3">
+            <div className="section-label">Edit f(x)</div>
+            <button
+              onClick={() => setShowGuide((v) => !v)}
+              className="font-mono-code text-[9px] px-2 py-0.5 rounded"
+              style={{
+                background: showGuide ? "rgba(6,182,212,0.1)" : "transparent",
+                border: "1px solid rgba(6,182,212,0.2)",
+                color: showGuide ? "#22d3ee" : "#475569",
+              }}
+            >
+              {showGuide ? "▲ Hide guide" : "? Syntax guide"}
+            </button>
+          </div>
 
-          {/* Color picker */}
-          <div className="flex items-center gap-3 mb-3 flex-wrap">
-            <div className="relative">
-              <input
-                type="color"
-                value={activePlot.color}
-                onChange={(e) =>
-                  updatePlot(activeId, { color: e.target.value })
-                }
-                className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0.5"
-                style={{
-                  background: "rgba(4,10,24,0.8)",
-                  border: "1px solid rgba(6,182,212,0.2)",
-                }}
-                title="Curve color"
-              />
+          {/* Syntax guide */}
+          {showGuide && (
+            <div
+              className="mb-3 p-3 rounded-xl"
+              style={{
+                background: "rgba(6,182,212,0.04)",
+                border: "1px solid rgba(6,182,212,0.12)",
+              }}
+            >
+              <div
+                className="font-mono-code text-[9px] tracking-widest uppercase mb-2"
+                style={{ color: "#334155" }}
+              >
+                How to write expressions
+              </div>
+              <div className="grid grid-cols-1 gap-1">
+                {SYNTAX_GUIDE.map((g) => (
+                  <div key={g.input} className="flex items-center gap-2">
+                    <code
+                      className="font-mono-code text-[10px] px-1.5 py-0.5 rounded flex-shrink-0"
+                      style={{
+                        background: "rgba(6,182,212,0.1)",
+                        color: "#22d3ee",
+                        minWidth: 80,
+                      }}
+                    >
+                      {g.input}
+                    </code>
+                    <span
+                      className="font-rajdhani text-[10px]"
+                      style={{ color: "#475569" }}
+                    >
+                      {g.means}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
+          )}
+
+          {/* Color picker row */}
+          <div className="flex items-center gap-2 mb-3">
+            <input
+              type="color"
+              value={activePlot.color}
+              onChange={(e) => updatePlot(activeId, { color: e.target.value })}
+              className="w-7 h-7 rounded cursor-pointer border-0 p-0.5 flex-shrink-0"
+              style={{
+                background: "rgba(4,10,24,0.8)",
+                border: "1px solid rgba(6,182,212,0.2)",
+              }}
+              title="Pick custom color"
+            />
             <span
-              className="font-mono-code text-[11px]"
+              className="font-mono-code text-[9px]"
               style={{ color: "#475569" }}
             >
-              Color
+              Curve color:
             </span>
-            <div className="ml-auto flex gap-1 flex-wrap justify-end">
+            <div className="flex gap-1 flex-wrap">
               {PLOT_COLORS.map((c) => (
                 <button
                   key={c}
                   onClick={() => updatePlot(activeId, { color: c })}
-                  className="w-4 h-4 rounded-full transition-transform hover:scale-110 flex-shrink-0 border border-transparent hover:border-white/20"
+                  className="w-4 h-4 rounded-full flex-shrink-0 border transition-transform hover:scale-110"
                   style={{
                     background: c,
                     boxShadow: activePlot.color === c ? `0 0 6px ${c}` : "none",
+                    borderColor:
+                      activePlot.color === c ? "white" : "transparent",
                   }}
                 />
               ))}
@@ -389,7 +333,7 @@ export default function InputPanel({
               boxShadow: "0 0 12px rgba(6,182,212,0.05)",
             }}
           >
-            <div className="flex items-center px-3 py-3 gap-2">
+            <div className="flex items-center px-3 py-2.5 gap-2">
               <span
                 className="font-mono-code text-xs flex-shrink-0"
                 style={{ color: "#22d3ee" }}
@@ -403,17 +347,33 @@ export default function InputPanel({
                 style={{ color: "#e2e8f0" }}
                 value={activePlot.expr}
                 onChange={(e) => handleExprChange(e.target.value)}
-                placeholder="e.g. sin(x) + cos(2*x)"
+                placeholder="e.g.  sin(x) + cos(2*x)"
                 spellCheck={false}
                 autoComplete="off"
               />
+              {activePlot.expr && (
+                <button
+                  onClick={() => handleExprChange("")}
+                  className="font-mono-code text-[10px] flex-shrink-0"
+                  style={{ color: "#334155" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = "#f87171")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color = "#334155")
+                  }
+                  title="Clear"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Error */}
+          {/* Error message */}
           {error && (
             <div
-              className="mb-2 px-3 py-2 rounded-lg font-mono-code text-[11px] flex items-start gap-2"
+              className="mb-2 px-3 py-2 rounded-lg font-mono-code text-[10px] flex items-start gap-2"
               style={{
                 background: "rgba(239,68,68,0.08)",
                 border: "1px solid rgba(239,68,68,0.25)",
@@ -421,78 +381,126 @@ export default function InputPanel({
               }}
             >
               <span className="flex-shrink-0">⚠</span>
-              <span>{error}</span>
+              <div>
+                <div>{error}</div>
+                <div className="mt-0.5" style={{ color: "#9ca3af" }}>
+                  Check: use <code style={{ color: "#22d3ee" }}>*</code> for
+                  multiply · <code style={{ color: "#22d3ee" }}>^</code> for
+                  power
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Symbol grid */}
+          {/* Quick-insert buttons */}
           <div
-            className="font-mono-code text-[9px] tracking-widest uppercase mb-2"
+            className="font-mono-code text-[9px] tracking-widest uppercase mb-1.5"
             style={{ color: "#334155" }}
           >
-            Quick Insert
+            Quick Insert — click to add to expression
           </div>
-          <div className="flex flex-wrap gap-1 mb-2">
-            <button
-              className="sym-btn-nova"
-              style={{ color: "#a78bfa", borderColor: "rgba(139,92,246,0.25)" }}
-              onClick={() => setShowPower(true)}
-              title="Power expression"
-            >
-              xⁿ
-            </button>
+          <div className="flex flex-wrap gap-1 mb-1">
             {SYMBOLS.map((s) => (
               <button
                 key={s.label}
                 className="sym-btn-nova"
                 onClick={() => insertSymbol(s.insert)}
-                title={s.insert}
+                title={`Insert ${s.insert} — ${s.desc}`}
               >
                 {s.label}
               </button>
             ))}
           </div>
 
-          <div
-            className="mt-2 font-mono-code text-[10px] leading-relaxed"
-            style={{ color: "#334155" }}
-          >
-            <span style={{ color: "#475569" }}>Var:</span>{" "}
-            <code
-              className="px-1 rounded"
-              style={{ color: "#22d3ee", background: "rgba(6,182,212,0.08)" }}
+          {/* Examples for this input */}
+          <div className="mt-3">
+            <div
+              className="font-mono-code text-[9px] tracking-widest uppercase mb-1.5"
+              style={{ color: "#334155" }}
             >
-              x
-            </code>
-            {"  "}
-            <span style={{ color: "#475569" }}>Constants:</span>{" "}
-            {["pi", "e", "phi", "omega"].map((c) => (
-              <code
-                key={c}
-                className="px-1 rounded mr-0.5"
-                style={{ color: "#22d3ee", background: "rgba(6,182,212,0.08)" }}
-              >
-                {c}
-              </code>
-            ))}
+              Try these expressions
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {[
+                "sin(x)",
+                "x^2",
+                "e^(-x^2)",
+                "tan(x)",
+                "sin(x)/x",
+                "abs(sin(x))",
+                "x*sin(x)",
+                "cos(x^2)",
+              ].map((ex) => (
+                <button
+                  key={ex}
+                  onClick={() => {
+                    handleExprChange(ex);
+                    inputRef.current?.focus();
+                  }}
+                  className="font-mono-code text-[9px] px-2 py-0.5 rounded transition-all"
+                  style={{
+                    background:
+                      activePlot.expr === ex
+                        ? "rgba(6,182,212,0.12)"
+                        : "rgba(4,10,24,0.8)",
+                    border: `1px solid ${activePlot.expr === ex ? "rgba(6,182,212,0.4)" : "rgba(6,182,212,0.1)"}`,
+                    color: activePlot.expr === ex ? "#22d3ee" : "#475569",
+                  }}
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
-      {/* View range */}
+      {/* ── View Range ── */}
       <div
         className="p-4 border-b"
         style={{ borderColor: "rgba(6,182,212,0.08)" }}
       >
-        <div className="section-label">View Range</div>
+        <div className="section-label mb-3">View Range (X Axis)</div>
+
+        {/* Range presets */}
+        <div className="mb-3">
+          <div
+            className="font-mono-code text-[9px] tracking-widest uppercase mb-1.5"
+            style={{ color: "#334155" }}
+          >
+            Quick presets
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {RANGE_PRESETS.map((p) => (
+              <button
+                key={p.label}
+                onClick={() => applyRangePreset(p)}
+                className="font-mono-code text-[9px] px-2 py-1 rounded"
+                style={{
+                  background:
+                    xMin === p.xMin && xMax === p.xMax
+                      ? "rgba(6,182,212,0.12)"
+                      : "rgba(4,10,24,0.8)",
+                  border: `1px solid ${xMin === p.xMin && xMax === p.xMax ? "rgba(6,182,212,0.4)" : "rgba(6,182,212,0.1)"}`,
+                  color:
+                    xMin === p.xMin && xMax === p.xMax ? "#22d3ee" : "#64748b",
+                }}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Manual inputs */}
         <div className="grid grid-cols-2 gap-2 mb-3">
           {[
             ["X min", xMin, setXMin],
             ["X max", xMax, setXMax],
           ].map(([lbl, val, set]) => (
-            <label key={lbl} className="flex flex-col gap-1.5">
+            <label key={lbl} className="flex flex-col gap-1">
               <span
-                className="font-mono-code text-[10px] tracking-wider"
+                className="font-mono-code text-[10px]"
                 style={{ color: "#475569" }}
               >
                 {lbl}
@@ -506,6 +514,8 @@ export default function InputPanel({
             </label>
           ))}
         </div>
+
+        {/* Y range toggle */}
         <div
           className="flex items-center gap-3 mb-2 cursor-pointer"
           onClick={() => setAutoY((v) => !v)}
@@ -513,22 +523,33 @@ export default function InputPanel({
           <div className={`toggle-track-nova ${autoY ? "on" : ""}`}>
             <div className="toggle-thumb-nova" />
           </div>
-          <span
-            className="font-mono-code text-xs"
-            style={{ color: autoY ? "#22d3ee" : "#475569" }}
-          >
-            Auto Y range
-          </span>
+          <div>
+            <span
+              className="font-mono-code text-xs"
+              style={{ color: autoY ? "#22d3ee" : "#475569" }}
+            >
+              Auto Y range
+            </span>
+            <div
+              className="font-rajdhani text-[9px]"
+              style={{ color: "#1e3a5f" }}
+            >
+              {autoY
+                ? "Y axis scales to fit the curve"
+                : "Set Y range manually below"}
+            </div>
+          </div>
         </div>
+
         {!autoY && (
           <div className="grid grid-cols-2 gap-2 animate-slide-down">
             {[
               ["Y min", yMin, setYMin],
               ["Y max", yMax, setYMax],
             ].map(([lbl, val, set]) => (
-              <label key={lbl} className="flex flex-col gap-1.5">
+              <label key={lbl} className="flex flex-col gap-1">
                 <span
-                  className="font-mono-code text-[10px] tracking-wider"
+                  className="font-mono-code text-[10px]"
                   style={{ color: "#475569" }}
                 >
                   {lbl}

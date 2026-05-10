@@ -7,7 +7,7 @@ import React, {
   useCallback,
 } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Grid, Stars, Text } from "@react-three/drei";
+import { OrbitControls, Grid, Stars } from "@react-three/drei";
 import * as THREE from "three";
 import * as math from "mathjs";
 
@@ -32,7 +32,6 @@ function safeEval(expr, vars) {
   }
 }
 
-/* Color scheme helpers */
 const COLOR_MAP = {
   cyan: "#22d3ee",
   violet: "#a78bfa",
@@ -62,14 +61,77 @@ function heightToColor(h, scheme) {
         Math.cos(t * Math.PI),
       ].map((v) => Math.abs(v));
     default:
-      return [0.0, t * 0.7 + 0.15, 0.85]; // cyan
+      return [0.0, t * 0.7 + 0.15, 0.85];
   }
 }
 
-/* Surface mesh component */
+/* ─── Axis Lines ─── */
+function AxisLines({ size = 6 }) {
+  const axes = [
+    { dir: [1, 0, 0], color: "#ef4444", label: "X" },
+    { dir: [0, 1, 0], color: "#22c55e", label: "Y" },
+    { dir: [0, 0, 1], color: "#3b82f6", label: "Z" },
+  ];
+  return (
+    <group>
+      {axes.map(({ dir, color }) => {
+        const points = [
+          new THREE.Vector3(-dir[0] * size, -dir[1] * size, -dir[2] * size),
+          new THREE.Vector3(dir[0] * size, dir[1] * size, dir[2] * size),
+        ];
+        const geo = new THREE.BufferGeometry().setFromPoints(points);
+        return (
+          <line key={color} geometry={geo}>
+            <lineBasicMaterial color={color} transparent opacity={0.6} />
+          </line>
+        );
+      })}
+    </group>
+  );
+}
+
+/* ─── Attractor Line (for Lorenz/Rossler) ─── */
+function AttractorLine({ preset, colorScheme }) {
+  const geo = useMemo(() => {
+    const pts = [];
+    const p = preset.attractor;
+    let [x, y, z] = p.init;
+    const dt = p.dt || 0.005;
+    const steps = p.steps || 8000;
+    for (let i = 0; i < steps; i++) {
+      pts.push(new THREE.Vector3(x * p.scale, y * p.scale, z * p.scale));
+      const [dx, dy, dz] = p.deriv(x, y, z);
+      x += dx * dt;
+      y += dy * dt;
+      z += dz * dt;
+    }
+    return new THREE.BufferGeometry().setFromPoints(pts);
+  }, [preset]);
+  const color = COLOR_MAP[colorScheme] || "#22d3ee";
+  const colorsArr = useMemo(() => {
+    const count = geo.attributes.position.count;
+    const arr = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const t = i / count;
+      const [r, g, b] = heightToColor(t, colorScheme);
+      arr[i * 3] = r;
+      arr[i * 3 + 1] = g;
+      arr[i * 3 + 2] = b;
+    }
+    return arr;
+  }, [geo, colorScheme]);
+  geo.setAttribute("color", new THREE.Float32BufferAttribute(colorsArr, 3));
+  return (
+    <line geometry={geo}>
+      <lineBasicMaterial vertexColors />
+    </line>
+  );
+}
+
+/* ─── Surface Mesh ─── */
 function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
   const meshRef = useRef();
-  const N = 70;
+  const N = 60;
 
   const geometry = useMemo(() => {
     const geom = new THREE.BufferGeometry();
@@ -127,7 +189,6 @@ function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
   useFrame(({ clock }) => {
     if (!meshRef.current || !preset.animated) return;
     const t = clock.getElapsedTime();
-    const pos = meshRef.current.geometry.attributes.position;
     const range = preset.range || [
       [-4, 4],
       [-4, 4],
@@ -135,6 +196,7 @@ function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
     const [uRange, vRange] = range;
     const [uMin, uMax] = uRange,
       [vMin, vMax] = vRange;
+    const pos = meshRef.current.geometry.attributes.position;
     for (let i = 0; i <= N; i++)
       for (let j = 0; j <= N; j++) {
         const u = uMin + (i / N) * (uMax - uMin),
@@ -178,10 +240,10 @@ function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
   );
 }
 
-/* Parametric line (helix, spiral, etc.) */
+/* ─── Parametric Line ─── */
 function ParametricLine({ preset, colorScheme, animated }) {
   const ref = useRef();
-  const N = 600;
+  const N = 800;
   const points = useMemo(() => {
     const pts = [];
     const range = preset.range || [
@@ -210,8 +272,7 @@ function ParametricLine({ preset, colorScheme, animated }) {
       [-1, 1],
       [-1, 1],
     ];
-    const vRange = range[1];
-    const [vMin, vMax] = vRange;
+    const [vMin, vMax] = range[1];
     const pos = ref.current.geometry.attributes.position;
     for (let i = 0; i < N; i++) {
       const v = vMin + (i / N) * (vMax - vMin);
@@ -229,23 +290,19 @@ function ParametricLine({ preset, colorScheme, animated }) {
   );
 }
 
-/* Custom function surface */
+/* ─── Custom Surface ─── */
 function CustomSurface({ expr, colorScheme, wireframe, opacity }) {
   const meshRef = useRef();
-  const N = 60;
-  const range = [
-    [-4, 4],
-    [-4, 4],
-  ];
-
+  const N = 55;
   const geometry = useMemo(() => {
     const geom = new THREE.BufferGeometry();
     const positions = [],
       colors = [],
       indices = [];
-    const [uRange, vRange] = range;
-    const [uMin, uMax] = uRange,
-      [vMin, vMax] = vRange;
+    const uMin = -4,
+      uMax = 4,
+      vMin = -4,
+      vMax = 4;
     let yMin = Infinity,
       yMax = -Infinity;
     const rawY = [];
@@ -316,7 +373,6 @@ function CustomSurface({ expr, colorScheme, wireframe, opacity }) {
   );
 }
 
-/* Scene lighting */
 function SceneLighting({ colorScheme }) {
   const c = COLOR_MAP[colorScheme] || "#22d3ee";
   return (
@@ -330,38 +386,18 @@ function SceneLighting({ colorScheme }) {
   );
 }
 
-/* Camera zoom controller */
-function CameraController({ zoom }) {
-  const ref = useRef();
-  useEffect(() => {
-    if (ref.current) {
-      const target = ref.current.object;
-      const dir = target.position.clone().normalize();
-      const dist = 14 / zoom;
-      target.position.copy(dir.multiplyScalar(dist));
-    }
-  }, [zoom]);
-  return (
-    <OrbitControls
-      ref={ref}
-      enableDamping
-      dampingFactor={0.05}
-      minDistance={2}
-      maxDistance={40}
-      enableZoom={true}
-      enablePan={true}
-      enableRotate={true}
-    />
-  );
-}
-
+/* ──────────────────────────────────────────────
+   ALL PRESETS (original + 30 new)
+────────────────────────────────────────────── */
 const PRESETS = [
+  /* ── Original Presets ── */
   {
     id: "wave",
     name: "Wave Surface",
     icon: "〜",
     color: "cyan",
     animated: true,
+    category: "Classic",
     range: [
       [-4, 4],
       [-4, 4],
@@ -379,6 +415,7 @@ const PRESETS = [
     icon: "⟳",
     color: "cyan",
     animated: true,
+    category: "Classic",
     range: [
       [-1, 1],
       [-1, 1],
@@ -396,6 +433,7 @@ const PRESETS = [
     icon: "◎",
     color: "violet",
     animated: false,
+    category: "Classic",
     range: [
       [0, Math.PI * 2],
       [0, Math.PI * 2],
@@ -416,6 +454,7 @@ const PRESETS = [
     name: "Saddle Surface",
     icon: "∩",
     color: "orange",
+    category: "Classic",
     range: [
       [-3, 3],
       [-3, 3],
@@ -428,6 +467,7 @@ const PRESETS = [
     name: "Paraboloid",
     icon: "∪",
     color: "emerald",
+    category: "Classic",
     range: [
       [-3, 3],
       [-3, 3],
@@ -441,6 +481,7 @@ const PRESETS = [
     icon: "◉",
     color: "cyan",
     animated: true,
+    category: "Classic",
     range: [
       [-5, 5],
       [-5, 5],
@@ -453,27 +494,11 @@ const PRESETS = [
     type: "surface",
   },
   {
-    id: "mobius",
-    name: "Möbius Strip",
-    icon: "∞",
-    color: "pink",
-    range: [
-      [0, Math.PI * 2],
-      [-0.5, 0.5],
-    ],
-    fn: (u, v) => {
-      const x = (1 + (v / 2) * Math.cos(u / 2)) * Math.cos(u),
-        y = (v / 2) * Math.sin(u / 2),
-        z = (1 + (v / 2) * Math.cos(u / 2)) * Math.sin(u);
-      return [x * 2, y * 2, z * 2];
-    },
-    type: "surface",
-  },
-  {
     id: "sphere",
     name: "Sphere",
     icon: "○",
     color: "violet",
+    category: "Classic",
     range: [
       [0, Math.PI * 2],
       [0, Math.PI],
@@ -486,26 +511,11 @@ const PRESETS = [
     type: "surface",
   },
   {
-    id: "hyperboloid",
-    name: "Hyperboloid",
-    icon: "X",
-    color: "emerald",
-    range: [
-      [0, Math.PI * 2],
-      [-2, 2],
-    ],
-    fn: (u, v) => [
-      Math.cosh(v) * Math.cos(u) * 1.5,
-      v * 1.5,
-      Math.cosh(v) * Math.sin(u) * 1.5,
-    ],
-    type: "surface",
-  },
-  {
     id: "gaussian",
     name: "Gaussian",
     icon: "⌒",
     color: "orange",
+    category: "Classic",
     range: [
       [-3, 3],
       [-3, 3],
@@ -515,10 +525,11 @@ const PRESETS = [
   },
   {
     id: "spiral",
-    name: "Spiral Staircase",
+    name: "Spiral",
     icon: "🌀",
     color: "pink",
     animated: true,
+    category: "Classic",
     range: [
       [-1, 1],
       [0, Math.PI * 6],
@@ -534,27 +545,11 @@ const PRESETS = [
     type: "line",
   },
   {
-    id: "dhelix",
-    name: "Double Helix",
-    icon: "⋈",
-    color: "cyan",
-    animated: true,
-    range: [
-      [-1, 1],
-      [0, Math.PI * 6],
-    ],
-    fn: (u, v, t = 0) => [
-      Math.cos(v + u * Math.PI + t * 0.5) * 2,
-      v * 0.7 - 6.6,
-      Math.sin(v + u * Math.PI + t * 0.5) * 2,
-    ],
-    type: "line",
-  },
-  {
     id: "flower",
     name: "Parametric Flower",
     icon: "❀",
     color: "pink",
+    category: "Classic",
     range: [
       [0, Math.PI * 2],
       [0, Math.PI],
@@ -570,25 +565,21 @@ const PRESETS = [
     type: "surface",
   },
   {
-    id: "trefoil",
-    name: "Trefoil Knot",
-    icon: "✶",
-    color: "violet",
-    animated: true,
+    id: "hyperboloid",
+    name: "Hyperboloid",
+    icon: "X",
+    color: "emerald",
+    category: "Classic",
     range: [
-      [-1, 1],
       [0, Math.PI * 2],
+      [-2, 2],
     ],
-    fn: (u, v, t = 0) => {
-      const s = Math.sin(v),
-        c = Math.cos(v);
-      return [
-        s + 2 * Math.sin(2 * v),
-        c - 2 * Math.cos(2 * v),
-        -Math.sin(3 * v),
-      ].map((x) => x * 1.2);
-    },
-    type: "line",
+    fn: (u, v) => [
+      Math.cosh(v) * Math.cos(u) * 1.5,
+      v * 1.5,
+      Math.cosh(v) * Math.sin(u) * 1.5,
+    ],
+    type: "surface",
   },
   {
     id: "complexwave",
@@ -596,6 +587,7 @@ const PRESETS = [
     icon: "ℂ",
     color: "violet",
     animated: true,
+    category: "Classic",
     range: [
       [-Math.PI, Math.PI],
       [-Math.PI, Math.PI],
@@ -606,46 +598,526 @@ const PRESETS = [
     },
     type: "surface",
   },
+
+  /* ── NEW: Mathematical Surfaces ── */
+  {
+    id: "spherical_harmonics",
+    name: "Spherical Harmonics",
+    icon: "Yₗₘ",
+    color: "violet",
+    category: "Mathematical",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (phi, theta) => {
+      const m = 3,
+        n = 2;
+      const r = Math.abs(Math.sin(m * theta) * Math.cos(n * phi)) * 2 + 0.3;
+      return [
+        r * Math.sin(theta) * Math.cos(phi),
+        r * Math.cos(theta),
+        r * Math.sin(theta) * Math.sin(phi),
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "superformula",
+    name: "Superformula",
+    icon: "🌸",
+    color: "pink",
+    category: "Mathematical",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (phi, theta) => {
+      const m = 6,
+        a = 1,
+        b = 1,
+        n1 = 2,
+        n2 = 7,
+        n3 = 7;
+      const ang = (m * phi) / 4;
+      const r1 = Math.pow(
+        Math.pow(Math.abs(Math.cos(ang) / a), n2) +
+          Math.pow(Math.abs(Math.sin(ang) / b), n3),
+        -1 / n1,
+      );
+      const r = r1 * 1.5;
+      return [
+        r * Math.sin(theta) * Math.cos(phi),
+        r * Math.cos(theta),
+        r * Math.sin(theta) * Math.sin(phi),
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "gyroid",
+    name: "Gyroid",
+    icon: "⬡",
+    color: "emerald",
+    category: "Minimal Surfaces",
+    range: [
+      [-Math.PI * 1.5, Math.PI * 1.5],
+      [-Math.PI * 1.5, Math.PI * 1.5],
+    ],
+    fn: (u, v) => {
+      // Gyroid approximation: marching iso-surface slice
+      const x = u,
+        z = v;
+      // Find y where sin(x)cos(y)+sin(y)cos(z)+sin(z)cos(x)=0 approximately
+      const y = Math.asin(
+        Math.max(
+          -1,
+          Math.min(
+            1,
+            -(Math.sin(z) * Math.cos(x)) /
+              Math.max(0.01, Math.abs(Math.cos(x * 0.5))),
+          ),
+        ),
+      );
+      return [x * 0.8, y * 0.8, z * 0.8];
+    },
+    type: "surface",
+  },
+  {
+    id: "schwarz_p",
+    name: "Schwarz P Surface",
+    icon: "𝒫",
+    color: "cyan",
+    category: "Minimal Surfaces",
+    range: [
+      [-Math.PI, Math.PI],
+      [-Math.PI, Math.PI],
+    ],
+    fn: (u, v) => {
+      const x = u,
+        z = v;
+      const y = Math.acos(
+        Math.max(-1, Math.min(1, -(Math.cos(x) + Math.cos(z)))),
+      );
+      return [x * 0.9, (y - Math.PI / 2) * 0.9, z * 0.9];
+    },
+    type: "surface",
+  },
+  {
+    id: "enneper",
+    name: "Enneper Surface",
+    icon: "𝔼",
+    color: "gold",
+    category: "Minimal Surfaces",
+    range: [
+      [-1.5, 1.5],
+      [-1.5, 1.5],
+    ],
+    fn: (u, v) => [
+      (u - (u * u * u) / 3 + u * v * v) * 0.6,
+      (u * u - v * v) * 0.6,
+      (v - (v * v * v) / 3 + v * u * u) * 0.6,
+    ],
+    type: "surface",
+  },
+  {
+    id: "mobius",
+    name: "Möbius Strip",
+    icon: "∞",
+    color: "pink",
+    category: "Topology",
+    range: [
+      [0, Math.PI * 2],
+      [-0.6, 0.6],
+    ],
+    fn: (u, v) => [
+      (1 + v * Math.cos(u / 2)) * Math.cos(u) * 2,
+      v * Math.sin(u / 2) * 2,
+      (1 + v * Math.cos(u / 2)) * Math.sin(u) * 2,
+    ],
+    type: "surface",
+  },
   {
     id: "klein",
     name: "Klein Bottle",
     icon: "∮",
     color: "gold",
+    category: "Topology",
     range: [
       [0, Math.PI * 2],
       [0, Math.PI * 2],
     ],
     fn: (u, v) => {
-      const r = 4 * (1 - Math.cos(u) / 2);
-      return [
-        6 * Math.cos(u) * (1 + Math.sin(u)) + r * Math.cos(u + Math.PI),
-        16 * Math.sin(u),
-        r * Math.sin(v),
-      ].map((x) => x * 0.12);
+      const r = 4;
+      const x =
+        (r +
+          Math.cos(u / 2) * Math.sin(v) -
+          Math.sin(u / 2) * Math.sin(2 * v)) *
+        Math.cos(u);
+      const y =
+        (r +
+          Math.cos(u / 2) * Math.sin(v) -
+          Math.sin(u / 2) * Math.sin(2 * v)) *
+        Math.sin(u);
+      const z =
+        Math.sin(u / 2) * Math.sin(v) + Math.cos(u / 2) * Math.sin(2 * v);
+      return [x * 0.28, z * 0.28, y * 0.28];
     },
     type: "surface",
   },
   {
+    id: "lorenz",
+    name: "Lorenz Attractor",
+    icon: "🦋",
+    color: "cyan",
+    category: "Attractors",
+    type: "attractor",
+    attractor: {
+      init: [0.1, 0, 0],
+      scale: 0.09,
+      dt: 0.005,
+      steps: 10000,
+      deriv: (x, y, z) => {
+        const sigma = 10,
+          rho = 28,
+          beta = 8 / 3;
+        return [sigma * (y - x), x * (rho - z) - y, x * y - beta * z];
+      },
+    },
+  },
+  {
+    id: "rossler",
+    name: "Rössler Attractor",
+    icon: "🌀",
+    color: "violet",
+    category: "Attractors",
+    type: "attractor",
+    attractor: {
+      init: [1, 1, 1],
+      scale: 0.12,
+      dt: 0.008,
+      steps: 8000,
+      deriv: (x, y, z) => {
+        const a = 0.2,
+          b = 0.2,
+          c = 5.7;
+        return [-y - z, x + a * y, b + z * (x - c)];
+      },
+    },
+  },
+  {
     id: "torus_knot",
-    name: "Torus Knot",
+    name: "Torus Knot (2,3)",
     icon: "🪢",
     color: "orange",
+    category: "Knots",
+    range: [
+      [-1, 1],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v) => {
+      const p = 2,
+        q = 3,
+        R = 2,
+        r = 0.5;
+      return [
+        (R + r * Math.cos(q * v)) * Math.cos(p * v),
+        r * Math.sin(q * v),
+        (R + r * Math.cos(q * v)) * Math.sin(p * v),
+      ];
+    },
+    type: "line",
+  },
+  {
+    id: "lissajous_knot",
+    name: "Lissajous Knot",
+    icon: "⊛",
+    color: "emerald",
+    category: "Knots",
     animated: true,
     range: [
       [-1, 1],
       [0, Math.PI * 2],
     ],
-    fn: (u, v, t = 0) => {
-      const p = 2,
-        q = 3,
-        r = 0.3;
-      const x = (2 + r * Math.cos(q * v)) * Math.cos(p * v),
-        y = (2 + r * Math.cos(q * v)) * Math.sin(p * v),
-        z = r * Math.sin(q * v);
-      return [x, z, y];
-    },
+    fn: (u, v, t = 0) => [
+      Math.sin(3 * v + t * 0.2) * 2,
+      Math.sin(4 * v) * 2,
+      Math.sin(5 * v + Math.PI / 6) * 2,
+    ],
     type: "line",
   },
+  {
+    id: "trefoil_knot",
+    name: "Trefoil Knot",
+    icon: "✶",
+    color: "violet",
+    category: "Knots",
+    range: [
+      [-1, 1],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v) => [
+      (Math.sin(v) + 2 * Math.sin(2 * v)) * 1.2,
+      (Math.cos(v) - 2 * Math.cos(2 * v)) * 1.2,
+      -Math.sin(3 * v) * 1.2,
+    ],
+    type: "line",
+  },
+  {
+    id: "figure_eight_knot",
+    name: "Figure-Eight Knot",
+    icon: "∞",
+    color: "pink",
+    category: "Knots",
+    range: [
+      [-1, 1],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v) => [
+      (2 + Math.cos(2 * v)) * Math.cos(3 * v) * 0.7,
+      (2 + Math.cos(2 * v)) * Math.sin(3 * v) * 0.7,
+      Math.sin(4 * v) * 0.7,
+    ],
+    type: "line",
+  },
+  {
+    id: "heart_surface",
+    name: "Heart Surface",
+    icon: "❤",
+    color: "pink",
+    category: "Mathematical",
+    range: [
+      [-2, 2],
+      [-2, 2],
+    ],
+    fn: (u, v) => {
+      // Heart parametric (approximate level set)
+      const x = u * 1.5;
+      const z = v * 1.5;
+      // y = cube root of (x^2 z^3 / (x^2 + 9y^2/4 + z^2 - 1)^3 ...)
+      // Simple parametric heart surface
+      const t = u * Math.PI,
+        s = (v * Math.PI) / 2;
+      const px = 4 * Math.pow(Math.sin(t), 3) * Math.cos(s) * 0.6;
+      const py =
+        (13 * Math.cos(t) -
+          5 * Math.cos(2 * t) -
+          2 * Math.cos(3 * t) -
+          Math.cos(4 * t)) *
+        0.12 *
+        Math.abs(Math.cos(s));
+      const pz = 4 * Math.pow(Math.sin(t), 3) * Math.sin(s) * 0.6;
+      return [px, py, pz];
+    },
+    type: "surface",
+  },
+  {
+    id: "hyperbolic_paraboloid",
+    name: "Hyperbolic Paraboloid",
+    icon: "⌗",
+    color: "gold",
+    category: "Quadrics",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (u, v) => [u, (u * u - v * v) * 0.3, v],
+    type: "surface",
+  },
+  {
+    id: "wave_interference",
+    name: "Wave Interference",
+    icon: "≋",
+    color: "cyan",
+    animated: true,
+    category: "Mathematical",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (u, v, t = 0) => [
+      u,
+      Math.sin(u * u + v * v + t) *
+        Math.cos(3 * u + t * 0.5) *
+        Math.sin(3 * v) *
+        0.8,
+      v,
+    ],
+    type: "surface",
+  },
+  {
+    id: "fractal_noise",
+    name: "Fractal Noise Surface",
+    icon: "🌊",
+    color: "emerald",
+    category: "Mathematical",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (u, v) => {
+      let z = 0;
+      for (let n = 1; n <= 5; n++)
+        z +=
+          (Math.sin(Math.pow(2, n) * u) * Math.cos(Math.pow(2, n) * v)) /
+          Math.pow(2, n);
+      return [u, z * 0.8, v];
+    },
+    type: "surface",
+  },
+  {
+    id: "boys_surface",
+    name: "Boy's Surface",
+    icon: "𝔹",
+    color: "violet",
+    category: "Topology",
+    range: [
+      [0, Math.PI],
+      [0, Math.PI],
+    ],
+    fn: (u, v) => {
+      // Boy's surface parametric approximation
+      const x = Math.cos(u) * Math.sin(v);
+      const y = Math.sin(u) * Math.sin(v);
+      const z = Math.cos(v);
+      const denom = Math.sqrt(2) - Math.sin(2 * u) * Math.sin(3 * v);
+      const bx = Math.sqrt(2) * x * x - y * y - z * z + Math.sqrt(2) * x * z;
+      const by = Math.sqrt(2) * (y * y - x * x) + Math.sqrt(2) * y * z;
+      const bz = (3 * z * z) / 2;
+      return [(bx / denom) * 1.2, (bz / denom) * 1.2, (by / denom) * 1.2];
+    },
+    type: "surface",
+  },
+  {
+    id: "roman_surface",
+    name: "Roman Surface (Steiner)",
+    icon: "🏛",
+    color: "orange",
+    category: "Topology",
+    range: [
+      [0, Math.PI],
+      [0, Math.PI],
+    ],
+    fn: (u, v) => [
+      Math.sin(2 * u) * Math.cos(v) * Math.cos(v) * 2,
+      Math.sin(u) * Math.sin(2 * v) * 2,
+      Math.cos(u) * Math.sin(2 * v) * 2,
+    ],
+    type: "surface",
+  },
+  {
+    id: "dini_surface",
+    name: "Dini's Surface",
+    icon: "ð",
+    color: "gold",
+    category: "Differential Geometry",
+    range: [
+      [0, Math.PI * 4],
+      [0.05, 2],
+    ],
+    fn: (u, v) => {
+      const a = 1,
+        b = 0.2;
+      return [
+        a * Math.cos(u) * Math.sin(v) * 0.8,
+        a * Math.sin(u) * Math.sin(v) * 0.8,
+        a * (Math.cos(v) + Math.log(Math.tan(v / 2))) * 0.8 + b * u * 0.8,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "catenoid",
+    name: "Catenoid",
+    icon: "🪣",
+    color: "cyan",
+    category: "Minimal Surfaces",
+    range: [
+      [0, Math.PI * 2],
+      [-2, 2],
+    ],
+    fn: (u, v) => {
+      const a = 1;
+      return [
+        a * Math.cosh(v / a) * Math.cos(u) * 1.2,
+        v * 1.2,
+        a * Math.cosh(v / a) * Math.sin(u) * 1.2,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "helicoid",
+    name: "Helicoid",
+    icon: "🐚",
+    color: "emerald",
+    category: "Minimal Surfaces",
+    animated: true,
+    range: [
+      [0, Math.PI * 4],
+      [-2, 2],
+    ],
+    fn: (u, v, t = 0) => [
+      v * Math.cos(u + t * 0.3) * 1.2,
+      u * 0.5 - Math.PI,
+      v * Math.sin(u + t * 0.3) * 1.2,
+    ],
+    type: "surface",
+  },
+  {
+    id: "whitney_umbrella",
+    name: "Whitney Umbrella",
+    icon: "☂",
+    color: "pink",
+    category: "Topology",
+    range: [
+      [-2, 2],
+      [-2, 2],
+    ],
+    fn: (u, v) => [u * v * 0.8, u * 0.8, v * v * 0.8],
+    type: "surface",
+  },
+  {
+    id: "hopf_fibration",
+    name: "Hopf Fibration",
+    icon: "ℍ",
+    color: "violet",
+    category: "Topology",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v) => {
+      // Hopf fibration fiber visualization
+      const theta = v,
+        phi = u,
+        psi = u * 2;
+      const x = Math.cos((theta + phi) / 2) * Math.cos((theta - phi) / 2 + psi);
+      const y = Math.cos((theta + phi) / 2) * Math.sin((theta - phi) / 2 + psi);
+      const z = Math.sin((theta + phi) / 2) * Math.cos((theta - phi) / 2);
+      const w = Math.sin((theta + phi) / 2) * Math.sin((theta - phi) / 2);
+      // Project from S³ to R³ via stereographic
+      const denom = 1 - w + 0.01;
+      return [(x / denom) * 1.5, (y / denom) * 1.5, (z / denom) * 1.5];
+    },
+    type: "surface",
+  },
+];
+
+/* ─── Category colors ─── */
+const CATEGORY_COLORS = {
+  Classic: "#22d3ee",
+  Mathematical: "#f472b6",
+  Topology: "#a78bfa",
+  "Minimal Surfaces": "#34d399",
+  Attractors: "#fb923c",
+  Knots: "#fbbf24",
+  Quadrics: "#60a5fa",
+  "Differential Geometry": "#e879f9",
+};
+
+const ALL_CATEGORIES = [
+  ...new Set(PRESETS.map((p) => p.category || "Classic")),
 ];
 
 export default function Plotter3DPage() {
@@ -654,25 +1126,26 @@ export default function Plotter3DPage() {
   const [autoRotate, setAutoRotate] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
   const [showStars, setShowStars] = useState(true);
+  const [showAxes, setShowAxes] = useState(true);
   const [wireframe, setWireframe] = useState(false);
   const [opacity, setOpacity] = useState(0.92);
-  const [zoom, setZoom] = useState(1);
   const [customMode, setCustomMode] = useState(false);
   const [customExpr, setCustomExpr] = useState("sin(sqrt(x^2+y^2))");
   const [customInput, setCustomInput] = useState("sin(sqrt(x^2+y^2))");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("All");
 
-  const handleZoomIn = () => setZoom((z) => Math.min(z * 1.5, 8));
-  const handleZoomOut = () => setZoom((z) => Math.max(z / 1.5, 0.2));
-  const handleZoomReset = () => setZoom(1);
-
-  const controlsRef = useRef();
+  const filteredPresets =
+    activeCategory === "All"
+      ? PRESETS
+      : PRESETS.filter((p) => (p.category || "Classic") === activeCategory);
 
   return (
     <div
       className="flex flex-1 overflow-hidden"
       style={{ height: "calc(100vh - 56px)" }}
     >
+      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 lg:hidden"
@@ -700,8 +1173,9 @@ export default function Plotter3DPage() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto w-72 xl:w-80 flex flex-col border-r transition-transform duration-300 lg:translate-x-0 overflow-y-auto ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto flex flex-col border-r transition-transform duration-300 lg:translate-x-0 overflow-y-auto ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{
+          width: "clamp(260px, 30vw, 300px)",
           borderColor: "rgba(139,92,246,0.15)",
           background: "linear-gradient(180deg,#020810 0%,#060418 100%)",
           top: "56px",
@@ -716,20 +1190,13 @@ export default function Plotter3DPage() {
           }}
         />
 
+        {/* Header */}
         <div
-          className="px-4 py-4 border-b"
+          className="px-3 py-3 border-b"
           style={{ borderColor: "rgba(139,92,246,0.1)" }}
         >
-          <div className="flex items-center gap-3">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{
-                background: "rgba(139,92,246,0.1)",
-                border: "1px solid rgba(139,92,246,0.3)",
-              }}
-            >
-              <span style={{ color: "#a78bfa", fontSize: "0.85rem" }}>🌌</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <span style={{ color: "#a78bfa", fontSize: "1rem" }}>🌌</span>
             <div>
               <div
                 className="font-orbitron font-bold text-xs tracking-widest"
@@ -738,26 +1205,27 @@ export default function Plotter3DPage() {
                 3D VISUALIZER
               </div>
               <div
-                className="font-mono-code text-[9px] tracking-widest"
+                className="font-mono-code text-[9px]"
                 style={{ color: "#334155" }}
               >
-                Surface & Parametric
+                {PRESETS.length} surfaces & curves
               </div>
             </div>
           </div>
         </div>
 
+        {/* Controls */}
         <div
-          className="p-4 flex flex-col gap-4 border-b"
+          className="p-3 flex flex-col gap-3 border-b"
           style={{ borderColor: "rgba(139,92,246,0.08)" }}
         >
           {/* Custom function */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <div className="section-label">Custom f(x,y)</div>
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="section-label text-[10px]">Custom f(x,y)</div>
               <button
                 onClick={() => setCustomMode((m) => !m)}
-                className="font-mono-code text-[10px] px-2 py-1 rounded"
+                className="font-mono-code text-[9px] px-2 py-0.5 rounded"
                 style={{
                   background: customMode
                     ? "rgba(139,92,246,0.15)"
@@ -770,16 +1238,19 @@ export default function Plotter3DPage() {
               </button>
             </div>
             {customMode && (
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <input
-                  className="nova-input-sm flex-1"
+                  className="nova-input-sm flex-1 text-xs"
                   value={customInput}
                   onChange={(e) => setCustomInput(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && setCustomExpr(customInput)
+                  }
                   placeholder="sin(sqrt(x^2+y^2))"
                 />
                 <button
                   onClick={() => setCustomExpr(customInput)}
-                  className="px-3 py-1 rounded-lg font-mono-code text-[10px]"
+                  className="px-2 py-1 rounded-lg font-mono-code text-[9px]"
                   style={{
                     background: "rgba(139,92,246,0.15)",
                     border: "1px solid rgba(139,92,246,0.4)",
@@ -794,8 +1265,8 @@ export default function Plotter3DPage() {
 
           {/* Color scheme */}
           <div>
-            <div className="section-label">Color Scheme</div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="section-label text-[10px] mb-1.5">Color Scheme</div>
+            <div className="flex flex-wrap gap-1">
               {[
                 { id: "cyan", c: "#22d3ee" },
                 { id: "violet", c: "#a78bfa" },
@@ -808,7 +1279,7 @@ export default function Plotter3DPage() {
                 <button
                   key={s.id}
                   onClick={() => setColorScheme(s.id)}
-                  className="flex items-center gap-1 px-2 py-1 rounded-lg font-mono-code text-[10px] transition-all"
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded font-mono-code text-[9px]"
                   style={{
                     background:
                       colorScheme === s.id ? `${s.c}18` : "rgba(4,10,24,0.7)",
@@ -817,7 +1288,7 @@ export default function Plotter3DPage() {
                   }}
                 >
                   <div
-                    className="w-2 h-2 rounded-full"
+                    className="w-1.5 h-1.5 rounded-full"
                     style={{ background: s.c }}
                   />
                   {s.id}
@@ -828,24 +1299,30 @@ export default function Plotter3DPage() {
 
           {/* Scene toggles */}
           <div>
-            <div className="section-label">Scene Options</div>
-            <div className="flex flex-col gap-2">
+            <div className="section-label text-[10px] mb-1.5">
+              Scene Options
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
               {[
                 { label: "Auto Rotate", value: autoRotate, set: setAutoRotate },
                 { label: "Show Grid", value: showGrid, set: setShowGrid },
                 { label: "Star Field", value: showStars, set: setShowStars },
                 { label: "Wireframe", value: wireframe, set: setWireframe },
+                { label: "X/Y/Z Axes", value: showAxes, set: setShowAxes },
               ].map((opt) => (
                 <div
                   key={opt.label}
-                  className="flex items-center gap-3 cursor-pointer"
+                  className="flex items-center gap-1.5 cursor-pointer"
                   onClick={() => opt.set((v) => !v)}
                 >
-                  <div className={`toggle-track-nova ${opt.value ? "on" : ""}`}>
+                  <div
+                    className={`toggle-track-nova ${opt.value ? "on" : ""}`}
+                    style={{ transform: "scale(0.8)", transformOrigin: "left" }}
+                  >
                     <div className="toggle-thumb-nova" />
                   </div>
                   <span
-                    className="font-mono-code text-xs"
+                    className="font-mono-code text-[9px]"
                     style={{ color: opt.value ? "#22d3ee" : "#475569" }}
                   >
                     {opt.label}
@@ -857,7 +1334,9 @@ export default function Plotter3DPage() {
 
           {/* Opacity */}
           <div>
-            <div className="section-label">Surface Opacity</div>
+            <div className="section-label text-[10px] mb-1">
+              Opacity: {Math.round(opacity * 100)}%
+            </div>
             <input
               type="range"
               min="0.1"
@@ -873,60 +1352,100 @@ export default function Plotter3DPage() {
           </div>
         </div>
 
-        {/* Presets */}
-        <div className="p-4">
-          <div className="section-label mb-2">
-            3D Presets ({PRESETS.length})
-          </div>
-          <div className="flex flex-col gap-1">
-            {PRESETS.map((p) => (
+        {/* Category filter */}
+        <div className="px-3 pt-3">
+          <div className="section-label text-[10px] mb-1.5">Category</div>
+          <div className="flex flex-wrap gap-1 mb-3">
+            {["All", ...ALL_CATEGORIES].map((cat) => (
               <button
-                key={p.id}
-                onClick={() => {
-                  setPreset(p);
-                  setCustomMode(false);
-                }}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all text-left"
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className="font-mono-code text-[8px] px-1.5 py-0.5 rounded"
                 style={{
                   background:
-                    preset.id === p.id ? "rgba(139,92,246,0.1)" : "transparent",
-                  border: `1px solid ${preset.id === p.id ? "rgba(139,92,246,0.35)" : "rgba(139,92,246,0.06)"}`,
+                    activeCategory === cat
+                      ? "rgba(139,92,246,0.2)"
+                      : "rgba(4,10,24,0.7)",
+                  border: `1px solid ${activeCategory === cat ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.1)"}`,
+                  color: activeCategory === cat ? "#a78bfa" : "#475569",
                 }}
               >
-                <span
-                  className="w-5 h-5 flex items-center justify-center rounded text-xs flex-shrink-0"
-                  style={{
-                    background: "rgba(139,92,246,0.1)",
-                    color: "#a78bfa",
-                  }}
-                >
-                  {p.icon}
-                </span>
-                <span
-                  className="flex-1 font-rajdhani text-sm"
-                  style={{ color: preset.id === p.id ? "#a78bfa" : "#64748b" }}
-                >
-                  {p.name}
-                </span>
-                {p.animated && (
-                  <span
-                    className="font-mono-code text-[8px] px-1 rounded"
-                    style={{
-                      background: "rgba(16,185,129,0.1)",
-                      color: "#34d399",
-                      border: "1px solid rgba(16,185,129,0.2)",
-                    }}
-                  >
-                    anim
-                  </span>
-                )}
+                {cat}
               </button>
             ))}
+          </div>
+
+          {/* Preset list */}
+          <div className="section-label text-[10px] mb-1.5">
+            Presets ({filteredPresets.length})
+          </div>
+          <div className="flex flex-col gap-0.5 pb-4">
+            {filteredPresets.map((p) => {
+              const catColor =
+                CATEGORY_COLORS[p.category || "Classic"] || "#a78bfa";
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => {
+                    setPreset(p);
+                    setCustomMode(false);
+                    setSidebarOpen(false);
+                  }}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all text-left"
+                  style={{
+                    background:
+                      preset.id === p.id
+                        ? "rgba(139,92,246,0.1)"
+                        : "transparent",
+                    border: `1px solid ${preset.id === p.id ? "rgba(139,92,246,0.35)" : "rgba(139,92,246,0.05)"}`,
+                  }}
+                >
+                  <span
+                    className="w-5 h-5 flex items-center justify-center rounded text-xs flex-shrink-0"
+                    style={{
+                      background: "rgba(139,92,246,0.08)",
+                      color: catColor,
+                      fontSize: "0.65rem",
+                    }}
+                  >
+                    {p.icon}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div
+                      className="font-rajdhani text-xs truncate"
+                      style={{
+                        color: preset.id === p.id ? "#a78bfa" : "#64748b",
+                      }}
+                    >
+                      {p.name}
+                    </div>
+                    <div
+                      className="font-mono-code text-[7px]"
+                      style={{ color: catColor + "80" }}
+                    >
+                      {p.category || "Classic"}
+                    </div>
+                  </div>
+                  {p.animated && (
+                    <span
+                      className="font-mono-code text-[7px] px-1 rounded flex-shrink-0"
+                      style={{
+                        background: "rgba(16,185,129,0.1)",
+                        color: "#34d399",
+                        border: "1px solid rgba(16,185,129,0.2)",
+                      }}
+                    >
+                      ●
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </aside>
 
-      {/* 3D Canvas */}
+      {/* Main 3D Canvas */}
       <main className="flex flex-col flex-1 overflow-hidden min-w-0">
         {/* Top bar */}
         <div
@@ -936,57 +1455,43 @@ export default function Plotter3DPage() {
             background: "rgba(2,4,16,0.8)",
           }}
         >
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
             <span
-              className="font-orbitron text-xs font-bold"
+              className="font-orbitron text-xs font-bold truncate max-w-[200px]"
               style={{ color: "#a78bfa" }}
             >
               {customMode ? `f(x,y) = ${customExpr}` : preset.name}
             </span>
             {preset.animated && !customMode && (
               <span
-                className="font-mono-code text-[9px] px-2 py-0.5 rounded-full animate-pulse-glow"
+                className="font-mono-code text-[9px] px-2 py-0.5 rounded-full animate-pulse-glow flex-shrink-0"
                 style={{
                   background: "rgba(16,185,129,0.1)",
                   color: "#34d399",
                   border: "1px solid rgba(16,185,129,0.2)",
                 }}
               >
-                ● ANIMATED
+                ● LIVE
+              </span>
+            )}
+            {!customMode && preset.category && (
+              <span
+                className="font-mono-code text-[8px] px-1.5 py-0.5 rounded flex-shrink-0"
+                style={{
+                  background: "rgba(139,92,246,0.08)",
+                  color: CATEGORY_COLORS[preset.category] || "#a78bfa",
+                }}
+              >
+                {preset.category}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            {/* Zoom controls */}
-            <div className="flex items-center gap-1">
-              <button
-                className="zoom-btn"
-                onClick={handleZoomIn}
-                title="Zoom In"
-              >
-                +
-              </button>
-              <button
-                className="zoom-btn"
-                onClick={handleZoomOut}
-                title="Zoom Out"
-              >
-                −
-              </button>
-              <button
-                className="zoom-btn"
-                onClick={handleZoomReset}
-                title="Reset"
-                style={{ fontSize: "0.6rem", width: 32 }}
-              >
-                RST
-              </button>
-            </div>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <span
-              className="font-mono-code text-[9px] hidden sm:block"
-              style={{ color: "#334155" }}
+              className="font-mono-code text-[8px] hidden sm:block"
+              style={{ color: "#1e293b" }}
             >
-              Drag: orbit · Scroll: zoom · Right: pan
+              Drag·Scroll·RightClick
             </span>
           </div>
         </div>
@@ -1009,13 +1514,15 @@ export default function Plotter3DPage() {
               <Stars
                 radius={100}
                 depth={50}
-                count={3000}
+                count={2000}
                 factor={4}
                 saturation={0}
                 fade
-                speed={0.4}
+                speed={0.3}
               />
             )}
+
+            {showAxes && <AxisLines size={5} />}
 
             <Suspense fallback={null}>
               {customMode ? (
@@ -1024,6 +1531,11 @@ export default function Plotter3DPage() {
                   colorScheme={colorScheme}
                   wireframe={wireframe}
                   opacity={opacity}
+                />
+              ) : preset.type === "attractor" ? (
+                <AttractorLine
+                  preset={preset}
+                  colorScheme={preset.color || colorScheme}
                 />
               ) : preset.type === "line" ? (
                 <ParametricLine
@@ -1069,40 +1581,72 @@ export default function Plotter3DPage() {
               enableRotate
             />
           </Canvas>
+
+          {/* Axis legend overlay */}
+          {showAxes && (
+            <div
+              className="absolute bottom-10 right-3 flex flex-col gap-1 pointer-events-none"
+              style={{
+                background: "rgba(2,4,16,0.7)",
+                border: "1px solid rgba(139,92,246,0.1)",
+                borderRadius: 8,
+                padding: "6px 10px",
+              }}
+            >
+              {[
+                ["X", "#ef4444"],
+                ["Y", "#22c55e"],
+                ["Z", "#3b82f6"],
+              ].map(([l, c]) => (
+                <div key={l} className="flex items-center gap-1.5">
+                  <div
+                    className="w-3 h-0.5 rounded"
+                    style={{ background: c }}
+                  />
+                  <span
+                    className="font-mono-code text-[9px]"
+                    style={{ color: c }}
+                  >
+                    {l}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Bottom info */}
         <div
-          className="flex items-center justify-between px-4 py-2 border-t"
+          className="flex items-center justify-between px-3 py-1.5 border-t"
           style={{
             borderColor: "rgba(139,92,246,0.08)",
             background: "rgba(2,4,16,0.8)",
           }}
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {[
               ["Three.js", "Renderer", "#a78bfa"],
               ["R3F", "Bridge", "#f472b6"],
-              ["GPU", "Accel", "#22d3ee"],
+              ["WebGL", "GPU", "#22d3ee"],
             ].map(([n, l, c]) => (
               <span
                 key={n}
-                className="font-mono-code text-[10px] flex items-center gap-1.5"
+                className="font-mono-code text-[9px] flex items-center gap-1"
                 style={{ color: "#334155" }}
               >
                 <span
-                  className="w-1.5 h-1.5 rounded-full"
+                  className="w-1 h-1 rounded-full"
                   style={{ background: c }}
                 />
-                {l}: <span style={{ color: c }}>{n}</span>
+                <span style={{ color: c }}>{n}</span>
               </span>
             ))}
           </div>
           <span
-            className="font-mono-code text-[10px]"
+            className="font-mono-code text-[9px]"
             style={{ color: "#1e293b" }}
           >
-            WebGL 2.0 · {customMode ? "60×60" : "70×70"} mesh
+            {customMode ? "55×55" : "60×60"} mesh · {PRESETS.length} presets
           </span>
         </div>
       </main>
