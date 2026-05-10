@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useState, useCallback } from "react";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -12,14 +12,13 @@ import {
 } from "recharts";
 import * as math from "mathjs";
 
-const POINTS = 900;
+const POINTS = 1000;
 const PHI = (1 + Math.sqrt(5)) / 2;
-const OMEGA = 2 * Math.PI;
 const SCOPE = {
   pi: Math.PI,
   e: Math.E,
   phi: PHI,
-  omega: OMEGA,
+  omega: 2 * Math.PI,
   tau: 2 * Math.PI,
 };
 
@@ -81,31 +80,6 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
-function EmptyState() {
-  return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-      <div
-        className="font-mono-code text-6xl animate-float"
-        style={{ color: "rgba(6,182,212,0.1)" }}
-      >
-        ∿
-      </div>
-      <p
-        className="font-orbitron text-xs tracking-widest uppercase"
-        style={{ color: "#334155" }}
-      >
-        Enter a function to visualize
-      </p>
-      <span
-        className="font-mono-code text-xs text-center px-4"
-        style={{ color: "#1e293b" }}
-      >
-        Try: sin(x) · x² · e^(-x²) · cos(x)+sin(x)
-      </span>
-    </div>
-  );
-}
-
 export default function GraphPanel({
   plots,
   xMin,
@@ -116,15 +90,25 @@ export default function GraphPanel({
   setYMin,
   setYMax,
   setError,
+  onZoom,
+  onPan,
 }) {
+  const [internalXMin, setInternalXMin] = useState(xMin);
+  const [internalXMax, setInternalXMax] = useState(xMax);
+
+  useEffect(() => {
+    setInternalXMin(xMin);
+    setInternalXMax(xMax);
+  }, [xMin, xMax]);
+
   const data = useMemo(() => {
     try {
-      return buildData(plots, xMin, xMax);
+      return buildData(plots, internalXMin, internalXMax);
     } catch (e) {
       setError(e.message);
       return [];
     }
-  }, [plots, xMin, xMax]);
+  }, [plots, internalXMin, internalXMax]);
 
   useEffect(() => {
     const errs = [];
@@ -159,10 +143,79 @@ export default function GraphPanel({
     ];
   }, [data, autoY, yMin, yMax]);
 
+  const handleZoomIn = useCallback(() => {
+    const mid = (internalXMin + internalXMax) / 2;
+    const half = (internalXMax - internalXMin) / 4;
+    setInternalXMin(mid - half);
+    setInternalXMax(mid + half);
+  }, [internalXMin, internalXMax]);
+
+  const handleZoomOut = useCallback(() => {
+    const mid = (internalXMin + internalXMax) / 2;
+    const half = internalXMax - internalXMin;
+    setInternalXMin(mid - half);
+    setInternalXMax(mid + half);
+  }, [internalXMin, internalXMax]);
+
+  const handleZoomReset = useCallback(() => {
+    setInternalXMin(xMin);
+    setInternalXMax(xMax);
+  }, [xMin, xMax]);
+
+  const handlePanLeft = useCallback(() => {
+    const d = (internalXMax - internalXMin) * 0.25;
+    setInternalXMin((v) => v - d);
+    setInternalXMax((v) => v - d);
+  }, [internalXMin, internalXMax]);
+
+  const handlePanRight = useCallback(() => {
+    const d = (internalXMax - internalXMin) * 0.25;
+    setInternalXMin((v) => v + d);
+    setInternalXMax((v) => v + d);
+  }, [internalXMin, internalXMax]);
+
   const activePlots = plots.filter((p) => p.visible && p.expr.trim());
 
   return (
-    <div className="flex-1 p-3 sm:p-4 flex flex-col overflow-hidden min-h-0">
+    <div className="flex-1 p-2 sm:p-4 flex flex-col overflow-hidden min-h-0">
+      {/* Zoom & Pan controls */}
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <div className="flex items-center gap-1">
+          <button className="zoom-btn" onClick={handleZoomIn} title="Zoom In">
+            +
+          </button>
+          <button className="zoom-btn" onClick={handleZoomOut} title="Zoom Out">
+            −
+          </button>
+          <button
+            className="zoom-btn text-xs"
+            onClick={handleZoomReset}
+            title="Reset Zoom"
+            style={{ fontSize: "0.6rem", width: 38 }}
+          >
+            RST
+          </button>
+        </div>
+        <div className="flex items-center gap-1">
+          <button className="zoom-btn" onClick={handlePanLeft} title="Pan Left">
+            ◀
+          </button>
+          <button
+            className="zoom-btn"
+            onClick={handlePanRight}
+            title="Pan Right"
+          >
+            ▶
+          </button>
+        </div>
+        <span
+          className="font-mono-code text-[9px] ml-auto"
+          style={{ color: "#334155" }}
+        >
+          x: [{internalXMin.toFixed(2)}, {internalXMax.toFixed(2)}]
+        </span>
+      </div>
+
       <div className="relative flex-1 graph-container min-h-0">
         {/* Corner accents */}
         {[
@@ -185,8 +238,6 @@ export default function GraphPanel({
             />
           </div>
         ))}
-
-        {/* Inner glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -196,12 +247,31 @@ export default function GraphPanel({
         />
 
         {activePlots.length === 0 ? (
-          <EmptyState />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+            <div
+              className="font-mono-code text-6xl animate-float"
+              style={{ color: "rgba(6,182,212,0.1)" }}
+            >
+              ∿
+            </div>
+            <p
+              className="font-orbitron text-xs tracking-widest uppercase"
+              style={{ color: "#334155" }}
+            >
+              Enter a function to visualize
+            </p>
+            <span
+              className="font-mono-code text-xs text-center px-4"
+              style={{ color: "#1e293b" }}
+            >
+              Try: sin(x) · x² · e^(-x²) · cos(x)+sin(x)
+            </span>
+          </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={data}
-              margin={{ top: 16, right: 16, bottom: 16, left: 0 }}
+              margin={{ top: 16, right: 12, bottom: 16, left: 0 }}
             >
               <CartesianGrid
                 strokeDasharray="2 6"
@@ -210,7 +280,7 @@ export default function GraphPanel({
               <XAxis
                 dataKey="x"
                 type="number"
-                domain={[xMin, xMax]}
+                domain={[internalXMin, internalXMax]}
                 tickCount={9}
                 tick={{
                   fill: "#334155",
@@ -275,10 +345,10 @@ export default function GraphPanel({
                     strokeWidth: 2,
                   }}
                   isAnimationActive={true}
-                  animationDuration={600}
+                  animationDuration={500}
                   animationEasing="ease-out"
                   connectNulls={false}
-                  style={{ filter: `drop-shadow(0 0 5px ${plot.color}80)` }}
+                  style={{ filter: `drop-shadow(0 0 4px ${plot.color}80)` }}
                 />
               ))}
             </ComposedChart>

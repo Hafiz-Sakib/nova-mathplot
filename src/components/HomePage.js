@@ -1,17 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 
-/* ─── Animated SVG Previews ─── */
 function AnimatedSine({ color = "#22d3ee", color2 = "#10b981" }) {
+  const id = `sG-${color.replace("#", "")}-${color2.replace("#", "")}`;
   return (
     <svg viewBox="0 0 280 80" className="w-full" preserveAspectRatio="none">
       <defs>
-        <linearGradient id="sG1" x1="0%" y1="0%" x2="100%" y2="0%">
+        <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor={color} stopOpacity="0" />
           <stop offset="30%" stopColor={color} stopOpacity="1" />
           <stop offset="70%" stopColor={color2} stopOpacity="1" />
           <stop offset="100%" stopColor={color2} stopOpacity="0" />
         </linearGradient>
-        <filter id="glow1">
+        <filter id={`g-${id}`}>
           <feGaussianBlur stdDeviation="2" result="b" />
           <feMerge>
             <feMergeNode in="b" />
@@ -22,28 +22,20 @@ function AnimatedSine({ color = "#22d3ee", color2 = "#10b981" }) {
       <path
         d="M0,40 C14,40 21,10 35,10 C49,10 56,70 70,70 C84,70 91,10 105,10 C119,10 126,70 140,70 C154,70 161,10 175,10 C189,10 196,70 210,70 C224,70 231,10 245,10 C259,10 266,40 280,40"
         fill="none"
-        stroke="url(#sG1)"
+        stroke={`url(#${id})`}
         strokeWidth="2.2"
-        filter="url(#glow1)"
+        filter={`url(#g-${id})`}
         style={{
           strokeDasharray: 800,
           animation: "dash-anim 4s linear infinite",
         }}
-      />
-      <path
-        d="M0,40 C14,40 21,10 35,10 C49,10 56,70 70,70 C84,70 91,10 105,10 C119,10 126,70 140,70 C154,70 161,10 175,10 C189,10 196,70 210,70 C224,70 231,10 245,10 C259,10 266,40 280,40"
-        fill="none"
-        stroke={color}
-        strokeWidth="5"
-        opacity="0.08"
       />
     </svg>
   );
 }
 
 function GaussianPreview() {
-  const pts = [],
-    fill = [];
+  const pts = [];
   for (let x = -3.5; x <= 3.5; x += 0.08) {
     const y = Math.exp(-x * x);
     pts.push([x * 33 + 140, 68 - y * 52]);
@@ -59,70 +51,17 @@ function GaussianPreview() {
   return (
     <svg viewBox="0 0 280 80" className="w-full">
       <defs>
-        <linearGradient id="gaussG" x1="50%" y1="0%" x2="50%" y2="100%">
-          <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
+        <linearGradient id="gG2" x1="50%" y1="0%" x2="50%" y2="100%">
+          <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
           <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
         </linearGradient>
-        <filter id="gaussGlow">
-          <feGaussianBlur stdDeviation="1.5" result="b" />
-          <feMerge>
-            <feMergeNode in="b" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
       </defs>
-      <path d={f} fill="url(#gaussG)" />
-      <path
-        d={d}
-        fill="none"
-        stroke="#34d399"
-        strokeWidth="2"
-        filter="url(#gaussGlow)"
-      />
+      <path d={f} fill="url(#gG2)" />
+      <path d={d} fill="none" stroke="#34d399" strokeWidth="2.2" />
     </svg>
   );
 }
 
-function SpiralPreview() {
-  const pts = [];
-  for (let t = 0; t < 5 * Math.PI; t += 0.07) {
-    const r = t * 9;
-    const x = 140 + r * Math.cos(t);
-    const y = 40 + r * Math.sin(t) * 0.6;
-    if (x > 5 && x < 275 && y > 5 && y < 75) pts.push([x, y]);
-  }
-  const d = pts
-    .map(
-      (p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`,
-    )
-    .join(" ");
-  return (
-    <svg viewBox="0 0 280 80" className="w-full">
-      <defs>
-        <linearGradient id="spG" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="#f472b6" stopOpacity="1" />
-        </linearGradient>
-        <filter id="spGlow">
-          <feGaussianBlur stdDeviation="1.5" result="b" />
-          <feMerge>
-            <feMergeNode in="b" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-      <path
-        d={d}
-        fill="none"
-        stroke="url(#spG)"
-        strokeWidth="1.8"
-        filter="url(#spGlow)"
-      />
-    </svg>
-  );
-}
-
-/* ─── Particle Canvas ─── */
 function ParticleField() {
   const canvasRef = useRef(null);
   useEffect(() => {
@@ -135,17 +74,15 @@ function ParticleField() {
     };
     resize();
     window.addEventListener("resize", resize);
-
-    const particles = Array.from({ length: 60 }, () => ({
+    const particles = Array.from({ length: 70 }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      size: Math.random() * 1.5 + 0.5,
+      vx: (Math.random() - 0.5) * 0.35,
+      vy: (Math.random() - 0.5) * 0.35,
+      size: Math.random() * 1.8 + 0.4,
       opacity: Math.random() * 0.5 + 0.1,
-      hue: Math.random() > 0.6 ? 188 : Math.random() > 0.5 ? 160 : 270,
+      hue: [188, 160, 270, 210][Math.floor(Math.random() * 4)],
     }));
-
     let raf;
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -158,25 +95,23 @@ function ParticleField() {
         if (p.y > canvas.height) p.y = 0;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${p.hue}, 80%, 65%, ${p.opacity})`;
+        ctx.fillStyle = `hsla(${p.hue},80%,65%,${p.opacity})`;
         ctx.fill();
       });
-      // Draw connections
-      for (let i = 0; i < particles.length; i++) {
+      for (let i = 0; i < particles.length; i++)
         for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
+          const dx = particles[i].x - particles[j].x,
+            dy = particles[i].y - particles[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 100) {
+          if (dist < 110) {
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(6,182,212,${0.06 * (1 - dist / 100)})`;
+            ctx.strokeStyle = `rgba(6,182,212,${0.07 * (1 - dist / 110)})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
         }
-      }
       raf = requestAnimationFrame(animate);
     };
     animate();
@@ -194,7 +129,6 @@ function ParticleField() {
   );
 }
 
-/* ─── Feature card data ─── */
 const FEATURES = [
   {
     icon: "📈",
@@ -202,11 +136,11 @@ const FEATURES = [
     color: "#22d3ee",
     bgColor: "rgba(6,182,212,0.08)",
     borderColor: "rgba(6,182,212,0.2)",
-    desc: "Plot any mathematical expression — trig, polynomial, exponential, and more. Multi-function overlay, zoom & pan, animated waves.",
+    desc: "Plot any mathematical expression — trig, polynomial, exponential. Multi-function overlay, zoom & pan, animated waves.",
     items: [
       "50+ example functions",
       "Multi-curve overlay",
-      "Zoom & pan",
+      "Zoom & pan controls",
       "Animated waveforms",
     ],
     page: "plotter2d",
@@ -223,7 +157,7 @@ const FEATURES = [
       "Orbit camera controls",
       "17+ 3D presets",
       "Animated surfaces",
-      "Custom functions",
+      "Zoom & pan 3D",
     ],
     page: "plotter3d",
     cta: "Launch 3D Plotter",
@@ -234,7 +168,7 @@ const FEATURES = [
     color: "#f472b6",
     bgColor: "rgba(236,72,153,0.08)",
     borderColor: "rgba(236,72,153,0.2)",
-    desc: "Euler's formula e^(ix) = cos(x) + i·sin(x), complex spirals, phase visualization, and Riemann-style surfaces.",
+    desc: "Euler's formula e^(ix) = cos(x)+i·sin(x), complex spirals, phase visualization, and magnitude surfaces.",
     items: [
       "Euler's formula viz",
       "Phase coloring",
@@ -250,15 +184,15 @@ const FEATURES = [
     color: "#fb923c",
     bgColor: "rgba(249,115,22,0.08)",
     borderColor: "rgba(249,115,22,0.2)",
-    desc: "Lissajous curves, Fourier series, rose curves, epitrochoids, parametric spirals, and polar equations.",
+    desc: "Lissajous curves, Fourier series, rose curves, epitrochoids, parametric spirals, and polar equations with animation.",
     items: [
       "Lissajous figures",
       "Fourier harmonics",
       "Polar equations",
       "Beat frequencies",
     ],
-    page: "plotter2d",
-    cta: "Try Examples",
+    page: "parametric",
+    cta: "Try Parametric",
   },
 ];
 
@@ -268,36 +202,26 @@ const TECH_STACK = [
   { name: "React Three Fiber", color: "#f97316" },
   { name: "Math.js", color: "#22d3ee" },
   { name: "Recharts", color: "#10b981" },
-  { name: "Framer Motion", color: "#ec4899" },
 ];
 
 const STATS = [
   { num: "50+", label: "Example Functions", color: "#22d3ee" },
   { num: "17", label: "3D Presets", color: "#a78bfa" },
-  { num: "∞", label: "Plot Precision", color: "#10b981" },
+  { num: "4", label: "Visualization Modes", color: "#10b981" },
   { num: "100%", label: "Browser-Based", color: "#fb923c" },
 ];
 
 export default function HomePage({ setPage }) {
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setTick((n) => n + 1), 50);
-    return () => clearInterval(t);
-  }, []);
-
   return (
     <main className="flex-1 overflow-y-auto nova-bg">
-      {/* ─── HERO ─── */}
-      <section className="relative min-h-[90vh] flex flex-col items-center justify-center overflow-hidden px-4 py-20">
-        {/* Grid background */}
-        <div className="absolute inset-0 nova-grid opacity-60" />
-        {/* Particles */}
+      {/* HERO */}
+      <section className="relative min-h-[88vh] flex flex-col items-center justify-center overflow-hidden px-4 py-16">
+        <div className="absolute inset-0 nova-grid opacity-50" />
         <div className="absolute inset-0">
           <ParticleField />
         </div>
-        {/* Orbs */}
         <div
-          className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full pointer-events-none"
+          className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none"
           style={{
             background:
               "radial-gradient(ellipse, rgba(6,182,212,0.07) 0%, transparent 70%)",
@@ -305,24 +229,15 @@ export default function HomePage({ setPage }) {
           }}
         />
         <div
-          className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full pointer-events-none"
+          className="absolute bottom-1/4 right-1/4 w-72 h-72 rounded-full pointer-events-none"
           style={{
             background:
               "radial-gradient(ellipse, rgba(139,92,246,0.06) 0%, transparent 70%)",
             animation: "float 10s ease-in-out infinite reverse",
           }}
         />
-        <div
-          className="absolute top-1/2 right-1/3 w-40 h-40 rounded-full pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse, rgba(16,185,129,0.05) 0%, transparent 70%)",
-            animation: "float 12s ease-in-out infinite",
-          }}
-        />
 
-        <div className="relative z-10 text-center max-w-5xl mx-auto">
-          {/* Badge */}
+        <div className="relative z-10 text-center max-w-5xl mx-auto w-full">
           <div
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8"
             style={{
@@ -343,11 +258,10 @@ export default function HomePage({ setPage }) {
             </span>
           </div>
 
-          {/* Title */}
           <h1
-            className="font-orbitron font-black mb-4 leading-none"
+            className="font-orbitron font-black mb-3 leading-none"
             style={{
-              fontSize: "clamp(3rem, 10vw, 7rem)",
+              fontSize: "clamp(3.5rem,12vw,8rem)",
               background:
                 "linear-gradient(135deg, #22d3ee 0%, #34d399 35%, #a78bfa 65%, #f472b6 100%)",
               WebkitBackgroundClip: "text",
@@ -359,11 +273,11 @@ export default function HomePage({ setPage }) {
             NOVA
           </h1>
           <h2
-            className="font-orbitron font-bold mb-6"
+            className="font-orbitron font-bold mb-5"
             style={{
-              fontSize: "clamp(1rem, 3vw, 1.5rem)",
+              fontSize: "clamp(0.75rem,2.5vw,1.2rem)",
               color: "#475569",
-              letterSpacing: "0.3em",
+              letterSpacing: "0.35em",
               animation: "heroFadeIn 0.7s 0.2s ease both",
             }}
           >
@@ -371,65 +285,57 @@ export default function HomePage({ setPage }) {
           </h2>
 
           <p
-            className="font-rajdhani text-xl sm:text-2xl font-light mb-4 max-w-3xl mx-auto"
+            className="font-rajdhani text-xl sm:text-2xl font-light mb-10 max-w-2xl mx-auto"
             style={{
               color: "#94a3b8",
               animation: "heroFadeIn 0.7s 0.3s ease both",
             }}
           >
-            2D plotting · 3D visualization · complex analysis · animated
-            rendering
-          </p>
-          <p
-            className="font-mono-code text-sm max-w-2xl mx-auto mb-12 leading-relaxed"
-            style={{
-              color: "#334155",
-              animation: "heroFadeIn 0.7s 0.4s ease both",
-            }}
-          >
-            {"{ "}
-            <span style={{ color: "#22d3ee" }}>sin</span>(x) ·{" "}
-            <span style={{ color: "#34d399" }}>e</span>^(
-            <span style={{ color: "#f472b6" }}>ix</span>) ·{" "}
-            <span style={{ color: "#a78bfa" }}>∑</span> Fourier ·{" "}
-            <span style={{ color: "#fb923c" }}>∇²</span>f(x,y,z){" }"}
+            2D plotting · 3D visualization · complex analysis · parametric
+            curves
           </p>
 
-          {/* CTA Buttons */}
           <div
-            className="flex flex-wrap items-center justify-center gap-4 mb-16"
-            style={{ animation: "heroFadeIn 0.7s 0.5s ease both" }}
+            className="flex flex-wrap items-center justify-center gap-3 mb-12"
+            style={{ animation: "heroFadeIn 0.7s 0.4s ease both" }}
           >
             <button
               onClick={() => setPage("plotter2d")}
-              className="btn-primary text-base px-8 py-3"
+              className="btn-primary text-sm px-6 py-3"
             >
               <span>Launch 2D Plotter</span>
-              <span style={{ fontSize: "1.1em" }}>→</span>
+              <span>→</span>
             </button>
             <button
               onClick={() => setPage("plotter3d")}
-              className="btn-secondary text-base px-8 py-3"
+              className="btn-secondary text-sm px-6 py-3"
             >
               <span>🌌 3D Visualizer</span>
             </button>
             <button
               onClick={() => setPage("complex")}
-              className="btn-accent text-base px-6 py-3"
+              className="btn-accent text-sm px-6 py-3"
             >
-              <span>ℂ Complex Analysis</span>
+              <span>ℂ Complex</span>
+            </button>
+            <button
+              onClick={() => setPage("parametric")}
+              className="btn-ghost text-sm px-5 py-3"
+              style={{ color: "#fb923c", borderColor: "rgba(249,115,22,0.3)" }}
+            >
+              <span>∑ Parametric</span>
             </button>
           </div>
 
-          {/* Live Graph Preview */}
+          {/* Live preview */}
           <div
             className="max-w-3xl mx-auto rounded-2xl overflow-hidden"
             style={{
-              background: "rgba(4,10,24,0.8)",
+              background: "rgba(4,10,24,0.85)",
               border: "1px solid rgba(6,182,212,0.18)",
               boxShadow:
-                "0 0 60px rgba(6,182,212,0.1), 0 30px 60px rgba(0,0,0,0.5)",
-              animation: "heroFadeIn 0.7s 0.6s ease both",
+                "0 0 80px rgba(6,182,212,0.12), 0 40px 80px rgba(0,0,0,0.5)",
+              animation: "heroFadeIn 0.7s 0.5s ease both",
             }}
           >
             <div
@@ -480,14 +386,14 @@ export default function HomePage({ setPage }) {
                   color: "#a78bfa",
                 },
                 {
-                  label: "Parametric",
-                  content: <SpiralPreview />,
+                  label: "Complex",
+                  content: <AnimatedSine color="#fb923c" color2="#f472b6" />,
                   color: "#fb923c",
                 },
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="rounded-xl p-3"
+                  className="rounded-xl p-2"
                   style={{
                     background: "rgba(6,18,40,0.6)",
                     border: `1px solid ${item.color}20`,
@@ -495,8 +401,8 @@ export default function HomePage({ setPage }) {
                 >
                   {item.content}
                   <p
-                    className="font-mono-code text-[10px] text-center mt-1.5"
-                    style={{ color: item.color, opacity: 0.6 }}
+                    className="font-mono-code text-[10px] text-center mt-1"
+                    style={{ color: item.color, opacity: 0.7 }}
                   >
                     {item.label}
                   </p>
@@ -507,7 +413,7 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
 
-      {/* ─── STATS ─── */}
+      {/* STATS */}
       <section className="px-4 sm:px-6 lg:px-8 pb-16 max-w-7xl mx-auto">
         <div className="nova-divider mb-12" />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -521,7 +427,7 @@ export default function HomePage({ setPage }) {
               }}
             >
               <div
-                className="font-orbitron font-black text-3xl mb-1"
+                className="font-orbitron font-black text-3xl sm:text-4xl mb-1"
                 style={{ color: s.color, textShadow: `0 0 20px ${s.color}60` }}
               >
                 {s.num}
@@ -537,11 +443,11 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
 
-      {/* ─── FEATURES ─── */}
+      {/* FEATURES */}
       <section className="px-4 sm:px-6 lg:px-8 pb-20 max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <div
-            className="section-label justify-center mb-3 text-center"
+            className="section-label justify-center mb-3"
             style={{ letterSpacing: "0.3em" }}
           >
             Features
@@ -556,11 +462,9 @@ export default function HomePage({ setPage }) {
             Powerful tools for mathematical visualization and exploration
           </p>
         </div>
-
         <div className="grid sm:grid-cols-2 gap-6">
           {FEATURES.map((f) => (
-            <div key={f.title} className="feature-card-nova p-8">
-              {/* Top accent */}
+            <div key={f.title} className="feature-card-nova p-6 sm:p-8">
               <div
                 className="absolute top-0 left-0 right-0 h-px"
                 style={{
@@ -569,7 +473,7 @@ export default function HomePage({ setPage }) {
               />
               <div className="flex items-start gap-4 mb-5">
                 <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-xl sm:text-2xl flex-shrink-0"
                   style={{
                     background: f.bgColor,
                     border: `1px solid ${f.borderColor}`,
@@ -580,7 +484,7 @@ export default function HomePage({ setPage }) {
                 </div>
                 <div>
                   <h3
-                    className="font-orbitron font-bold text-base mb-1"
+                    className="font-orbitron font-bold text-sm sm:text-base mb-1"
                     style={{ color: f.color }}
                   >
                     {f.title}
@@ -596,7 +500,7 @@ export default function HomePage({ setPage }) {
               <div className="grid grid-cols-2 gap-2 mb-6">
                 {f.items.map((item) => (
                   <div key={item} className="flex items-center gap-2">
-                    <span style={{ color: f.color, fontSize: "0.6rem" }}>
+                    <span style={{ color: f.color, fontSize: "0.55rem" }}>
                       ◆
                     </span>
                     <span
@@ -618,7 +522,7 @@ export default function HomePage({ setPage }) {
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.boxShadow = `0 0 20px ${f.color}25`;
-                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.transform = "translateY(-2px)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.boxShadow = "none";
@@ -632,12 +536,12 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
 
-      {/* ─── TECH STACK ─── */}
+      {/* TECH STACK */}
       <section className="px-4 sm:px-6 lg:px-8 pb-20 max-w-7xl mx-auto">
-        <div className="nova-divider mb-12" />
-        <div className="text-center mb-8">
+        <div className="nova-divider mb-10" />
+        <div className="text-center mb-6">
           <h3
-            className="font-orbitron font-bold text-lg mb-2"
+            className="font-orbitron font-bold text-base"
             style={{ color: "#334155" }}
           >
             Built With
@@ -668,12 +572,12 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
 
-      {/* ─── FOOTER ─── */}
+      {/* FOOTER */}
       <footer
         className="border-t px-4 sm:px-8 py-10"
         style={{
           borderColor: "rgba(6,182,212,0.1)",
-          background: "rgba(2,5,14,0.7)",
+          background: "rgba(2,5,14,0.8)",
         }}
       >
         <div className="max-w-7xl mx-auto">
@@ -693,15 +597,16 @@ export default function HomePage({ setPage }) {
                 className="font-mono-code text-xs"
                 style={{ color: "#334155" }}
               >
-                Scientific Visualization Platform
+                Scientific Visualization Platform v3.0
               </div>
             </div>
-            <div className="flex flex-wrap gap-6">
+            <div className="flex flex-wrap gap-4">
               {[
                 ["Home", "home"],
                 ["2D Plotter", "plotter2d"],
                 ["3D Plotter", "plotter3d"],
                 ["Complex", "complex"],
+                ["Parametric", "parametric"],
               ].map(([l, p]) => (
                 <button
                   key={p}
@@ -711,25 +616,6 @@ export default function HomePage({ setPage }) {
                 >
                   {l}
                 </button>
-              ))}
-            </div>
-            <div className="flex gap-3">
-              {[
-                { label: "GitHub", icon: "⌥" },
-                { label: "Docs", icon: "📚" },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer transition-colors"
-                  style={{
-                    background: "rgba(6,18,40,0.8)",
-                    border: "1px solid rgba(6,182,212,0.12)",
-                    color: "#475569",
-                  }}
-                >
-                  <span className="text-sm">{s.icon}</span>
-                  <span className="font-mono-code text-xs">{s.label}</span>
-                </div>
               ))}
             </div>
           </div>
@@ -743,7 +629,7 @@ export default function HomePage({ setPage }) {
               (t, i) => (
                 <span key={t}>
                   <span style={{ color: "#22d3ee" }}>{t}</span>
-                  {i < 3 ? <span style={{ color: "#1e293b" }}> · </span> : ""}
+                  {i < 3 && <span style={{ color: "#1e293b" }}> · </span>}
                 </span>
               ),
             )}
