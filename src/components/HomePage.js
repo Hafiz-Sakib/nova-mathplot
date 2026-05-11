@@ -528,6 +528,7 @@ export default function HomePage({ setPage }) {
               borderRadius: "1rem",
             }}
           >
+            {/* Background Grid - Strong Black (0.40) in Day Mode */}
             {!isDark && (
               <div
                 style={{
@@ -535,32 +536,34 @@ export default function HomePage({ setPage }) {
                   inset: 0,
                   borderRadius: "1rem",
                   backgroundImage:
-                    "linear-gradient(rgba(15,23,42,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.10) 1px, transparent 1px)",
+                    "linear-gradient(rgba(0,0,0,0.40) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.40) 1px, transparent 1px)",
                   backgroundSize: "32px 32px",
                   pointerEvents: "none",
                 }}
               />
             )}
+
             <div
               className="relative rounded-2xl overflow-hidden"
               style={{
                 background: isDark
                   ? "rgba(4,10,24,0.82)"
-                  : "rgba(255,255,255,0.92)",
+                  : "rgba(255,255,255,0.96)",
                 border: isDark
                   ? "1px solid rgba(6,182,212,0.18)"
-                  : "1px solid rgba(100,149,237,0.25)",
+                  : "1px solid rgba(100,149,237,0.32)",
                 boxShadow: isDark
-                  ? "0 0 60px rgba(6,182,212,0.1),0 30px 60px rgba(0,0,0,0.5)"
-                  : "0 8px 40px rgba(30,64,175,0.1),0 2px 8px rgba(0,0,0,0.06)",
+                  ? "0 0 60px rgba(6,182,212,0.1), 0 30px 60px rgba(0,0,0,0.5)"
+                  : "0 10px 50px rgba(0,0,0,0.13), 0 2px 10px rgba(0,0,0,0.08)",
               }}
             >
+              {/* Top Bar */}
               <div
                 className="flex items-center gap-3 px-5 py-3 border-b"
                 style={{
                   borderColor: isDark
                     ? "rgba(6,182,212,0.1)"
-                    : "rgba(100,149,237,0.2)",
+                    : "rgba(100,149,237,0.25)",
                 }}
               >
                 <div className="flex gap-1.5">
@@ -572,13 +575,15 @@ export default function HomePage({ setPage }) {
                     />
                   ))}
                 </div>
+
                 <span
-                  className="font-mono-code text-xs"
+                  className="font-mono-code text-xs flex-1"
                   style={{ color: isDark ? "#334155" : "#0f172a" }}
                 >
                   f(x) = sin(x)·cos(2x) + e^(-x²/4)
                 </span>
-                <div className="ml-auto flex items-center gap-1.5">
+
+                <div className="flex items-center gap-1.5">
                   <span
                     className="w-1.5 h-1.5 rounded-full animate-pulse-glow"
                     style={{ background: "#22d3ee" }}
@@ -591,9 +596,11 @@ export default function HomePage({ setPage }) {
                   </span>
                 </div>
               </div>
+
               <div className="p-4">
                 <AnimatedSine />
               </div>
+
               <div className="px-4 pb-4 grid grid-cols-3 gap-3">
                 {[
                   {
@@ -618,14 +625,14 @@ export default function HomePage({ setPage }) {
                     style={{
                       background: isDark
                         ? "rgba(6,18,40,0.6)"
-                        : "rgba(255,255,255,0.88)",
+                        : "rgba(255,255,255,0.90)",
                       border: `1px solid ${item.color}20`,
                     }}
                   >
                     {item.content}
                     <p
                       className="font-mono-code text-[10px] text-center mt-1.5"
-                      style={{ color: item.color, opacity: 0.6 }}
+                      style={{ color: item.color, opacity: 0.7 }}
                     >
                       {item.label}
                     </p>
