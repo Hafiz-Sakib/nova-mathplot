@@ -899,8 +899,8 @@ export default function HomePage({ setPage }) {
       <footer
         className="border-t px-4 sm:px-8 py-12"
         style={{
-          borderColor: "rgba(6,182,212,0.1)",
-          background: "rgba(2,5,14,0.9)",
+          borderColor: isDark ? "rgba(6,182,212,0.1)" : "rgba(100,149,237,0.2)",
+          background: isDark ? "rgba(2,5,14,0.9)" : "rgba(240,246,255,0.95)",
         }}
       >
         <div className="max-w-7xl mx-auto">
@@ -920,7 +920,7 @@ export default function HomePage({ setPage }) {
               </div>
               <div
                 className="font-mono-code text-xs mb-4"
-                style={{ color: "#334155" }}
+                style={{ color: isDark ? "#334155" : "#64748b" }}
               >
                 Scientific Visualization Platform v3.0
               </div>
@@ -932,14 +932,14 @@ export default function HomePage({ setPage }) {
                   rel="noreferrer"
                   className="flex items-center gap-2 group"
                 >
-                  <span style={{ color: "#334155", fontSize: "0.65rem" }}>
+                  <span style={{ color: isDark ? "#334155" : "#64748b", fontSize: "0.65rem" }}>
                     🌐
                   </span>
                   <span
                     className="font-mono-code text-xs transition-colors"
-                    style={{ color: "#475569" }}
+                    style={{ color: isDark ? "#475569" : "#334155" }}
                     onMouseEnter={(e) => (e.target.style.color = "#22d3ee")}
-                    onMouseLeave={(e) => (e.target.style.color = "#475569")}
+                    onMouseLeave={(e) => (e.target.style.color = isDark ? "#475569" : "#334155")}
                   >
                     nova-mathplot.vercel.app
                   </span>
@@ -950,14 +950,14 @@ export default function HomePage({ setPage }) {
                   rel="noreferrer"
                   className="flex items-center gap-2"
                 >
-                  <span style={{ color: "#334155", fontSize: "0.65rem" }}>
+                  <span style={{ color: isDark ? "#334155" : "#64748b", fontSize: "0.65rem" }}>
                     ⌥
                   </span>
                   <span
                     className="font-mono-code text-xs transition-colors"
-                    style={{ color: "#475569" }}
+                    style={{ color: isDark ? "#475569" : "#334155" }}
                     onMouseEnter={(e) => (e.target.style.color = "#a78bfa")}
-                    onMouseLeave={(e) => (e.target.style.color = "#475569")}
+                    onMouseLeave={(e) => (e.target.style.color = isDark ? "#475569" : "#334155")}
                   >
                     github.com/Hafiz-Sakib/nova-mathplot
                   </span>
@@ -970,7 +970,7 @@ export default function HomePage({ setPage }) {
               <div className="flex flex-col gap-2">
                 <span
                   className="font-orbitron text-[10px] tracking-widest uppercase mb-1"
-                  style={{ color: "#1e293b" }}
+                  style={{ color: isDark ? "#94a3b8" : "#0f172a" }}
                 >
                   Pages
                 </span>
@@ -983,9 +983,9 @@ export default function HomePage({ setPage }) {
                     key={p}
                     onClick={() => setPage(p)}
                     className="font-rajdhani text-sm text-left transition-colors"
-                    style={{ color: "#475569" }}
+                    style={{ color: isDark ? "#475569" : "#334155" }}
                     onMouseEnter={(e) => (e.target.style.color = "#22d3ee")}
-                    onMouseLeave={(e) => (e.target.style.color = "#475569")}
+                    onMouseLeave={(e) => (e.target.style.color = isDark ? "#475569" : "#334155")}
                   >
                     {l}
                   </button>
@@ -994,7 +994,7 @@ export default function HomePage({ setPage }) {
               <div className="flex flex-col gap-2">
                 <span
                   className="font-orbitron text-[10px] tracking-widest uppercase mb-1"
-                  style={{ color: "#1e293b" }}
+                  style={{ color: isDark ? "#94a3b8" : "#0f172a" }}
                 >
                   Tools
                 </span>
@@ -1008,12 +1008,12 @@ export default function HomePage({ setPage }) {
                     onClick={() => setPage(p)}
                     className="font-rajdhani text-sm text-left transition-colors"
                     style={{
-                      color: p === "activation" ? "#a78bfa" : "#475569",
+                      color: p === "activation" ? "#a78bfa" : isDark ? "#475569" : "#334155",
                     }}
                     onMouseEnter={(e) => (e.target.style.color = "#22d3ee")}
                     onMouseLeave={(e) =>
                       (e.target.style.color =
-                        p === "activation" ? "#a78bfa" : "#475569")
+                        p === "activation" ? "#a78bfa" : isDark ? "#475569" : "#334155")
                     }
                   >
                     {l}
@@ -1023,16 +1023,16 @@ export default function HomePage({ setPage }) {
               <div className="flex flex-col gap-2">
                 <span
                   className="font-orbitron text-[10px] tracking-widest uppercase mb-1"
-                  style={{ color: "#1e293b" }}
+                  style={{ color: isDark ? "#94a3b8" : "#0f172a" }}
                 >
                   Info
                 </span>
                 <button
                   onClick={() => setPage("developer")}
                   className="font-rajdhani text-sm text-left transition-colors"
-                  style={{ color: "#475569" }}
+                  style={{ color: isDark ? "#475569" : "#334155" }}
                   onMouseEnter={(e) => (e.target.style.color = "#f472b6")}
-                  onMouseLeave={(e) => (e.target.style.color = "#475569")}
+                  onMouseLeave={(e) => (e.target.style.color = isDark ? "#475569" : "#334155")}
                 >
                   Developer
                 </button>
@@ -1046,29 +1046,29 @@ export default function HomePage({ setPage }) {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div
               className="font-mono-code text-xs"
-              style={{ color: "#1e293b" }}
+              style={{ color: isDark ? "#475569" : "#334155" }}
             >
               Powered by{" "}
               {["mathjs", "recharts", "Three.js", "React Three Fiber"].map(
                 (t, i) => (
                   <span key={t}>
                     <span style={{ color: "#22d3ee" }}>{t}</span>
-                    {i < 3 && <span style={{ color: "#1e293b" }}> · </span>}
+                    {i < 3 && <span style={{ color: isDark ? "#334155" : "#94a3b8" }}> · </span>}
                   </span>
                 ),
               )}
             </div>
             <div
               className="font-mono-code text-xs"
-              style={{ color: "#1e293b" }}
+              style={{ color: isDark ? "#475569" : "#334155" }}
             >
               Built by{" "}
               <button
                 onClick={() => setPage("developer")}
                 className="transition-colors"
-                style={{ color: "#475569" }}
+                style={{ color: isDark ? "#475569" : "#334155" }}
                 onMouseEnter={(e) => (e.target.style.color = "#f472b6")}
-                onMouseLeave={(e) => (e.target.style.color = "#475569")}
+                onMouseLeave={(e) => (e.target.style.color = isDark ? "#475569" : "#334155")}
               >
                 Hafizur Rahman Sakib
               </button>

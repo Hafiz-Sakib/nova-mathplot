@@ -331,7 +331,7 @@ function Sparkline({ fn, color, showDerivative = false, derivFn }) {
 /* ─────────────────────────────────────────────
    MAIN PLOT CANVAS
 ───────────────────────────────────────────── */
-function MainPlot({ selected, showDerivative, xRange, onXRangeChange }) {
+function MainPlot({ selected, showDerivative, xRange, onXRangeChange, isDark }) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
 
@@ -385,7 +385,7 @@ function MainPlot({ selected, showDerivative, xRange, onXRangeChange }) {
     const toCanvasY = (y) => PAD.t + (1 - (y - yMin) / (yMax - yMin)) * plotH;
 
     // Background grid
-    ctx.strokeStyle = "rgba(255,255,255,0.04)";
+    ctx.strokeStyle = isDark ? "rgba(255,255,255,0.04)" : "rgba(100,116,139,0.15)";
     ctx.lineWidth = 0.7;
     for (let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx++) {
       ctx.beginPath();
@@ -401,7 +401,7 @@ function MainPlot({ selected, showDerivative, xRange, onXRangeChange }) {
     }
 
     // Axes
-    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    ctx.strokeStyle = isDark ? "rgba(255,255,255,0.15)" : "rgba(71,85,105,0.5)";
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(PAD.l, toCanvasY(0));
@@ -481,7 +481,7 @@ function MainPlot({ selected, showDerivative, xRange, onXRangeChange }) {
         ctx.globalAlpha = 1;
       }
     });
-  }, [selected, showDerivative, xRange]);
+  }, [selected, showDerivative, xRange, isDark]);
 
   return (
     <div
@@ -877,6 +877,7 @@ export default function ActivationPage({ setPage }) {
                 showDerivative={showDerivative}
                 xRange={xRange}
                 onXRangeChange={setXRange}
+                isDark={isDark}
               />
               <div
                 className="absolute bottom-3 right-4 font-mono text-[9px] pointer-events-none"

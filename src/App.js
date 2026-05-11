@@ -9,15 +9,7 @@ import ActivationPage from "./components/ActivationPage";
 import DeveloperPage from "./components/DeveloperPage";
 import { ThemeProvider, useTheme } from "./ThemeContext";
 
-const VALID_PAGES = [
-  "home",
-  "plotter2d",
-  "plotter3d",
-  "complex",
-  "parametric",
-  "activation",
-  "developer",
-];
+const VALID_PAGES = ["home", "plotter2d", "plotter3d", "complex", "parametric", "activation", "developer"];
 
 // Path → page name mapping
 const PATH_TO_PAGE = {
@@ -75,9 +67,7 @@ function AppContent() {
       }}
     >
       {/* Grid background */}
-      {isDark && (
-        <div className="pointer-events-none fixed inset-0 z-0 nova-grid opacity-100" />
-      )}
+      {isDark && <div className="pointer-events-none fixed inset-0 z-0 nova-grid opacity-100" />}
       {!isDark && (
         <div
           className="pointer-events-none fixed inset-0 z-0"
