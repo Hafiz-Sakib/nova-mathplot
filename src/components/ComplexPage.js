@@ -114,15 +114,20 @@ const EXAMPLES = [
   },
 ];
 
+/* ─── Argand Diagram (canvas) ─── */
 function ArgandDiagram({ data }) {
   const canvasRef = useRef(null);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !data?.length) return;
     const ctx = canvas.getContext("2d");
-    const W = canvas.width,
-      H = canvas.height;
+    const W = canvas.offsetWidth || 280;
+    const H = canvas.offsetHeight || 180;
+    canvas.width = W;
+    canvas.height = H;
     ctx.clearRect(0, 0, W, H);
+
     let minRe = -2,
       maxRe = 2,
       minIm = -2,
@@ -140,13 +145,14 @@ function ArgandDiagram({ data }) {
     maxRe += pad;
     minIm -= pad;
     maxIm += pad;
+
     const toX = (re) => ((re - minRe) / (maxRe - minRe)) * W;
     const toY = (im) => H - ((im - minIm) / (maxIm - minIm)) * H;
 
-    // Grid lines
+    // Grid
     ctx.strokeStyle = "rgba(6,182,212,0.07)";
     ctx.lineWidth = 0.5;
-    for (let i = -4; i <= 4; i++) {
+    for (let i = -8; i <= 8; i++) {
       ctx.beginPath();
       ctx.moveTo(toX(i), 0);
       ctx.lineTo(toX(i), H);
@@ -170,10 +176,10 @@ function ArgandDiagram({ data }) {
     // Labels
     ctx.fillStyle = "rgba(6,182,212,0.4)";
     ctx.font = "9px monospace";
-    ctx.fillText("Re →", W - 28, toY(0) - 4);
+    ctx.fillText("Re →", W - 30, toY(0) - 4);
     ctx.fillText("Im ↑", toX(0) + 4, 12);
 
-    // Curve with gradient
+    // Curve
     const grad = ctx.createLinearGradient(0, 0, W, H);
     grad.addColorStop(0, "#22d3ee");
     grad.addColorStop(0.5, "#a78bfa");
@@ -233,15 +239,13 @@ function ArgandDiagram({ data }) {
       </div>
       <canvas
         ref={canvasRef}
-        width={280}
-        height={180}
-        className="w-full"
-        style={{ display: "block" }}
+        style={{ display: "block", width: "100%", height: "160px" }}
       />
     </div>
   );
 }
 
+/* ─── Tooltip ─── */
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
@@ -269,9 +273,32 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
+/* ─── Zoom button style ─── */
+const zoomBtnStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: 28,
+  height: 28,
+  borderRadius: 7,
+  fontFamily: "JetBrains Mono, monospace",
+  fontSize: "0.8rem",
+  fontWeight: 700,
+  background: "rgba(236,72,153,0.1)",
+  border: "1px solid rgba(236,72,153,0.25)",
+  color: "#f472b6",
+  cursor: "pointer",
+  transition: "all 0.15s",
+  flexShrink: 0,
+};
+
+/* ─── Main Component ─── */
 export default function ComplexPage() {
+  /* committed (plotted) expression */
   const [expr, setExpr] = useState("e^(i*x)");
+  /* draft expression — only committed on Plot click or Enter */
   const [inputExpr, setInputExpr] = useState("e^(i*x)");
+
   const [xMin, setXMin] = useState(-2 * Math.PI);
   const [xMax, setXMax] = useState(2 * Math.PI);
   const [showRe, setShowRe] = useState(true);
@@ -281,6 +308,15 @@ export default function ComplexPage() {
   const [internalXMax, setInternalXMax] = useState(2 * Math.PI);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  /* ref to the chart wrapper for wheel zoom */
+  const chartWrapperRef = useRef(null);
+
+  /* ── commit draft → plotted expr ── */
+  const commitExpr = useCallback(() => {
+    setExpr(inputExpr);
+  }, [inputExpr]);
+
+  /* ── data ── */
   const data = useMemo(() => {
     const step = (internalXMax - internalXMin) / POINTS;
     return Array.from({ length: POINTS + 1 }, (_, i) => {
@@ -295,30 +331,57 @@ export default function ComplexPage() {
     });
   }, [expr, internalXMin, internalXMax]);
 
-  const handleZoomIn = () => {
-    const mid = (internalXMin + internalXMax) / 2,
-      half = (internalXMax - internalXMin) / 4;
+  /* ── zoom helpers ── */
+  const handleZoomIn = useCallback(() => {
+    const mid = (internalXMin + internalXMax) / 2;
+    const half = (internalXMax - internalXMin) / 4;
     setInternalXMin(mid - half);
     setInternalXMax(mid + half);
-  };
-  const handleZoomOut = () => {
-    const mid = (internalXMin + internalXMax) / 2,
-      half = internalXMax - internalXMin;
+  }, [internalXMin, internalXMax]);
+
+  const handleZoomOut = useCallback(() => {
+    const mid = (internalXMin + internalXMax) / 2;
+    const half = internalXMax - internalXMin;
     setInternalXMin(mid - half);
     setInternalXMax(mid + half);
-  };
-  const handleZoomReset = () => {
+  }, [internalXMin, internalXMax]);
+
+  const handleZoomReset = useCallback(() => {
     setInternalXMin(xMin);
     setInternalXMax(xMax);
-  };
+  }, [xMin, xMax]);
 
-  const loadExample = (ex) => {
+  /* ── mouse-wheel zoom on chart ── */
+  useEffect(() => {
+    const el = chartWrapperRef.current;
+    if (!el) return;
+
+    const onWheel = (e) => {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 0.8 : 1.25; /* scroll up = zoom in */
+      const mid = (internalXMin + internalXMax) / 2;
+      const halfSpan = ((internalXMax - internalXMin) / 2) * factor;
+      setInternalXMin(mid - halfSpan);
+      setInternalXMax(mid + halfSpan);
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+    /* must re-bind when zoom state changes so closure is fresh */
+  }, [internalXMin, internalXMax]);
+
+  /* ── load example ── */
+  const loadExample = useCallback((ex) => {
     setExpr(ex.expr);
     setInputExpr(ex.expr);
     setSidebarOpen(false);
-  };
+  }, []);
 
-  const SidebarContent = () => (
+  /* ══════════════════════════════════════════════════
+     SIDEBAR  — defined OUTSIDE render to avoid remount
+     State that sidebar needs is passed via props/closure.
+     ══════════════════════════════════════════════════ */
+  const sidebar = (
     <>
       <div
         className="h-px"
@@ -327,6 +390,7 @@ export default function ComplexPage() {
             "linear-gradient(90deg,transparent,rgba(236,72,153,0.5),rgba(139,92,246,0.3),transparent)",
         }}
       />
+
       {/* Header */}
       <div
         className="px-4 py-3 border-b"
@@ -334,7 +398,7 @@ export default function ComplexPage() {
       >
         <div className="flex items-center gap-3">
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center"
+            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{
               background: "rgba(236,72,153,0.1)",
               border: "1px solid rgba(236,72,153,0.3)",
@@ -363,48 +427,81 @@ export default function ComplexPage() {
         className="p-4 flex flex-col gap-4 border-b"
         style={{ borderColor: "rgba(236,72,153,0.08)" }}
       >
-        {/* Expression input */}
+        {/* ── Expression Input ── */}
         <div>
-          <div className="section-label mb-1.5">Expression f(x) → ℂ</div>
-          <div className="flex gap-2">
+          <div
+            className="text-xs mb-2 font-medium"
+            style={{ color: "#94a3b8" }}
+          >
+            Expression f(x) → ℂ
+          </div>
+
+          {/* Input row */}
+          <div
+            className="flex items-center rounded-xl overflow-hidden mb-2"
+            style={{
+              background: "rgba(10,15,28,0.9)",
+              border: "1px solid rgba(6,182,212,0.25)",
+            }}
+          >
+            <span
+              className="font-mono-code text-xs px-3 flex-shrink-0"
+              style={{ color: "#f472b6" }}
+            >
+              f(x)=
+            </span>
             <input
-              className="nova-input flex-1"
+              /* KEY FIX: value + onChange only — no autoFocus tricks.
+                 The component is now stable (not re-created each render)
+                 so focus is never lost between keystrokes.              */
+              className="flex-1 bg-transparent outline-none font-mono-code text-sm py-3 pr-3"
+              style={{ color: "#e2e8f0", caretColor: "#22d3ee" }}
               value={inputExpr}
               onChange={(e) => setInputExpr(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && setExpr(inputExpr)}
+              onKeyDown={(e) => e.key === "Enter" && commitExpr()}
               placeholder="e^(i*x)"
+              spellCheck={false}
+              autoComplete="off"
             />
-            <button
-              onClick={() => setExpr(inputExpr)}
-              className="px-3 py-1 rounded-lg font-mono-code text-[10px]"
-              style={{
-                background: "rgba(236,72,153,0.12)",
-                border: "1px solid rgba(236,72,153,0.35)",
-                color: "#f472b6",
-              }}
-            >
-              Plot
-            </button>
           </div>
-          <div
-            className="mt-2 p-2 rounded-lg font-mono-code text-[9px]"
+
+          {/* Plot button */}
+          <button
+            onClick={commitExpr}
+            className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all"
             style={{
-              background: "rgba(236,72,153,0.05)",
-              border: "1px solid rgba(236,72,153,0.1)",
-              color: "#64748b",
+              background: "linear-gradient(90deg,#f472b6,#a78bfa)",
+              color: "#000",
+              fontFamily: "Space Grotesk, sans-serif",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.filter = "brightness(1.12)")
+            }
+            onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
+          >
+            Plot →
+          </button>
+
+          {/* Tips */}
+          <div
+            className="mt-2 p-3 rounded-xl text-[10px] font-mono leading-relaxed"
+            style={{
+              background: "rgba(15,23,42,0.6)",
+              border: "1px solid rgba(236,72,153,0.15)",
+              color: "#94a3b8",
             }}
           >
             <span style={{ color: "#f472b6" }}>Tips:</span> Use{" "}
-            <code style={{ color: "#22d3ee" }}>i</code> for √−1 ·{" "}
+            <code style={{ color: "#22d3ee" }}>i</code> for imaginary ·{" "}
             <code style={{ color: "#22d3ee" }}>e^(i*x)</code> ·{" "}
-            <code style={{ color: "#22d3ee" }}>abs()</code> ·{" "}
-            <code style={{ color: "#22d3ee" }}>arg()</code>
+            <code style={{ color: "#22d3ee" }}>abs()</code> · scroll chart to
+            zoom
           </div>
         </div>
 
-        {/* Component toggles */}
+        {/* ── Component toggles ── */}
         <div>
-          <div className="section-label mb-2">Show Components</div>
+          <div className="section-label mb-1">Show Components</div>
           {[
             {
               label: "Re[f(x)] — Real part",
@@ -427,7 +524,7 @@ export default function ComplexPage() {
           ].map((opt) => (
             <div
               key={opt.label}
-              className="flex items-center gap-3 py-1.5 cursor-pointer"
+              className="flex items-center gap-3 py-1.5 cursor-pointer select-none"
               onClick={() => opt.set((v) => !v)}
             >
               <div className={`toggle-track-nova ${opt.value ? "on" : ""}`}>
@@ -445,66 +542,67 @@ export default function ComplexPage() {
 
         {/* X Range */}
         <div>
-          <div className="section-label mb-1.5">X Range</div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="text-xs text-slate-400 mb-2 font-medium">X Range</div>
+
+          <div className="grid grid-cols-2 gap-3">
             {[
               ["Min", xMin, setXMin],
               ["Max", xMax, setXMax],
-            ].map(([l, v, s]) => (
-              <div key={l}>
-                <div
-                  className="font-mono-code text-[9px] mb-1"
-                  style={{ color: "#334155" }}
-                >
-                  {l}
+            ].map(([label, value, setter]) => (
+              <div key={label}>
+                <div className="font-mono text-[10px] mb-1.5 text-slate-400">
+                  {label}
                 </div>
                 <input
                   type="number"
                   step="0.5"
-                  className="nova-input-sm"
-                  value={v}
+                  className="w-full bg-[#0a0f1c] border border-cyan-500/30 focus:border-cyan-400 
+                     rounded-xl px-4 py-3 text-sm font-mono text-white 
+                     focus:outline-none transition-colors"
+                  value={value}
                   onChange={(e) => {
-                    s(+e.target.value);
-                    if (l === "Min") setInternalXMin(+e.target.value);
-                    else setInternalXMax(+e.target.value);
+                    const newVal = +e.target.value;
+                    setter(newVal);
+                    if (label === "Min") setInternalXMin(newVal);
+                    else setInternalXMax(newVal);
                   }}
                 />
               </div>
             ))}
           </div>
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {[
-              ["-π…π", -Math.PI, Math.PI],
-              ["-2π…2π", -2 * Math.PI, 2 * Math.PI],
-              ["-5…5", -5, 5],
-              ["-10…10", -10, 10],
-            ].map(([l, mn, mx]) => (
-              <button
-                key={l}
-                onClick={() => {
-                  setXMin(mn);
-                  setXMax(mx);
-                  setInternalXMin(mn);
-                  setInternalXMax(mx);
-                }}
-                className="font-mono-code text-[9px] px-2 py-0.5 rounded"
-                style={{
-                  background: "rgba(236,72,153,0.08)",
-                  border: "1px solid rgba(236,72,153,0.2)",
-                  color: "#f472b6",
-                }}
-              >
-                {l}
-              </button>
-            ))}
+
+          {/* Quick Presets */}
+          <div className="mt-4">
+            <div className="text-xs text-slate-400 mb-2">Quick Presets</div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                ["-π…π", -Math.PI, Math.PI],
+                ["-2π…2π", -2 * Math.PI, 2 * Math.PI],
+                ["-5…5", -5, 5],
+                ["-10…10", -10, 10],
+              ].map(([label, minVal, maxVal]) => (
+                <button
+                  key={label}
+                  onClick={() => {
+                    setXMin(minVal);
+                    setXMax(maxVal);
+                    setInternalXMin(minVal);
+                    setInternalXMax(maxVal);
+                  }}
+                  className="font-mono text-xs px-3 py-1.5 rounded-xl transition-all hover:bg-white/10 border border-cyan-500/20 hover:border-cyan-400 text-cyan-400"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Argand Diagram */}
+        {/* ── Argand Diagram ── */}
         <ArgandDiagram data={data} />
       </div>
 
-      {/* Examples */}
+      {/* ── Examples list ── */}
       <div className="p-4">
         <div className="section-label mb-2">Examples ({EXAMPLES.length})</div>
         {EXAMPLES.map((ex) => (
@@ -547,10 +645,11 @@ export default function ComplexPage() {
     </>
   );
 
+  /* ══════ RENDER ══════ */
   return (
     <div
       className="flex flex-1 overflow-hidden"
-      style={{ height: "calc(100vh - 56px)" }}
+      style={{ height: "calc(100vh - 60px)" }}
     >
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -575,21 +674,29 @@ export default function ComplexPage() {
         <span style={{ color: "#f472b6", fontSize: "1.1rem" }}>ℂ</span>
       </button>
 
-      {/* Sidebar — desktop always visible, mobile slide-in */}
+      {/* ── Sidebar ── */}
       <aside
-        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto flex flex-col border-r overflow-y-auto transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`
+          fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto
+          flex flex-col border-r overflow-y-auto
+          transition-transform duration-300
+          lg:translate-x-0
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
         style={{
-          width: "clamp(260px, 28vw, 300px)",
+          /* responsive width: full on mobile, fixed on desktop */
+          width: "clamp(280px, 85vw, 320px)",
+          maxWidth: "100vw",
           borderColor: "rgba(236,72,153,0.15)",
           background: "linear-gradient(180deg,#020810,#0a020e)",
-          top: "56px",
-          height: "calc(100vh - 56px)",
+          top: "60px",
+          height: "calc(100vh - 60px)",
         }}
       >
-        <SidebarContent />
+        {sidebar}
       </aside>
 
-      {/* Main chart */}
+      {/* ── Main chart ── */}
       <main className="flex flex-col flex-1 overflow-hidden min-w-0">
         {/* Top bar */}
         <div
@@ -599,37 +706,48 @@ export default function ComplexPage() {
             background: "rgba(2,4,16,0.8)",
           }}
         >
+          {/* Current expression badge */}
           <span
-            className="font-orbitron text-xs font-bold truncate max-w-[60vw]"
-            style={{ color: "#f472b6" }}
+            className="font-orbitron text-xs font-bold truncate"
+            style={{ color: "#f472b6", maxWidth: "calc(100vw - 160px)" }}
           >
             f(x) = {expr}
           </span>
-          <div className="ml-auto flex items-center gap-1">
-            <button className="zoom-btn" onClick={handleZoomIn}>
+
+          {/* Zoom controls */}
+          <div className="ml-auto flex items-center gap-1 flex-shrink-0">
+            <button
+              style={zoomBtnStyle}
+              onClick={handleZoomIn}
+              title="Zoom in (or scroll up on chart)"
+            >
               +
             </button>
-            <button className="zoom-btn" onClick={handleZoomOut}>
+            <button
+              style={zoomBtnStyle}
+              onClick={handleZoomOut}
+              title="Zoom out (or scroll down on chart)"
+            >
               −
             </button>
             <button
-              className="zoom-btn text-[10px]"
+              style={{ ...zoomBtnStyle, width: 38, fontSize: "0.65rem" }}
               onClick={handleZoomReset}
-              style={{ width: 34 }}
+              title="Reset zoom"
             >
               RST
             </button>
           </div>
         </div>
 
-        <div className="flex-1 p-2 sm:p-3 flex flex-col overflow-hidden">
-          {/* Mobile quick examples */}
-          <div className="lg:hidden flex gap-2 overflow-x-auto pb-2 mb-2">
-            {EXAMPLES.slice(0, 5).map((ex) => (
+        <div className="flex-1 p-2 sm:p-3 flex flex-col overflow-hidden min-h-0">
+          {/* Mobile quick-examples scroll strip */}
+          <div className="lg:hidden flex gap-2 overflow-x-auto pb-2 mb-2 flex-shrink-0">
+            {EXAMPLES.slice(0, 6).map((ex) => (
               <button
                 key={ex.label}
                 onClick={() => loadExample(ex)}
-                className="flex-shrink-0 px-2 py-1 rounded-lg font-mono-code text-[9px]"
+                className="flex-shrink-0 px-2.5 py-1.5 rounded-lg font-mono-code text-[9px] whitespace-nowrap"
                 style={{
                   background:
                     expr === ex.expr
@@ -644,11 +762,40 @@ export default function ComplexPage() {
             ))}
           </div>
 
-          {/* Chart */}
+          {/* ── Chart — scroll wheel zooms here ── */}
           <div
+            ref={chartWrapperRef}
             className="relative flex-1 graph-container min-h-0"
-            style={{ borderColor: "rgba(236,72,153,0.12)" }}
+            style={{
+              borderColor: "rgba(236,72,153,0.12)",
+              cursor: "crosshair",
+              /* ensure the div captures wheel even when chart SVG is on top */
+              touchAction: "none",
+            }}
+            title="Scroll to zoom"
           >
+            {/* Corner accents */}
+            {[
+              ["top-0 left-0", "right-0 bottom-0"],
+              ["top-0 right-0", "left-0 bottom-0"],
+              ["bottom-0 left-0", "right-0 top-0"],
+              ["bottom-0 right-0", "left-0 top-0"],
+            ].map(([pos, inner], i) => (
+              <div
+                key={i}
+                className={`absolute ${pos} w-4 h-4 pointer-events-none z-10`}
+              >
+                <div
+                  className={`absolute ${inner} w-3 h-0.5`}
+                  style={{ background: "rgba(236,72,153,0.4)" }}
+                />
+                <div
+                  className={`absolute ${inner} w-0.5 h-3`}
+                  style={{ background: "rgba(236,72,153,0.4)" }}
+                />
+              </div>
+            ))}
+
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={data}
@@ -745,7 +892,7 @@ export default function ComplexPage() {
           </div>
 
           {/* Info cards */}
-          <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 flex-shrink-0">
             {[
               {
                 label: "Euler's Formula",
@@ -778,7 +925,7 @@ export default function ComplexPage() {
                   {item.label}
                 </div>
                 <div
-                  className="font-mono-code text-[10px]"
+                  className="font-mono-code text-[10px] break-words"
                   style={{ color: item.color }}
                 >
                   {item.value}
