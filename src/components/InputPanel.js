@@ -1,6 +1,5 @@
 import React, { useRef, useState } from "react";
 
-/* Quick-insert symbols */
 const SYMBOLS = [
   { label: "sin", insert: "sin(", desc: "Sine" },
   { label: "cos", insert: "cos(", desc: "Cosine" },
@@ -10,8 +9,8 @@ const SYMBOLS = [
   { label: "ln", insert: "log(", desc: "Natural log" },
   { label: "log₁₀", insert: "log10(", desc: "Log base 10" },
   { label: "eˣ", insert: "e^x", desc: "Exponential" },
-  { label: "x²", insert: "x^2", desc: "Squared" },
-  { label: "x³", insert: "x^3", desc: "Cubed" },
+  { label: "x²", insert: "x^2", desc: "x squared" },
+  { label: "x³", insert: "x^3", desc: "x cubed" },
   { label: "π", insert: "pi", desc: "Pi ≈ 3.14159" },
   { label: "e", insert: "e", desc: "Euler ≈ 2.718" },
   { label: "φ", insert: "phi", desc: "Golden ratio" },
@@ -23,14 +22,12 @@ const SYMBOLS = [
   { label: "⌊x⌋", insert: "floor(", desc: "Floor" },
   { label: "⌈x⌉", insert: "ceil(", desc: "Ceiling" },
   { label: "mod", insert: " mod ", desc: "Modulo" },
-  { label: "max", insert: "max(", desc: "Maximum" },
-  { label: "min", insert: "min(", desc: "Minimum" },
 ];
 
 const PLOT_COLORS = [
   "#22d3ee",
-  "#34d399",
   "#a78bfa",
+  "#34d399",
   "#f472b6",
   "#fb923c",
   "#60a5fa",
@@ -47,17 +44,6 @@ const RANGE_PRESETS = [
   { label: "−20…20", xMin: -20, xMax: 20 },
 ];
 
-const SYNTAX_GUIDE = [
-  { input: "x^2", means: "x squared (x²)" },
-  { input: "2*x", means: "2 times x" },
-  { input: "sin(x)", means: "Sine of x" },
-  { input: "e^(-x)", means: "e to the power −x" },
-  { input: "sqrt(x)", means: "Square root" },
-  { input: "abs(x)", means: "Absolute value |x|" },
-  { input: "x mod 2", means: "Remainder ÷ 2" },
-  { input: "pi, e, phi", means: "Constants π, e, φ" },
-];
-
 const QUICK_EXPRS = [
   "sin(x)",
   "x^2",
@@ -69,31 +55,9 @@ const QUICK_EXPRS = [
   "cos(x^2)",
 ];
 
-/* ─── Shared style helpers ─── */
-const sectionBorder = { borderColor: "rgba(6,182,212,0.08)" };
+const sb = { borderColor: "rgba(139,92,246,0.08)" };
 
-const inputStyle = {
-  background: "rgba(2,10,20,0.9)",
-  border: "1px solid rgba(6,182,212,0.2)",
-  borderRadius: 8,
-  color: "#94a3b8",
-  fontFamily: "'JetBrains Mono', monospace",
-  fontSize: "0.8rem",
-  padding: "7px 10px",
-  outline: "none",
-  width: "100%",
-  transition: "border-color 0.2s, box-shadow 0.2s",
-};
-
-function DarkInput({
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-  onFocus,
-  onBlur,
-  style = {},
-}) {
+function DarkInput({ value, onChange, placeholder, type = "text" }) {
   const [focused, setFocused] = useState(false);
   return (
     <input
@@ -106,12 +70,17 @@ function DarkInput({
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       style={{
-        ...inputStyle,
-        borderColor: focused ? "rgba(6,182,212,0.55)" : "rgba(6,182,212,0.2)",
-        boxShadow: focused
-          ? "0 0 0 2px rgba(6,182,212,0.08), 0 0 14px rgba(6,182,212,0.06)"
-          : "none",
-        ...style,
+        background: "rgba(2,6,20,0.9)",
+        border: `1px solid ${focused ? "rgba(139,92,246,0.55)" : "rgba(139,92,246,0.2)"}`,
+        borderRadius: 8,
+        color: "#94a3b8",
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: "0.8rem",
+        padding: "7px 10px",
+        outline: "none",
+        width: "100%",
+        boxShadow: focused ? "0 0 0 2px rgba(139,92,246,0.08)" : "none",
+        transition: "border-color 0.2s, box-shadow 0.2s",
       }}
     />
   );
@@ -121,9 +90,85 @@ function SectionLabel({ children }) {
   return (
     <div
       className="font-orbitron text-[9px] tracking-[3px] uppercase mb-3"
-      style={{ color: "#164e63" }}
+      style={{ color: "#3b1d8a" }}
     >
       {children}
+    </div>
+  );
+}
+
+function XnBuilder({ onInsert }) {
+  const [coeff, setCoeff] = useState("1");
+  const [exp, setExp] = useState("2");
+  const preview = `${coeff === "1" ? "" : coeff + "*"}x^${exp}`;
+  const miniInput = (val, set, label) => (
+    <div className="flex flex-col gap-1">
+      <span className="font-mono-code text-[9px]" style={{ color: "#475569" }}>
+        {label}
+      </span>
+      <input
+        value={val}
+        onChange={(e) => set(e.target.value)}
+        style={{
+          width: 52,
+          background: "rgba(2,6,20,0.9)",
+          border: "1px solid rgba(139,92,246,0.2)",
+          borderRadius: 6,
+          color: "#94a3b8",
+          fontFamily: "'JetBrains Mono',monospace",
+          fontSize: "0.75rem",
+          padding: "4px 6px",
+          outline: "none",
+        }}
+      />
+    </div>
+  );
+  return (
+    <div
+      className="p-3 rounded-xl mb-3"
+      style={{
+        background: "rgba(139,92,246,0.05)",
+        border: "1px solid rgba(139,92,246,0.18)",
+      }}
+    >
+      <div
+        className="font-mono-code text-[9px] tracking-widest uppercase mb-2"
+        style={{ color: "#3b1d8a" }}
+      >
+        xⁿ Builder
+      </div>
+      <div className="flex items-end gap-2 flex-wrap">
+        {miniInput(coeff, setCoeff, "coeff")}
+        <span
+          className="font-mono-code text-lg pb-1"
+          style={{ color: "#a78bfa" }}
+        >
+          × x ^
+        </span>
+        {miniInput(exp, setExp, "power n")}
+        <button
+          onClick={() => onInsert(preview)}
+          style={{
+            padding: "5px 14px",
+            borderRadius: 8,
+            marginBottom: 0,
+            background: "rgba(139,92,246,0.18)",
+            border: "1px solid rgba(139,92,246,0.4)",
+            color: "#a78bfa",
+            fontFamily: "'JetBrains Mono',monospace",
+            fontSize: "0.72rem",
+            cursor: "pointer",
+          }}
+        >
+          Insert
+        </button>
+      </div>
+      <div
+        className="font-mono-code text-[10px] mt-2"
+        style={{ color: "#64748b" }}
+      >
+        Preview: <span style={{ color: "#c4b5fd" }}>{preview}</span>
+      </div>
     </div>
   );
 }
@@ -150,6 +195,7 @@ export default function InputPanel({
 }) {
   const inputRef = useRef(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [showXn, setShowXn] = useState(false);
   const activePlot = plots.find((p) => p.id === activeId);
 
   const handleExprChange = (val) => {
@@ -168,23 +214,22 @@ export default function InputPanel({
     setError("");
     setTimeout(() => {
       input.focus();
-      const pos = start + sym.length;
-      input.setSelectionRange(pos, pos);
+      input.setSelectionRange(start + sym.length, start + sym.length);
     }, 0);
   };
 
   return (
-    <div className="flex flex-col font-rajdhani">
-      {/* ══ FUNCTIONS LIST ══ */}
-      <div className="p-4 border-b" style={sectionBorder}>
+    <div className="flex flex-col">
+      {/* FUNCTIONS LIST */}
+      <div className="p-4 border-b" style={sb}>
         <div className="flex items-center justify-between mb-3">
           <SectionLabel>Functions</SectionLabel>
           <span
             className="font-mono-code text-[9px] px-2 py-0.5 rounded-full"
             style={{
-              background: "rgba(6,182,212,0.07)",
-              border: "1px solid rgba(6,182,212,0.15)",
-              color: "#22d3ee",
+              background: "rgba(139,92,246,0.08)",
+              border: "1px solid rgba(139,92,246,0.18)",
+              color: "#a78bfa",
             }}
           >
             {plots.filter((p) => p.visible && p.expr).length} active
@@ -192,71 +237,49 @@ export default function InputPanel({
         </div>
 
         <div className="flex flex-col gap-1.5 mb-3">
-          {plots.map((plot) => {
+          {plots.map((plot, idx) => {
             const isActive = plot.id === activeId;
+            const c = plot.color || PLOT_COLORS[idx % PLOT_COLORS.length];
             return (
               <div
                 key={plot.id}
                 onClick={() => setActiveId(plot.id)}
                 className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200"
                 style={{
-                  background: isActive
-                    ? "rgba(6,182,212,0.06)"
-                    : "rgba(2,8,20,0.5)",
-                  border: `1px solid ${isActive ? "rgba(6,182,212,0.3)" : "rgba(6,182,212,0.07)"}`,
-                  boxShadow: isActive
-                    ? "0 0 12px rgba(6,182,212,0.06)"
-                    : "none",
+                  background: isActive ? `${c}10` : "rgba(2,6,20,0.5)",
+                  border: `1px solid ${isActive ? c + "45" : "rgba(139,92,246,0.07)"}`,
+                  boxShadow: isActive ? `0 0 14px ${c}18` : "none",
                 }}
               >
-                {/* Color dot */}
                 <div
                   className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                   style={{
-                    background: plot.color,
-                    boxShadow: `0 0 ${isActive ? "8px" : "4px"} ${plot.color}99`,
+                    background: c,
+                    boxShadow: `0 0 ${isActive ? "8px" : "4px"} ${c}`,
                   }}
                 />
-
-                {/* Expression text */}
                 <div className="flex-1 min-w-0">
                   <div
                     className="font-mono-code text-xs truncate"
-                    style={{ color: plot.expr ? "#64748b" : "#1e3a5f" }}
+                    style={{ color: plot.expr ? "#64748b" : "#2d1b69" }}
                   >
                     {plot.expr || (
-                      <em style={{ color: "#1e3a5f", fontStyle: "italic" }}>
+                      <em style={{ color: "#2d1b69", fontStyle: "italic" }}>
                         empty — click to edit
                       </em>
                     )}
                   </div>
-                  {plot.expr && (
-                    <div
-                      className="font-mono-code text-[9px] mt-0.5"
-                      style={{ color: "#164e63" }}
-                    >
-                      f(x) ={" "}
-                      {plot.expr.length > 22
-                        ? plot.expr.slice(0, 22) + "…"
-                        : plot.expr}
-                    </div>
-                  )}
                 </div>
-
-                {/* Controls */}
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       updatePlot(plot.id, { visible: !plot.visible });
                     }}
-                    title={plot.visible ? "Hide curve" : "Show curve"}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg text-[11px] transition-all"
+                    className="w-6 h-6 flex items-center justify-center rounded-lg text-[11px]"
                     style={{
-                      color: plot.visible ? plot.color : "#1e3a5f",
-                      background: plot.visible
-                        ? `${plot.color}12`
-                        : "transparent",
+                      color: plot.visible ? c : "#2d1b69",
+                      background: plot.visible ? `${c}14` : "transparent",
                     }}
                   >
                     {plot.visible ? "●" : "○"}
@@ -267,16 +290,15 @@ export default function InputPanel({
                         e.stopPropagation();
                         removePlot(plot.id);
                       }}
-                      title="Remove"
                       className="w-6 h-6 flex items-center justify-center rounded-lg text-[11px] transition-all"
-                      style={{ color: "#1e3a5f" }}
+                      style={{ color: "#2d1b69" }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.color = "#f87171";
                         e.currentTarget.style.background =
                           "rgba(248,113,113,0.08)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.color = "#1e3a5f";
+                        e.currentTarget.style.color = "#2d1b69";
                         e.currentTarget.style.background = "transparent";
                       }}
                     >
@@ -289,103 +311,128 @@ export default function InputPanel({
           })}
         </div>
 
-        {/* Add function button */}
         <button
           onClick={() => addPlot()}
           className="w-full py-2.5 rounded-xl font-mono-code text-[10px] tracking-widest uppercase transition-all duration-200 flex items-center justify-center gap-2"
           style={{
-            color: "#164e63",
-            border: "1px dashed rgba(6,182,212,0.18)",
+            color: "#3b1d8a",
+            border: "1px dashed rgba(139,92,246,0.22)",
             background: "transparent",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(6,182,212,0.05)";
-            e.currentTarget.style.borderColor = "rgba(6,182,212,0.4)";
-            e.currentTarget.style.color = "#22d3ee";
+            e.currentTarget.style.background = "rgba(139,92,246,0.07)";
+            e.currentTarget.style.borderColor = "rgba(139,92,246,0.5)";
+            e.currentTarget.style.color = "#a78bfa";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.borderColor = "rgba(6,182,212,0.18)";
-            e.currentTarget.style.color = "#164e63";
+            e.currentTarget.style.borderColor = "rgba(139,92,246,0.22)";
+            e.currentTarget.style.color = "#3b1d8a";
           }}
         >
-          <span style={{ fontSize: "1rem", lineHeight: 1 }}>+</span>
-          Add Function
+          <span style={{ fontSize: "1rem" }}>+</span> Add Function
         </button>
       </div>
 
-      {/* ══ EXPRESSION EDITOR ══ */}
+      {/* EXPRESSION EDITOR */}
       {activePlot && (
-        <div className="p-4 border-b" style={sectionBorder}>
-          {/* Section header */}
-          <div className="flex items-center justify-between mb-3">
+        <div className="p-4 border-b" style={sb}>
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-1">
             <SectionLabel>Edit f(x)</SectionLabel>
-            <button
-              onClick={() => setShowGuide((v) => !v)}
-              className="font-mono-code text-[9px] px-2 py-0.5 rounded transition-all"
-              style={{
-                background: showGuide ? "rgba(6,182,212,0.1)" : "transparent",
-                border: "1px solid rgba(6,182,212,0.2)",
-                color: showGuide ? "#22d3ee" : "#334155",
-              }}
-            >
-              {showGuide ? "▲ Hide guide" : "? Syntax guide"}
-            </button>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setShowXn((v) => !v)}
+                className="font-mono-code text-[9px] px-2 py-0.5 rounded transition-all"
+                style={{
+                  background: showXn ? "rgba(139,92,246,0.18)" : "transparent",
+                  border: "1px solid rgba(139,92,246,0.28)",
+                  color: showXn ? "#a78bfa" : "#475569",
+                }}
+              >
+                xⁿ
+              </button>
+              <button
+                onClick={() => setShowGuide((v) => !v)}
+                className="font-mono-code text-[9px] px-2 py-0.5 rounded transition-all"
+                style={{
+                  background: showGuide
+                    ? "rgba(139,92,246,0.1)"
+                    : "transparent",
+                  border: "1px solid rgba(139,92,246,0.2)",
+                  color: showGuide ? "#a78bfa" : "#475569",
+                }}
+              >
+                {showGuide ? "▲ Hide" : "? Guide"}
+              </button>
+            </div>
           </div>
 
-          {/* Syntax guide */}
+          {showXn && (
+            <XnBuilder
+              onInsert={(s) => {
+                insertSymbol(s);
+                setShowXn(false);
+              }}
+            />
+          )}
+
           {showGuide && (
             <div
               className="mb-3 p-3 rounded-xl"
               style={{
-                background: "rgba(6,182,212,0.03)",
-                border: "1px solid rgba(6,182,212,0.1)",
+                background: "rgba(139,92,246,0.04)",
+                border: "1px solid rgba(139,92,246,0.12)",
               }}
             >
               <div
                 className="font-mono-code text-[9px] tracking-widest uppercase mb-2"
-                style={{ color: "#164e63" }}
+                style={{ color: "#3b1d8a" }}
               >
-                How to write expressions
+                Syntax
               </div>
-              <div className="grid grid-cols-1 gap-1.5">
-                {SYNTAX_GUIDE.map((g) => (
-                  <div key={g.input} className="flex items-center gap-2">
-                    <code
-                      className="font-mono-code text-[10px] px-2 py-0.5 rounded flex-shrink-0"
-                      style={{
-                        background: "rgba(6,182,212,0.08)",
-                        color: "#22d3ee",
-                        minWidth: 84,
-                      }}
-                    >
-                      {g.input}
-                    </code>
-                    <span
-                      className="font-rajdhani text-[10px]"
-                      style={{ color: "#475569" }}
-                    >
-                      {g.means}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {[
+                ["x^2", "x squared"],
+                ["2*x", "multiply"],
+                ["sin(x)", "sine"],
+                ["e^(-x)", "decay"],
+                ["sqrt(x)", "root"],
+                ["x mod 2", "remainder"],
+                ["pi, e, phi", "constants"],
+              ].map(([inp, means]) => (
+                <div key={inp} className="flex items-center gap-2 mb-1">
+                  <code
+                    className="font-mono-code text-[10px] px-2 py-0.5 rounded"
+                    style={{
+                      background: "rgba(139,92,246,0.1)",
+                      color: "#a78bfa",
+                      minWidth: 80,
+                    }}
+                  >
+                    {inp}
+                  </code>
+                  <span
+                    className="font-rajdhani text-[10px]"
+                    style={{ color: "#475569" }}
+                  >
+                    {means}
+                  </span>
+                </div>
+              ))}
             </div>
           )}
 
           {/* Color row */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
             <input
               type="color"
               value={activePlot.color}
               onChange={(e) => updatePlot(activeId, { color: e.target.value })}
-              title="Pick custom color"
               style={{
                 width: 28,
                 height: 28,
                 borderRadius: 6,
-                border: "1px solid rgba(6,182,212,0.2)",
-                background: "rgba(2,10,20,0.9)",
+                border: "1px solid rgba(139,92,246,0.2)",
+                background: "rgba(2,6,20,0.9)",
                 cursor: "pointer",
                 padding: 2,
                 flexShrink: 0,
@@ -402,7 +449,6 @@ export default function InputPanel({
                 <button
                   key={c}
                   onClick={() => updatePlot(activeId, { color: c })}
-                  title={c}
                   style={{
                     width: 16,
                     height: 16,
@@ -419,22 +465,21 @@ export default function InputPanel({
             </div>
           </div>
 
-          {/* Main expression input */}
+          {/* Expression box */}
           <div
             className="relative rounded-xl overflow-hidden mb-2"
             style={{
-              background: "rgba(2,10,20,0.9)",
-              border: "1px solid rgba(6,182,212,0.25)",
+              background: "rgba(2,6,20,0.9)",
+              border: "1px solid rgba(139,92,246,0.28)",
             }}
           >
-            {/* Top label strip */}
             <div
               className="flex items-center gap-2 px-3 pt-2 pb-1"
-              style={{ borderBottom: "1px solid rgba(6,182,212,0.08)" }}
+              style={{ borderBottom: "1px solid rgba(139,92,246,0.08)" }}
             >
               <span
                 className="font-mono-code text-[9px] tracking-widest uppercase"
-                style={{ color: "#164e63" }}
+                style={{ color: "#3b1d8a" }}
               >
                 Expression
               </span>
@@ -446,12 +491,10 @@ export default function InputPanel({
                 }}
               />
             </div>
-
-            {/* Input row */}
             <div className="flex items-center gap-2 px-3 py-2.5">
               <span
                 className="font-mono-code text-sm flex-shrink-0"
-                style={{ color: "#22d3ee" }}
+                style={{ color: "#a78bfa" }}
               >
                 f(x) =
               </span>
@@ -464,7 +507,7 @@ export default function InputPanel({
                 spellCheck={false}
                 autoComplete="off"
                 className="flex-1 bg-transparent outline-none font-mono-code text-sm"
-                style={{ color: "#94a3b8", caretColor: "#22d3ee" }}
+                style={{ color: "#94a3b8", caretColor: "#a78bfa" }}
               />
               {activePlot.expr && (
                 <button
@@ -485,7 +528,6 @@ export default function InputPanel({
             </div>
           </div>
 
-          {/* Error */}
           {error && (
             <div
               className="mb-2 px-3 py-2 rounded-xl font-mono-code text-[10px] flex items-start gap-2"
@@ -495,21 +537,21 @@ export default function InputPanel({
                 color: "#f87171",
               }}
             >
-              <span className="flex-shrink-0 mt-px">⚠</span>
+              <span>⚠</span>
               <div>
-                <div>{error}</div>
+                {error}
                 <div className="mt-0.5" style={{ color: "#6b7280" }}>
-                  Use <code style={{ color: "#22d3ee" }}>*</code> to multiply ·{" "}
-                  <code style={{ color: "#22d3ee" }}>^</code> for power
+                  Use <code style={{ color: "#a78bfa" }}>*</code> to multiply ·{" "}
+                  <code style={{ color: "#a78bfa" }}>^</code> for power
                 </div>
               </div>
             </div>
           )}
 
-          {/* Quick insert */}
+          {/* Quick Insert */}
           <div
             className="font-mono-code text-[9px] tracking-widest uppercase mb-1.5 mt-1"
-            style={{ color: "#164e63" }}
+            style={{ color: "#3b1d8a" }}
           >
             Quick Insert
           </div>
@@ -519,20 +561,20 @@ export default function InputPanel({
                 key={s.label}
                 onClick={() => insertSymbol(s.insert)}
                 title={`${s.insert} — ${s.desc}`}
-                className="font-mono-code text-[10px] px-2 py-1 rounded-lg transition-all duration-150"
+                className="font-mono-code text-[10px] px-2 py-1 rounded-lg transition-all"
                 style={{
-                  background: "rgba(2,10,20,0.9)",
-                  border: "1px solid rgba(6,182,212,0.12)",
+                  background: "rgba(2,6,20,0.9)",
+                  border: "1px solid rgba(139,92,246,0.12)",
                   color: "#475569",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(6,182,212,0.1)";
-                  e.currentTarget.style.borderColor = "rgba(6,182,212,0.4)";
-                  e.currentTarget.style.color = "#22d3ee";
+                  e.currentTarget.style.background = "rgba(139,92,246,0.12)";
+                  e.currentTarget.style.borderColor = "rgba(139,92,246,0.4)";
+                  e.currentTarget.style.color = "#a78bfa";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(2,10,20,0.9)";
-                  e.currentTarget.style.borderColor = "rgba(6,182,212,0.12)";
+                  e.currentTarget.style.background = "rgba(2,6,20,0.9)";
+                  e.currentTarget.style.borderColor = "rgba(139,92,246,0.12)";
                   e.currentTarget.style.color = "#475569";
                 }}
               >
@@ -541,16 +583,16 @@ export default function InputPanel({
             ))}
           </div>
 
-          {/* Try these expressions */}
+          {/* Try these */}
           <div
             className="font-mono-code text-[9px] tracking-widest uppercase mb-1.5"
-            style={{ color: "#164e63" }}
+            style={{ color: "#3b1d8a" }}
           >
             Try these
           </div>
           <div className="flex flex-wrap gap-1">
             {QUICK_EXPRS.map((ex) => {
-              const isActive = activePlot.expr === ex;
+              const isAct = activePlot?.expr === ex;
               return (
                 <button
                   key={ex}
@@ -560,11 +602,11 @@ export default function InputPanel({
                   }}
                   className="font-mono-code text-[9px] px-2 py-0.5 rounded transition-all"
                   style={{
-                    background: isActive
-                      ? "rgba(6,182,212,0.12)"
-                      : "rgba(2,10,20,0.8)",
-                    border: `1px solid ${isActive ? "rgba(6,182,212,0.4)" : "rgba(6,182,212,0.1)"}`,
-                    color: isActive ? "#22d3ee" : "#334155",
+                    background: isAct
+                      ? "rgba(139,92,246,0.14)"
+                      : "rgba(2,6,20,0.8)",
+                    border: `1px solid ${isAct ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.1)"}`,
+                    color: isAct ? "#a78bfa" : "#334155",
                   }}
                 >
                   {ex}
@@ -575,21 +617,19 @@ export default function InputPanel({
         </div>
       )}
 
-      {/* ══ VIEW RANGE ══ */}
-      <div className="p-4 border-b" style={sectionBorder}>
+      {/* VIEW RANGE */}
+      <div className="p-4 border-b" style={sb}>
         <SectionLabel>View Range</SectionLabel>
-
-        {/* Range presets */}
         <div className="mb-3">
           <div
             className="font-mono-code text-[9px] tracking-widest uppercase mb-1.5"
-            style={{ color: "#164e63" }}
+            style={{ color: "#3b1d8a" }}
           >
-            X axis presets
+            X presets
           </div>
           <div className="flex flex-wrap gap-1">
             {RANGE_PRESETS.map((p) => {
-              const isActive = xMin === p.xMin && xMax === p.xMax;
+              const isAct = xMin === p.xMin && xMax === p.xMax;
               return (
                 <button
                   key={p.label}
@@ -599,14 +639,12 @@ export default function InputPanel({
                   }}
                   className="font-mono-code text-[9px] px-2.5 py-1 rounded-lg transition-all"
                   style={{
-                    background: isActive
-                      ? "rgba(6,182,212,0.12)"
-                      : "rgba(2,10,20,0.8)",
-                    border: `1px solid ${isActive ? "rgba(6,182,212,0.45)" : "rgba(6,182,212,0.1)"}`,
-                    color: isActive ? "#22d3ee" : "#475569",
-                    boxShadow: isActive
-                      ? "0 0 8px rgba(6,182,212,0.1)"
-                      : "none",
+                    background: isAct
+                      ? "rgba(139,92,246,0.14)"
+                      : "rgba(2,6,20,0.8)",
+                    border: `1px solid ${isAct ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.1)"}`,
+                    color: isAct ? "#a78bfa" : "#475569",
+                    boxShadow: isAct ? "0 0 8px rgba(139,92,246,0.12)" : "none",
                   }}
                 >
                   {p.label}
@@ -615,8 +653,6 @@ export default function InputPanel({
             })}
           </div>
         </div>
-
-        {/* X range inputs */}
         <div className="grid grid-cols-2 gap-2 mb-3">
           {[
             ["X min", xMin, setXMin],
@@ -637,24 +673,21 @@ export default function InputPanel({
             </label>
           ))}
         </div>
-
-        {/* Auto Y toggle */}
         <div
           className="flex items-center gap-3 mb-2 cursor-pointer select-none p-2.5 rounded-xl transition-all"
           onClick={() => setAutoY((v) => !v)}
           style={{
-            background: autoY ? "rgba(6,182,212,0.04)" : "rgba(2,10,20,0.4)",
-            border: `1px solid ${autoY ? "rgba(6,182,212,0.2)" : "rgba(6,182,212,0.07)"}`,
+            background: autoY ? "rgba(139,92,246,0.06)" : "rgba(2,6,20,0.4)",
+            border: `1px solid ${autoY ? "rgba(139,92,246,0.25)" : "rgba(139,92,246,0.07)"}`,
           }}
         >
-          {/* Toggle knob */}
           <div
             className="flex-shrink-0 relative"
             style={{
               width: 34,
               height: 18,
-              background: autoY ? "rgba(6,182,212,0.25)" : "rgba(4,12,28,0.8)",
-              border: `1px solid ${autoY ? "rgba(6,182,212,0.5)" : "rgba(6,182,212,0.15)"}`,
+              background: autoY ? "rgba(139,92,246,0.3)" : "rgba(4,8,28,0.8)",
+              border: `1px solid ${autoY ? "rgba(139,92,246,0.6)" : "rgba(139,92,246,0.15)"}`,
               borderRadius: 9,
               transition: "all 0.2s",
             }}
@@ -667,8 +700,8 @@ export default function InputPanel({
                 width: 12,
                 height: 12,
                 borderRadius: "50%",
-                background: autoY ? "#22d3ee" : "#334155",
-                boxShadow: autoY ? "0 0 6px #22d3ee" : "none",
+                background: autoY ? "#a78bfa" : "#334155",
+                boxShadow: autoY ? "0 0 6px #a78bfa" : "none",
                 transition: "all 0.2s",
               }}
             />
@@ -676,13 +709,13 @@ export default function InputPanel({
           <div>
             <span
               className="font-mono-code text-xs"
-              style={{ color: autoY ? "#22d3ee" : "#475569" }}
+              style={{ color: autoY ? "#a78bfa" : "#475569" }}
             >
               Auto Y range
             </span>
             <div
               className="font-rajdhani text-[9px]"
-              style={{ color: "#164e63" }}
+              style={{ color: "#3b1d8a" }}
             >
               {autoY
                 ? "Y axis scales to fit the curve"
@@ -690,8 +723,6 @@ export default function InputPanel({
             </div>
           </div>
         </div>
-
-        {/* Manual Y range */}
         {!autoY && (
           <div className="grid grid-cols-2 gap-2 mt-2">
             {[

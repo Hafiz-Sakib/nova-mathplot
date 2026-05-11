@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useMemo,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import {
   ResponsiveContainer,
   ComposedChart,

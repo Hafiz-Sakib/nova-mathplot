@@ -1,4 +1,10 @@
-import React, { useMemo, useEffect, useState, useCallback } from "react";
+import React, {
+  useMemo,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -22,6 +28,17 @@ const SCOPE = {
   tau: 2 * Math.PI,
 };
 
+const LINE_COLORS = [
+  "#22d3ee",
+  "#a78bfa",
+  "#34d399",
+  "#f472b6",
+  "#fb923c",
+  "#fbbf24",
+  "#60a5fa",
+  "#4ade80",
+];
+
 function evalExpr(expr, x) {
   try {
     const r = math.evaluate(expr, { ...SCOPE, x });
@@ -37,7 +54,9 @@ function buildData(plots, xMin, xMax) {
     const x = xMin + i * step;
     const pt = { x: parseFloat(x.toFixed(5)) };
     plots.forEach((p) => {
-      if (p.visible && p.expr.trim()) pt[`y_${p.id}`] = evalExpr(p.expr, x);
+      if (p.visible && p.expr?.trim()) {
+        pt[`y_${p.id}`] = evalExpr(p.expr, x);
+      }
     });
     return pt;
   });
@@ -45,13 +64,23 @@ function buildData(plots, xMin, xMax) {
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
+
   return (
-    <div className="nova-tooltip">
+    <div
+      style={{
+        background: "rgba(2,6,20,0.97)",
+        border: "1px solid rgba(139,92,246,0.25)",
+        borderRadius: 10,
+        padding: "10px 14px",
+        backdropFilter: "blur(12px)",
+        boxShadow: "0 0 20px rgba(139,92,246,0.15)",
+      }}
+    >
       <div
         className="pb-2 mb-2 font-mono-code text-[10px]"
         style={{
           color: "#475569",
-          borderBottom: "1px solid rgba(6,182,212,0.15)",
+          borderBottom: "1px solid rgba(139,92,246,0.12)",
         }}
       >
         x = {typeof label === "number" ? label.toFixed(4) : label}
@@ -90,30 +119,96 @@ export default function GraphPanel({
   setYMin,
   setYMax,
   setError,
-  onZoom,
-  onPan,
 }) {
-  const [internalXMin, setInternalXMin] = useState(xMin);
-  const [internalXMax, setInternalXMax] = useState(xMax);
+  const [intXMin, setIntXMin] = useState(xMin);
+  const [intXMax, setIntXMax] = useState(xMax);
+  const containerRef = useRef(null);
+  const dragRef = useRef(null);
 
+  // Sync external props
   useEffect(() => {
-    setInternalXMin(xMin);
-    setInternalXMax(xMax);
+    setIntXMin(xMin);
+    setIntXMax(xMax);
   }, [xMin, xMax]);
+
+  // Mouse-wheel zoom (centered on cursor)
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const onWheel = (e) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const frac = (e.clientX - rect.left) / rect.width;
+      const range = intXMax - intXMin;
+      const factor = e.deltaY < 0 ? 0.8 : 1.25;
+      const newRange = range * factor;
+      const focusX = intXMin + frac * range;
+
+      setIntXMin(focusX - frac * newRange);
+      setIntXMax(focusX + (1 - frac) * newRange);
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [intXMin, intXMax]); // ← Fixed: dependencies included
+
+  // Click-drag pan
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const onDown = (e) => {
+      if (e.button !== 0) return;
+      dragRef.current = {
+        startX: e.clientX,
+        startXMin: intXMin,
+        startXMax: intXMax,
+        width: el.getBoundingClientRect().width,
+      };
+      el.style.cursor = "grabbing";
+    };
+
+    const onMove = (e) => {
+      if (!dragRef.current) return;
+      const dx = e.clientX - dragRef.current.startX;
+      const range = dragRef.current.startXMax - dragRef.current.startXMin;
+      const shift = -(dx / dragRef.current.width) * range;
+
+      setIntXMin(dragRef.current.startXMin + shift);
+      setIntXMax(dragRef.current.startXMax + shift);
+    };
+
+    const onUp = () => {
+      dragRef.current = null;
+      if (containerRef.current) containerRef.current.style.cursor = "crosshair";
+    };
+
+    el.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+
+    return () => {
+      el.removeEventListener("mousedown", onDown);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [intXMin, intXMax]); // ← Fixed
 
   const data = useMemo(() => {
     try {
-      return buildData(plots, internalXMin, internalXMax);
+      return buildData(plots, intXMin, intXMax);
     } catch (e) {
       setError(e.message);
       return [];
     }
-  }, [plots, internalXMin, internalXMax]);
+  }, [plots, intXMin, intXMax, setError]);
 
+  // Expression validation
   useEffect(() => {
     const errs = [];
     plots.forEach((p) => {
-      if (!p.expr.trim()) return;
+      if (!p.expr?.trim()) return;
       try {
         math.evaluate(p.expr, { ...SCOPE, x: 1 });
       } catch (e) {
@@ -121,21 +216,25 @@ export default function GraphPanel({
       }
     });
     setError(errs[0] || "");
-  }, [plots]);
+  }, [plots, setError]);
 
   const yDomain = useMemo(() => {
     if (!autoY) return [yMin, yMax];
+
     let lo = Infinity,
       hi = -Infinity;
-    data.forEach((pt) =>
+
+    data.forEach((pt) => {
       Object.entries(pt).forEach(([k, v]) => {
         if (k !== "x" && v != null) {
           if (v < lo) lo = v;
           if (v > hi) hi = v;
         }
-      }),
-    );
+      });
+    });
+
     if (!isFinite(lo)) return [-10, 10];
+
     const pad = (hi - lo) * 0.12 || 1;
     return [
       parseFloat((lo - pad).toFixed(3)),
@@ -143,80 +242,125 @@ export default function GraphPanel({
     ];
   }, [data, autoY, yMin, yMax]);
 
-  const handleZoomIn = useCallback(() => {
-    const mid = (internalXMin + internalXMax) / 2;
-    const half = (internalXMax - internalXMin) / 4;
-    setInternalXMin(mid - half);
-    setInternalXMax(mid + half);
-  }, [internalXMin, internalXMax]);
+  // Control buttons
+  const zoomIn = useCallback(() => {
+    const mid = (intXMin + intXMax) / 2;
+    const half = (intXMax - intXMin) / 4;
+    setIntXMin(mid - half);
+    setIntXMax(mid + half);
+  }, [intXMin, intXMax]);
 
-  const handleZoomOut = useCallback(() => {
-    const mid = (internalXMin + internalXMax) / 2;
-    const half = internalXMax - internalXMin;
-    setInternalXMin(mid - half);
-    setInternalXMax(mid + half);
-  }, [internalXMin, internalXMax]);
+  const zoomOut = useCallback(() => {
+    const mid = (intXMin + intXMax) / 2;
+    const half = intXMax - intXMin;
+    setIntXMin(mid - half);
+    setIntXMax(mid + half);
+  }, [intXMin, intXMax]);
 
-  const handleZoomReset = useCallback(() => {
-    setInternalXMin(xMin);
-    setInternalXMax(xMax);
+  const zoomReset = useCallback(() => {
+    setIntXMin(xMin);
+    setIntXMax(xMax);
   }, [xMin, xMax]);
 
-  const handlePanLeft = useCallback(() => {
-    const d = (internalXMax - internalXMin) * 0.25;
-    setInternalXMin((v) => v - d);
-    setInternalXMax((v) => v - d);
-  }, [internalXMin, internalXMax]);
+  const panLeft = useCallback(() => {
+    const d = (intXMax - intXMin) * 0.25;
+    setIntXMin((v) => v - d);
+    setIntXMax((v) => v - d);
+  }, [intXMax, intXMin]);
 
-  const handlePanRight = useCallback(() => {
-    const d = (internalXMax - internalXMin) * 0.25;
-    setInternalXMin((v) => v + d);
-    setInternalXMax((v) => v + d);
-  }, [internalXMin, internalXMax]);
+  const panRight = useCallback(() => {
+    const d = (intXMax - intXMin) * 0.25;
+    setIntXMin((v) => v + d);
+    setIntXMax((v) => v + d);
+  }, [intXMax, intXMin]);
 
-  const activePlots = plots.filter((p) => p.visible && p.expr.trim());
+  const activePlots = useMemo(
+    () => plots.filter((p) => p.visible && p.expr?.trim()),
+    [plots],
+  );
+
+  const plotColor = (plot, idx) =>
+    plot.color || LINE_COLORS[idx % LINE_COLORS.length];
+
+  const ZoomBtn = ({ onClick, title, children, wide }) => (
+    <button
+      onClick={onClick}
+      title={title}
+      className="font-mono-code flex items-center justify-center rounded-lg transition-all"
+      style={{
+        width: wide ? 38 : 28,
+        height: 28,
+        background: "rgba(2,8,20,0.8)",
+        border: "1px solid rgba(139,92,246,0.18)",
+        color: "#64748b",
+        fontSize: "0.75rem",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = "rgba(139,92,246,0.55)";
+        e.currentTarget.style.color = "#a78bfa";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "rgba(139,92,246,0.18)";
+        e.currentTarget.style.color = "#64748b";
+      }}
+    >
+      {children}
+    </button>
+  );
 
   return (
-    <div className="flex-1 p-2 sm:p-4 flex flex-col overflow-hidden min-h-0">
-      {/* Zoom & Pan controls */}
-      <div className="flex items-center gap-2 mb-2 flex-wrap">
+    <div className="flex-1 flex flex-col overflow-hidden min-h-0 p-2 sm:p-3">
+      {/* ── Toolbar ── */}
+      <div className="flex items-center gap-1.5 mb-2 flex-wrap">
         <div className="flex items-center gap-1">
-          <button className="zoom-btn" onClick={handleZoomIn} title="Zoom In">
+          <ZoomBtn onClick={zoomIn} title="Zoom In">
             +
-          </button>
-          <button className="zoom-btn" onClick={handleZoomOut} title="Zoom Out">
+          </ZoomBtn>
+          <ZoomBtn onClick={zoomOut} title="Zoom Out">
             −
-          </button>
-          <button
-            className="zoom-btn text-xs"
-            onClick={handleZoomReset}
-            title="Reset Zoom"
-            style={{ fontSize: "0.6rem", width: 38 }}
-          >
+          </ZoomBtn>
+          <ZoomBtn onClick={zoomReset} title="Reset" wide>
             RST
-          </button>
+          </ZoomBtn>
         </div>
         <div className="flex items-center gap-1">
-          <button className="zoom-btn" onClick={handlePanLeft} title="Pan Left">
+          <ZoomBtn onClick={panLeft} title="Pan Left">
             ◀
-          </button>
-          <button
-            className="zoom-btn"
-            onClick={handlePanRight}
-            title="Pan Right"
-          >
+          </ZoomBtn>
+          <ZoomBtn onClick={panRight} title="Pan Right">
             ▶
-          </button>
+          </ZoomBtn>
         </div>
-        <span
-          className="font-mono-code text-[9px] ml-auto"
-          style={{ color: "#334155" }}
-        >
-          x: [{internalXMin.toFixed(2)}, {internalXMax.toFixed(2)}]
-        </span>
+        {/* hint */}
+        <div className="ml-auto flex items-center gap-3 flex-wrap">
+          <span
+            className="font-mono-code text-[9px] hidden sm:flex items-center gap-1"
+            style={{ color: "#334155" }}
+          >
+            <span style={{ color: "#a78bfa" }}>⊙</span> scroll to zoom · drag to
+            pan
+          </span>
+          <span
+            className="font-mono-code text-[9px]"
+            style={{ color: "#334155" }}
+          >
+            x:[{intXMin.toFixed(2)}, {intXMax.toFixed(2)}]
+          </span>
+        </div>
       </div>
 
-      <div className="relative flex-1 graph-container min-h-0">
+      {/* ── Chart container ── */}
+      <div
+        ref={containerRef}
+        className="relative flex-1 min-h-0 rounded-xl overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(135deg,#020810 0%,#080418 50%,#020810 100%)",
+          border: "1px solid rgba(139,92,246,0.12)",
+          cursor: "crosshair",
+          userSelect: "none",
+        }}
+      >
         {/* Corner accents */}
         {[
           ["top-0 left-0", "right-0 bottom-0"],
@@ -230,27 +374,28 @@ export default function GraphPanel({
           >
             <div
               className={`absolute ${inner} w-3 h-0.5`}
-              style={{ background: "rgba(6,182,212,0.4)" }}
+              style={{ background: "rgba(139,92,246,0.4)" }}
             />
             <div
               className={`absolute ${inner} w-0.5 h-3`}
-              style={{ background: "rgba(6,182,212,0.4)" }}
+              style={{ background: "rgba(139,92,246,0.4)" }}
             />
           </div>
         ))}
+        {/* Radial glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse at 50% 50%, rgba(6,182,212,0.025) 0%, transparent 65%)",
+              "radial-gradient(ellipse at 50% 50%, rgba(139,92,246,0.04) 0%, transparent 65%)",
           }}
         />
 
         {activePlots.length === 0 ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
             <div
-              className="font-mono-code text-6xl animate-float"
-              style={{ color: "rgba(6,182,212,0.1)" }}
+              className="font-mono-code text-6xl"
+              style={{ color: "rgba(139,92,246,0.12)" }}
             >
               ∿
             </div>
@@ -273,22 +418,49 @@ export default function GraphPanel({
               data={data}
               margin={{ top: 16, right: 12, bottom: 16, left: 0 }}
             >
+              <defs>
+                {activePlots.map((plot, idx) => {
+                  const c = plotColor(plot, idx);
+                  return (
+                    <linearGradient
+                      key={plot.id}
+                      id={`grad_${plot.id}`}
+                      x1="0"
+                      y1="0"
+                      x2="1"
+                      y2="0"
+                    >
+                      <stop offset="0%" stopColor={c} stopOpacity={0.7} />
+                      <stop
+                        offset="50%"
+                        stopColor={LINE_COLORS[(idx + 2) % LINE_COLORS.length]}
+                        stopOpacity={1}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor={LINE_COLORS[(idx + 4) % LINE_COLORS.length]}
+                        stopOpacity={0.7}
+                      />
+                    </linearGradient>
+                  );
+                })}
+              </defs>
               <CartesianGrid
                 strokeDasharray="2 6"
-                stroke="rgba(6,182,212,0.06)"
+                stroke="rgba(139,92,246,0.07)"
               />
               <XAxis
                 dataKey="x"
                 type="number"
-                domain={[internalXMin, internalXMax]}
+                domain={[intXMin, intXMax]}
                 tickCount={9}
                 tick={{
                   fill: "#334155",
                   fontFamily: "JetBrains Mono",
                   fontSize: 9,
                 }}
-                axisLine={{ stroke: "rgba(6,182,212,0.18)" }}
-                tickLine={{ stroke: "rgba(6,182,212,0.1)" }}
+                axisLine={{ stroke: "rgba(139,92,246,0.2)" }}
+                tickLine={{ stroke: "rgba(139,92,246,0.12)" }}
                 tickFormatter={(v) => v.toFixed(1)}
               />
               <YAxis
@@ -300,19 +472,19 @@ export default function GraphPanel({
                   fontFamily: "JetBrains Mono",
                   fontSize: 9,
                 }}
-                axisLine={{ stroke: "rgba(6,182,212,0.18)" }}
-                tickLine={{ stroke: "rgba(6,182,212,0.1)" }}
+                axisLine={{ stroke: "rgba(139,92,246,0.2)" }}
+                tickLine={{ stroke: "rgba(139,92,246,0.12)" }}
                 tickFormatter={(v) => v.toFixed(1)}
                 width={44}
               />
               <ReferenceLine
                 x={0}
-                stroke="rgba(6,182,212,0.2)"
+                stroke="rgba(139,92,246,0.25)"
                 strokeWidth={1}
               />
               <ReferenceLine
                 y={0}
-                stroke="rgba(6,182,212,0.2)"
+                stroke="rgba(139,92,246,0.25)"
                 strokeWidth={1}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -330,25 +502,27 @@ export default function GraphPanel({
                 )}
                 wrapperStyle={{ paddingTop: 4 }}
               />
-              {activePlots.map((plot) => (
+              {activePlots.map((plot, idx) => (
                 <Line
                   key={plot.id}
                   dataKey={`y_${plot.id}`}
                   name={plot.label || plot.expr}
-                  stroke={plot.color}
+                  stroke={`url(#grad_${plot.id})`}
                   strokeWidth={2.2}
                   dot={false}
                   activeDot={{
                     r: 4,
-                    fill: plot.color,
+                    fill: plotColor(plot, idx),
                     stroke: "#020810",
                     strokeWidth: 2,
                   }}
-                  isAnimationActive={true}
-                  animationDuration={500}
+                  isAnimationActive
+                  animationDuration={450}
                   animationEasing="ease-out"
                   connectNulls={false}
-                  style={{ filter: `drop-shadow(0 0 4px ${plot.color}80)` }}
+                  style={{
+                    filter: `drop-shadow(0 0 5px ${plotColor(plot, idx)}90)`,
+                  }}
                 />
               ))}
             </ComposedChart>
