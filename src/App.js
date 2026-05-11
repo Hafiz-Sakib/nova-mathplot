@@ -19,6 +19,8 @@ const VALID_PAGES = [
   "developer",
 ];
 
+//Day and Night mode implemented in this version.
+
 // Path → page name mapping
 const PATH_TO_PAGE = {
   "/": "home",
