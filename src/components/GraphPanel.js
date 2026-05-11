@@ -97,7 +97,7 @@ function CustomTooltip({ active, payload, label }) {
                 className="w-2 h-2 rounded-full flex-shrink-0"
                 style={{
                   background: entry.color,
-                  boxShadow: `0 0 5px ${entry.color}`,
+                  boxShadow: `0 0 6px ${entry.color}`,
                 }}
               />
               <span>{entry.name}:</span>
@@ -131,7 +131,7 @@ export default function GraphPanel({
     setIntXMax(xMax);
   }, [xMin, xMax]);
 
-  // Mouse-wheel zoom (centered on cursor)
+  // Mouse-wheel zoom
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -151,7 +151,7 @@ export default function GraphPanel({
 
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, [intXMin, intXMax]); // ← Fixed: dependencies included
+  }, [intXMin, intXMax]);
 
   // Click-drag pan
   useEffect(() => {
@@ -193,7 +193,7 @@ export default function GraphPanel({
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };
-  }, [intXMin, intXMax]); // ← Fixed
+  }, [intXMin, intXMax]);
 
   const data = useMemo(() => {
     try {
@@ -220,21 +220,17 @@ export default function GraphPanel({
 
   const yDomain = useMemo(() => {
     if (!autoY) return [yMin, yMax];
-
     let lo = Infinity,
       hi = -Infinity;
-
-    data.forEach((pt) => {
+    data.forEach((pt) =>
       Object.entries(pt).forEach(([k, v]) => {
         if (k !== "x" && v != null) {
           if (v < lo) lo = v;
           if (v > hi) hi = v;
         }
-      });
-    });
-
+      }),
+    );
     if (!isFinite(lo)) return [-10, 10];
-
     const pad = (hi - lo) * 0.12 || 1;
     return [
       parseFloat((lo - pad).toFixed(3)),
@@ -242,7 +238,6 @@ export default function GraphPanel({
     ];
   }, [data, autoY, yMin, yMax]);
 
-  // Control buttons
   const zoomIn = useCallback(() => {
     const mid = (intXMin + intXMax) / 2;
     const half = (intXMax - intXMin) / 4;
@@ -310,7 +305,7 @@ export default function GraphPanel({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden min-h-0 p-2 sm:p-3">
-      {/* ── Toolbar ── */}
+      {/* Toolbar */}
       <div className="flex items-center gap-1.5 mb-2 flex-wrap">
         <div className="flex items-center gap-1">
           <ZoomBtn onClick={zoomIn} title="Zoom In">
@@ -331,7 +326,6 @@ export default function GraphPanel({
             ▶
           </ZoomBtn>
         </div>
-        {/* hint */}
         <div className="ml-auto flex items-center gap-3 flex-wrap">
           <span
             className="font-mono-code text-[9px] hidden sm:flex items-center gap-1"
@@ -349,7 +343,7 @@ export default function GraphPanel({
         </div>
       </div>
 
-      {/* ── Chart container ── */}
+      {/* Chart Container */}
       <div
         ref={containerRef}
         className="relative flex-1 min-h-0 rounded-xl overflow-hidden"
@@ -382,6 +376,7 @@ export default function GraphPanel({
             />
           </div>
         ))}
+
         {/* Radial glow */}
         <div
           className="absolute inset-0 pointer-events-none"
@@ -418,33 +413,6 @@ export default function GraphPanel({
               data={data}
               margin={{ top: 16, right: 12, bottom: 16, left: 0 }}
             >
-              <defs>
-                {activePlots.map((plot, idx) => {
-                  const c = plotColor(plot, idx);
-                  return (
-                    <linearGradient
-                      key={plot.id}
-                      id={`grad_${plot.id}`}
-                      x1="0"
-                      y1="0"
-                      x2="1"
-                      y2="0"
-                    >
-                      <stop offset="0%" stopColor={c} stopOpacity={0.7} />
-                      <stop
-                        offset="50%"
-                        stopColor={LINE_COLORS[(idx + 2) % LINE_COLORS.length]}
-                        stopOpacity={1}
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor={LINE_COLORS[(idx + 4) % LINE_COLORS.length]}
-                        stopOpacity={0.7}
-                      />
-                    </linearGradient>
-                  );
-                })}
-              </defs>
               <CartesianGrid
                 strokeDasharray="2 6"
                 stroke="rgba(139,92,246,0.07)"
@@ -502,29 +470,33 @@ export default function GraphPanel({
                 )}
                 wrapperStyle={{ paddingTop: 4 }}
               />
-              {activePlots.map((plot, idx) => (
-                <Line
-                  key={plot.id}
-                  dataKey={`y_${plot.id}`}
-                  name={plot.label || plot.expr}
-                  stroke={`url(#grad_${plot.id})`}
-                  strokeWidth={2.2}
-                  dot={false}
-                  activeDot={{
-                    r: 4,
-                    fill: plotColor(plot, idx),
-                    stroke: "#020810",
-                    strokeWidth: 2,
-                  }}
-                  isAnimationActive
-                  animationDuration={450}
-                  animationEasing="ease-out"
-                  connectNulls={false}
-                  style={{
-                    filter: `drop-shadow(0 0 5px ${plotColor(plot, idx)}90)`,
-                  }}
-                />
-              ))}
+
+              {activePlots.map((plot, idx) => {
+                const color = plotColor(plot, idx);
+                return (
+                  <Line
+                    key={plot.id}
+                    dataKey={`y_${plot.id}`}
+                    name={plot.label || plot.expr}
+                    stroke={color}
+                    strokeWidth={2.5}
+                    dot={false}
+                    activeDot={{
+                      r: 4.5,
+                      fill: "#ffffff",
+                      stroke: color,
+                      strokeWidth: 2.5,
+                    }}
+                    isAnimationActive
+                    animationDuration={500}
+                    animationEasing="ease-out"
+                    connectNulls={false}
+                    style={{
+                      filter: `drop-shadow(0 0 8px ${color}99)`,
+                    }}
+                  />
+                );
+              })}
             </ComposedChart>
           </ResponsiveContainer>
         )}
