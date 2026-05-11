@@ -36,8 +36,8 @@ function AnimatedSine({ color = "#22d3ee", color2 = "#10b981" }) {
   );
 }
 
-/* ─── Gaussian bell curve preview ─── */
-function GaussianPreview() {
+/* ─── Gaussian bell curve preview with grid ─── */
+function GaussianPreview({ isDark }) {
   const pts = [];
   for (let x = -3.5; x <= 3.5; x += 0.08) {
     const y = Math.exp(-x * x);
@@ -51,25 +51,41 @@ function GaussianPreview() {
   const f =
     d +
     ` L${pts[pts.length - 1][0].toFixed(1)},68 L${pts[0][0].toFixed(1)},68 Z`;
+
   return (
     <svg viewBox="0 0 280 80" className="w-full">
       <defs>
+        <pattern
+          id="gridG"
+          width="20"
+          height="20"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d="M 20 0 L 0 0 0 20"
+            fill="none"
+            stroke={isDark ? "#67e8f9" : "#1e2937"}
+            strokeWidth="0.9"
+            strokeOpacity="0.40"
+          />
+        </pattern>
         <linearGradient id="gG2" x1="50%" y1="0%" x2="50%" y2="100%">
           <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
           <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
         </linearGradient>
       </defs>
+
+      <rect width="280" height="80" fill="url(#gridG)" />
       <path d={f} fill="url(#gG2)" />
       <path d={d} fill="none" stroke="#34d399" strokeWidth="2.2" />
     </svg>
   );
 }
 
-/* ─── FIXED: Real Euler Spiral (Cornu spiral) preview ─── */
-function EulerSpiralPreview() {
+/* ─── Euler Spiral preview with grid ─── */
+function EulerSpiralPreview({ isDark }) {
   const W = 280,
     H = 80;
-  // Euler/Cornu spiral: parametric x=∫cos(t²/2)dt, y=∫sin(t²/2)dt
   const pts = [];
   const steps = 300;
   const tMax = 4.5;
@@ -84,7 +100,7 @@ function EulerSpiralPreview() {
     }
     pts.push([cx, cy]);
   }
-  // Scale & center in SVG
+
   const xs = pts.map((p) => p[0]),
     ys = pts.map((p) => p[1]);
   const minX = Math.min(...xs),
@@ -107,25 +123,34 @@ function EulerSpiralPreview() {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
       <defs>
+        <pattern
+          id="gridE"
+          width="20"
+          height="20"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d="M 20 0 L 0 0 0 20"
+            fill="none"
+            stroke={isDark ? "#67e8f9" : "#1e2937"}
+            strokeWidth="0.9"
+            strokeOpacity="0.40"
+          />
+        </pattern>
         <linearGradient id="eulerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#a78bfa" stopOpacity="0.3" />
           <stop offset="50%" stopColor="#f472b6" stopOpacity="1" />
           <stop offset="100%" stopColor="#a78bfa" stopOpacity="0.3" />
         </linearGradient>
-        <filter id="eulerGlow">
-          <feGaussianBlur stdDeviation="1.8" result="b" />
-          <feMerge>
-            <feMergeNode in="b" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
       </defs>
+
+      <rect width={W} height={H} fill="url(#gridE)" />
+
       <path
         d={d}
         fill="none"
         stroke="url(#eulerGrad)"
         strokeWidth="2"
-        filter="url(#eulerGlow)"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -133,8 +158,8 @@ function EulerSpiralPreview() {
   );
 }
 
-/* ─── Activation preview: sigmoid + relu + tanh ─── */
-function ActivationPreview() {
+/* ─── Activation preview with grid ─── */
+function ActivationPreview({ isDark }) {
   const W = 280,
     H = 80;
   const toX = (x) => ((x + 5) / 10) * W;
@@ -142,17 +167,20 @@ function ActivationPreview() {
   const sigmoid = [],
     relu = [],
     tanh_ = [];
+
   for (let x = -5; x <= 5; x += 0.1) {
     sigmoid.push([toX(x), toY(1 / (1 + Math.exp(-x)))]);
     relu.push([toX(x), toY(Math.max(0, x) * 0.5)]);
     tanh_.push([toX(x), toY(Math.tanh(x))]);
   }
+
   const path = (pts) =>
     pts
       .map(
         (p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`,
       )
       .join(" ");
+
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
@@ -160,6 +188,20 @@ function ActivationPreview() {
       preserveAspectRatio="none"
     >
       <defs>
+        <pattern
+          id="gridA"
+          width="20"
+          height="20"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d="M 20 0 L 0 0 0 20"
+            fill="none"
+            stroke={isDark ? "#67e8f9" : "#1e2937"}
+            strokeWidth="0.9"
+            strokeOpacity="0.40"
+          />
+        </pattern>
         <filter id="actGlow">
           <feGaussianBlur stdDeviation="1.5" result="b" />
           <feMerge>
@@ -168,12 +210,15 @@ function ActivationPreview() {
           </feMerge>
         </filter>
       </defs>
+
+      <rect width={W} height={H} fill="url(#gridA)" />
+
       <line
         x1="0"
         y1={toY(0)}
         x2={W}
         y2={toY(0)}
-        stroke="rgba(139,92,246,0.15)"
+        stroke="rgba(139,92,246,0.25)"
         strokeWidth="0.7"
       />
       <path
@@ -604,17 +649,17 @@ export default function HomePage({ setPage }) {
                 {[
                   {
                     label: "Gaussian",
-                    content: <GaussianPreview />,
+                    content: <GaussianPreview isDark={isDark} />,
                     color: "#10b981",
                   },
                   {
                     label: "Euler Spiral",
-                    content: <EulerSpiralPreview />,
+                    content: <EulerSpiralPreview isDark={isDark} />,
                     color: "#a78bfa",
                   },
                   {
                     label: "Activations",
-                    content: <ActivationPreview />,
+                    content: <ActivationPreview isDark={isDark} />,
                     color: "#fb923c",
                   },
                 ].map((item) => (
