@@ -915,7 +915,6 @@ export default function HomePage({ setPage }) {
                   ? "1px solid rgba(6,182,212,0.1)"
                   : "1px solid rgba(100,149,237,0.25)",
               }}
-              // ... hover effects
             >
               <div
                 className="w-1.5 h-1.5 rounded-full"
