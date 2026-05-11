@@ -915,29 +915,33 @@ export default function HomePage({ setPage }) {
                   ? "1px solid rgba(6,182,212,0.1)"
                   : "1px solid rgba(100,149,237,0.25)",
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = `${t.color}40`;
-                e.currentTarget.style.boxShadow = `0 0 12px ${t.color}15`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = isDark
-                  ? "rgba(6,182,212,0.1)"
-                  : "rgba(100,149,237,0.25)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
+              // ... hover effects
             >
               <div
                 className="w-1.5 h-1.5 rounded-full"
-                style={{ background: t.color, boxShadow: `0 0 6px ${t.color}` }}
+                style={{
+                  background:
+                    t.name === "Three.js"
+                      ? isDark
+                        ? "#ffffff"
+                        : "#000000"
+                      : t.color,
+                  boxShadow: `0 0 6px ${t.name === "Three.js" ? (isDark ? "#ffffff" : "#000000") : t.color}`,
+                }}
               />
               <span
                 className="font-mono-code text-xs"
                 style={{
-                  color: isDark
-                    ? t.color
-                    : t.color === "#ffffff"
-                      ? "#1e293b"
-                      : t.color,
+                  color:
+                    t.name === "Three.js"
+                      ? isDark
+                        ? "#ffffff"
+                        : "#000000"
+                      : isDark
+                        ? t.color
+                        : t.color === "#ffffff"
+                          ? "#1e293b"
+                          : t.color,
                 }}
               >
                 {t.name}
