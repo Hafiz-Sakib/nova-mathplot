@@ -139,7 +139,9 @@ export default function DeveloperPage({ setPage }) {
     <div
       className="min-h-screen"
       style={{
-        background: isDark ? "rgb(2,8,20)" : "linear-gradient(145deg, #eef4ff 0%, #e8f0fc 100%)",
+        background: isDark
+          ? "rgb(2,8,20)"
+          : "linear-gradient(145deg, #eef4ff 0%, #e8f0fc 100%)",
         fontFamily: "'Space Grotesk', sans-serif",
       }}
     >
@@ -225,13 +227,12 @@ export default function DeveloperPage({ setPage }) {
             {/* Developer Profile Image */}
             <div className="relative flex-shrink-0">
               <div
-                className="relative w-36 h-36 rounded-2xl overflow-hidden"
+                className="relative w-36 h-36 rounded-full overflow-hidden"
                 style={{
-                  border: "2px solid rgba(244,114,182,0.3)",
-                  boxShadow: "0 0 30px rgba(244,114,182,0.15)",
+                  border: "2px solid rgba(244,114,182,0.35)",
+                  boxShadow: "0 0 30px rgba(244,114,182,0.20)",
                 }}
               >
-                {/* Hardcoded Image */}
                 <img
                   src={developerImg}
                   alt="Developer"
@@ -263,7 +264,9 @@ export default function DeveloperPage({ setPage }) {
                 <span
                   className="font-mono text-[10px] px-2 py-0.5 rounded-full"
                   style={{
-                    background: isDark ? "rgba(34,211,238,0.1)" : "rgba(6,182,212,0.08)",
+                    background: isDark
+                      ? "rgba(34,211,238,0.1)"
+                      : "rgba(6,182,212,0.08)",
                     color: "#22d3ee",
                     border: "1px solid rgba(34,211,238,0.25)",
                   }}
@@ -332,7 +335,9 @@ export default function DeveloperPage({ setPage }) {
         <div
           className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
           style={{
-            background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.88)",
+            background: isDark
+              ? "rgba(4,10,24,0.85)"
+              : "rgba(255,255,255,0.88)",
             border: "1px solid rgba(139,92,246,0.18)",
           }}
         >
@@ -402,7 +407,9 @@ export default function DeveloperPage({ setPage }) {
                 key={p.name}
                 className="rounded-xl p-5 relative overflow-hidden group transition-all duration-200"
                 style={{
-                  background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.88)",
+                  background: isDark
+                    ? "rgba(4,10,24,0.85)"
+                    : "rgba(255,255,255,0.88)",
                   border: `1px solid ${p.color}22`,
                 }}
                 onMouseEnter={(e) => {
@@ -494,7 +501,9 @@ export default function DeveloperPage({ setPage }) {
           <div
             className="rounded-2xl p-6 relative overflow-hidden"
             style={{
-              background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.88)",
+              background: isDark
+                ? "rgba(4,10,24,0.85)"
+                : "rgba(255,255,255,0.88)",
               border: "1px solid rgba(34,211,238,0.15)",
             }}
           >
@@ -570,7 +579,9 @@ export default function DeveloperPage({ setPage }) {
           <div
             className="rounded-2xl p-6 relative overflow-hidden"
             style={{
-              background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.88)",
+              background: isDark
+                ? "rgba(4,10,24,0.85)"
+                : "rgba(255,255,255,0.88)",
               border: "1px solid rgba(251,146,60,0.15)",
             }}
           >
