@@ -1968,33 +1968,45 @@ export default function Plotter3DPage() {
                 className="font-mono-code text-[9px] px-2 py-0.5 rounded"
                 style={{
                   background: customMode
-                    ? "rgba(139,92,246,0.15)"
-                    : "rgba(6,18,40,0.7)",
-                  border: "1px solid rgba(139,92,246,0.25)",
-                  color: customMode ? "#a78bfa" : "#475569",
+                    ? "rgba(139,92,246,0.18)"
+                    : "rgba(6,18,40,0.75)",
+                  border: `1px solid ${customMode ? "#a78bfa" : "rgba(139,92,246,0.3)"}`,
+                  color: customMode ? "#c4b5fd" : "#64748b",
+                  boxShadow: customMode
+                    ? "0 0 8px rgba(167,139,250,0.3)"
+                    : "none",
                 }}
               >
                 {customMode ? "ON" : "OFF"}
               </button>
             </div>
+
             {customMode && (
               <div className="flex gap-1.5">
                 <input
-                  className="nova-input-sm flex-1 text-xs"
+                  className="flex-1 text-xs px-3 py-1.5 rounded-lg font-mono-code"
+                  style={{
+                    background: isDark
+                      ? "rgba(15, 23, 42, 0.85)"
+                      : "rgba(248, 250, 255, 0.95)",
+                    border: `1px solid ${isDark ? "rgba(167, 139, 250, 0.35)" : "rgba(139, 92, 246, 0.25)"}`,
+                    color: isDark ? "#e0e7ff" : "#1e2937",
+                    outline: "none",
+                  }}
                   value={customInput}
                   onChange={(e) => setCustomInput(e.target.value)}
                   onKeyDown={(e) =>
                     e.key === "Enter" && setCustomExpr(customInput)
                   }
-                  placeholder="sin(sqrt(x^2+y^2))"
+                  placeholder="sin(sqrt(x^2 + y^2))"
                 />
                 <button
                   onClick={() => setCustomExpr(customInput)}
-                  className="px-2 py-1 rounded-lg font-mono-code text-[9px]"
+                  className="px-4 py-1.5 rounded-lg font-mono-code text-[10px] font-medium transition-all active:scale-95"
                   style={{
-                    background: "rgba(139,92,246,0.15)",
-                    border: "1px solid rgba(139,92,246,0.4)",
-                    color: "#a78bfa",
+                    background: "linear-gradient(135deg, #8b5cf6, #c026d3)",
+                    color: "#fff",
+                    boxShadow: "0 0 12px rgba(139, 92, 246, 0.5)",
                   }}
                 >
                   Plot
