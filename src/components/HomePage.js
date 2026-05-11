@@ -623,15 +623,23 @@ export default function HomePage({ setPage }) {
                     className="rounded-xl p-3"
                     style={{
                       background: isDark
-                        ? "rgba(6,18,40,0.65)"
-                        : "rgba(255,255,255,0.90)",
-                      border: `1px solid ${item.color}20`,
+                        ? "rgba(6,18,40,0.85)" // Stronger in dark mode
+                        : "rgba(255,255,255,0.95)", // Stronger in light mode
+                      border: isDark
+                        ? `1px solid ${item.color}40` // Stronger colored border in dark
+                        : `1px solid ${item.color}30`, // Stronger colored border in light
+                      boxShadow: isDark
+                        ? `0 0 15px ${item.color}15`
+                        : `0 0 12px ${item.color}10`,
                     }}
                   >
                     {item.content}
                     <p
                       className="font-mono-code text-[10px] text-center mt-1.5"
-                      style={{ color: item.color, opacity: 0.7 }}
+                      style={{
+                        color: item.color,
+                        opacity: 0.85, // More visible label
+                      }}
                     >
                       {item.label}
                     </p>
