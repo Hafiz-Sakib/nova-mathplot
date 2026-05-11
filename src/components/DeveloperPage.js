@@ -64,7 +64,7 @@ const SOCIAL_LINKS = [
   },
   {
     label: "Email",
-    href="https://mail.google.com/mail/?view=cm&fs=1&to=hafizsakib5@gmail.com",
+    href: "https://mail.google.com/mail/u/0/?fs=1&to=hafizsakib5@gmail.com&tf=cm",
     icon: "✉",
     color: "#34d399",
   },
