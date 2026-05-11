@@ -5,6 +5,7 @@ import PlotterPage from "./components/PlotterPage";
 import Plotter3DPage from "./components/Plotter3DPage";
 import ComplexPage from "./components/ComplexPage";
 import ParametricPage from "./components/ParametricPage";
+import ActivationPage from "./components/ActivationPage";
 
 export default function App() {
   const [page, setPage] = useState("home");
@@ -42,6 +43,7 @@ export default function App() {
         {page === "plotter3d" && <Plotter3DPage />}
         {page === "complex" && <ComplexPage />}
         {page === "parametric" && <ParametricPage />}
+        {page === "activation" && <ActivationPage />}
       </div>
     </div>
   );

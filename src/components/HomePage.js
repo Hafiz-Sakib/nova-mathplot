@@ -62,6 +62,80 @@ function GaussianPreview() {
   );
 }
 
+/* ── Activation preview: sigmoid + relu + tanh preview ── */
+function ActivationPreview() {
+  const W = 280,
+    H = 80;
+  const toX = (x) => ((x + 5) / 10) * W;
+  const toY = (y) => H - ((y + 1.2) / 2.4) * H;
+
+  const sigmoid = [],
+    relu = [],
+    tanh_ = [];
+  for (let x = -5; x <= 5; x += 0.1) {
+    sigmoid.push([toX(x), toY(1 / (1 + Math.exp(-x)))]);
+    relu.push([toX(x), toY(Math.max(0, x) * 0.5)]);
+    tanh_.push([toX(x), toY(Math.tanh(x))]);
+  }
+  const path = (pts) =>
+    pts
+      .map(
+        (p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`,
+      )
+      .join(" ");
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="w-full"
+      preserveAspectRatio="none"
+    >
+      <defs>
+        <filter id="actGlow">
+          <feGaussianBlur stdDeviation="1.5" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      {/* zero line */}
+      <line
+        x1="0"
+        y1={toY(0)}
+        x2={W}
+        y2={toY(0)}
+        stroke="rgba(139,92,246,0.15)"
+        strokeWidth="0.7"
+      />
+      <path
+        d={path(tanh_)}
+        fill="none"
+        stroke="#22d3ee"
+        strokeWidth="1.8"
+        filter="url(#actGlow)"
+        opacity="0.9"
+      />
+      <path
+        d={path(sigmoid)}
+        fill="none"
+        stroke="#34d399"
+        strokeWidth="1.8"
+        filter="url(#actGlow)"
+        opacity="0.9"
+      />
+      <path
+        d={path(relu)}
+        fill="none"
+        stroke="#fb923c"
+        strokeWidth="1.8"
+        filter="url(#actGlow)"
+        opacity="0.9"
+      />
+    </svg>
+  );
+}
+
 function ParticleField() {
   const canvasRef = useRef(null);
   useEffect(() => {
@@ -194,6 +268,23 @@ const FEATURES = [
     page: "parametric",
     cta: "Try Parametric",
   },
+  {
+    icon: "σ",
+    title: "Activation Functions",
+    color: "#a78bfa",
+    bgColor: "rgba(139,92,246,0.08)",
+    borderColor: "rgba(139,92,246,0.2)",
+    desc: "Interactive neural network activation function explorer — ReLU, Sigmoid, Tanh, GELU, Swish, Mish and 12 more with adjustable parameters.",
+    items: [
+      "18 activation functions",
+      "Adjustable parameters",
+      "Side-by-side comparison",
+      "Scroll zoom",
+    ],
+    page: "activation",
+    cta: "Explore Activations",
+    badge: "NEW",
+  },
 ];
 
 const TECH_STACK = [
@@ -206,15 +297,15 @@ const TECH_STACK = [
 
 const STATS = [
   { num: "50+", label: "Example Functions", color: "#22d3ee" },
-  { num: "17", label: "3D Presets", color: "#a78bfa" },
-  { num: "4", label: "Visualization Modes", color: "#10b981" },
+  { num: "18", label: "Activation Fns", color: "#a78bfa" },
+  { num: "5", label: "Visualization Modes", color: "#10b981" },
   { num: "100%", label: "Browser-Based", color: "#fb923c" },
 ];
 
 export default function HomePage({ setPage }) {
   return (
     <main className="flex-1 overflow-y-auto nova-bg">
-      {/* HERO */}
+      {/* ── HERO ── */}
       <section className="relative min-h-[88vh] flex flex-col items-center justify-center overflow-hidden px-4 py-16">
         <div className="absolute inset-0 nova-grid opacity-50" />
         <div className="absolute inset-0">
@@ -224,7 +315,7 @@ export default function HomePage({ setPage }) {
           className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse, rgba(6,182,212,0.07) 0%, transparent 70%)",
+              "radial-gradient(ellipse,rgba(6,182,212,0.07) 0%,transparent 70%)",
             animation: "float 8s ease-in-out infinite",
           }}
         />
@@ -232,18 +323,18 @@ export default function HomePage({ setPage }) {
           className="absolute bottom-1/4 right-1/4 w-72 h-72 rounded-full pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse, rgba(139,92,246,0.06) 0%, transparent 70%)",
+              "radial-gradient(ellipse,rgba(139,92,246,0.06) 0%,transparent 70%)",
             animation: "float 10s ease-in-out infinite reverse",
           }}
         />
 
-        <div className="relative z-10 text-center max-w-5xl mx-auto w-full">
+        <div className="relative z-10 text-center max-w-5xl mx-auto">
+          {/* badge */}
           <div
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8"
             style={{
               background: "rgba(6,182,212,0.08)",
               border: "1px solid rgba(6,182,212,0.2)",
-              animation: "heroFadeIn 0.6s ease forwards",
             }}
           >
             <span
@@ -258,84 +349,80 @@ export default function HomePage({ setPage }) {
             </span>
           </div>
 
+          {/* title */}
           <h1
-            className="font-orbitron font-black mb-3 leading-none"
+            className="font-orbitron font-black mb-4 leading-none"
             style={{
-              fontSize: "clamp(3.5rem,12vw,8rem)",
+              fontSize: "clamp(3rem,10vw,7rem)",
               background:
-                "linear-gradient(135deg, #22d3ee 0%, #34d399 35%, #a78bfa 65%, #f472b6 100%)",
+                "linear-gradient(135deg,#22d3ee 0%,#34d399 30%,#a78bfa 65%,#f472b6 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
-              animation: "heroFadeIn 0.7s 0.1s ease both",
             }}
           >
             NOVA
           </h1>
           <h2
-            className="font-orbitron font-bold mb-5"
+            className="font-orbitron font-bold mb-6"
             style={{
-              fontSize: "clamp(0.75rem,2.5vw,1.2rem)",
+              fontSize: "clamp(0.85rem,2.5vw,1.35rem)",
               color: "#475569",
-              letterSpacing: "0.35em",
-              animation: "heroFadeIn 0.7s 0.2s ease both",
+              letterSpacing: "0.3em",
             }}
           >
             MATHPLOT PLATFORM
           </h2>
 
           <p
-            className="font-rajdhani text-xl sm:text-2xl font-light mb-10 max-w-2xl mx-auto"
-            style={{
-              color: "#94a3b8",
-              animation: "heroFadeIn 0.7s 0.3s ease both",
-            }}
+            className="font-rajdhani text-xl sm:text-2xl font-light mb-3 max-w-3xl mx-auto"
+            style={{ color: "#94a3b8" }}
           >
-            2D plotting · 3D visualization · complex analysis · parametric
-            curves
+            2D plotting · 3D visualization · complex analysis · activation
+            functions
+          </p>
+          <p
+            className="font-mono-code text-sm max-w-2xl mx-auto mb-12 leading-relaxed"
+            style={{ color: "#334155" }}
+          >
+            {"{ "}
+            <span style={{ color: "#22d3ee" }}>sin</span>(x) ·{" "}
+            <span style={{ color: "#34d399" }}>e</span>^(
+            <span style={{ color: "#f472b6" }}>ix</span>) ·{" "}
+            <span style={{ color: "#a78bfa" }}>σ</span>(x) ·{" "}
+            <span style={{ color: "#fb923c" }}>ReLU</span>(x){" }"}
           </p>
 
-          <div
-            className="flex flex-wrap items-center justify-center gap-3 mb-12"
-            style={{ animation: "heroFadeIn 0.7s 0.4s ease both" }}
-          >
+          {/* CTAs */}
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-16">
             <button
               onClick={() => setPage("plotter2d")}
-              className="btn-primary text-sm px-6 py-3"
+              className="btn-primary text-sm sm:text-base px-6 sm:px-8 py-2.5 sm:py-3"
             >
-              <span>Launch 2D Plotter</span>
-              <span>→</span>
+              Launch 2D Plotter →
             </button>
             <button
               onClick={() => setPage("plotter3d")}
-              className="btn-secondary text-sm px-6 py-3"
+              className="btn-secondary text-sm sm:text-base px-6 sm:px-8 py-2.5 sm:py-3"
             >
-              <span>🌌 3D Visualizer</span>
+              🌌 3D Visualizer
             </button>
             <button
-              onClick={() => setPage("complex")}
-              className="btn-accent text-sm px-6 py-3"
+              onClick={() => setPage("activation")}
+              className="btn-accent text-sm sm:text-base px-5 sm:px-6 py-2.5 sm:py-3"
             >
-              <span>ℂ Complex</span>
-            </button>
-            <button
-              onClick={() => setPage("parametric")}
-              className="btn-ghost text-sm px-5 py-3"
-              style={{ color: "#fb923c", borderColor: "rgba(249,115,22,0.3)" }}
-            >
-              <span>∑ Parametric</span>
+              σ Activations
             </button>
           </div>
 
-          {/* Live preview */}
+          {/* Hero preview card */}
           <div
             className="max-w-3xl mx-auto rounded-2xl overflow-hidden"
             style={{
-              background: "rgba(4,10,24,0.85)",
+              background: "rgba(4,10,24,0.82)",
               border: "1px solid rgba(6,182,212,0.18)",
               boxShadow:
-                "0 0 80px rgba(6,182,212,0.12), 0 40px 80px rgba(0,0,0,0.5)",
-              animation: "heroFadeIn 0.7s 0.5s ease both",
+                "0 0 60px rgba(6,182,212,0.1),0 30px 60px rgba(0,0,0,0.5)",
             }}
           >
             <div
@@ -386,14 +473,14 @@ export default function HomePage({ setPage }) {
                   color: "#a78bfa",
                 },
                 {
-                  label: "Complex",
-                  content: <AnimatedSine color="#fb923c" color2="#f472b6" />,
+                  label: "Activations",
+                  content: <ActivationPreview />,
                   color: "#fb923c",
                 },
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="rounded-xl p-2"
+                  className="rounded-xl p-3"
                   style={{
                     background: "rgba(6,18,40,0.6)",
                     border: `1px solid ${item.color}20`,
@@ -401,8 +488,8 @@ export default function HomePage({ setPage }) {
                 >
                   {item.content}
                   <p
-                    className="font-mono-code text-[10px] text-center mt-1"
-                    style={{ color: item.color, opacity: 0.7 }}
+                    className="font-mono-code text-[10px] text-center mt-1.5"
+                    style={{ color: item.color, opacity: 0.6 }}
                   >
                     {item.label}
                   </p>
@@ -413,7 +500,7 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
 
-      {/* STATS */}
+      {/* ── STATS ── */}
       <section className="px-4 sm:px-6 lg:px-8 pb-16 max-w-7xl mx-auto">
         <div className="nova-divider mb-12" />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -443,7 +530,7 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
 
-      {/* FEATURES */}
+      {/* ── FEATURES ── */}
       <section className="px-4 sm:px-6 lg:px-8 pb-20 max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <div
@@ -462,15 +549,32 @@ export default function HomePage({ setPage }) {
             Powerful tools for mathematical visualization and exploration
           </p>
         </div>
-        <div className="grid sm:grid-cols-2 gap-6">
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {FEATURES.map((f) => (
             <div key={f.title} className="feature-card-nova p-6 sm:p-8">
+              {/* top accent */}
               <div
                 className="absolute top-0 left-0 right-0 h-px"
                 style={{
-                  background: `linear-gradient(90deg, transparent, ${f.color}50, transparent)`,
+                  background: `linear-gradient(90deg,transparent,${f.color}50,transparent)`,
                 }}
               />
+              {/* NEW badge */}
+              {f.badge && (
+                <div className="absolute top-3 right-3">
+                  <span
+                    className="font-orbitron font-bold text-[9px] px-2 py-0.5 rounded-full tracking-widest"
+                    style={{
+                      background: `${f.color}20`,
+                      color: f.color,
+                      border: `1px solid ${f.color}35`,
+                    }}
+                  >
+                    {f.badge}
+                  </span>
+                </div>
+              )}
               <div className="flex items-start gap-4 mb-5">
                 <div
                   className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-xl sm:text-2xl flex-shrink-0"
@@ -514,8 +618,9 @@ export default function HomePage({ setPage }) {
               </div>
               <button
                 onClick={() => setPage(f.page)}
-                className="w-full py-2.5 rounded-xl font-space-grotesk font-semibold text-sm transition-all duration-200"
+                className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-200"
                 style={{
+                  fontFamily: "Space Grotesk, sans-serif",
                   background: f.bgColor,
                   border: `1px solid ${f.borderColor}`,
                   color: f.color,
@@ -536,7 +641,7 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
 
-      {/* TECH STACK */}
+      {/* ── TECH STACK ── */}
       <section className="px-4 sm:px-6 lg:px-8 pb-20 max-w-7xl mx-auto">
         <div className="nova-divider mb-10" />
         <div className="text-center mb-6">
@@ -572,7 +677,7 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
 
-      {/* FOOTER */}
+      {/* ── FOOTER ── */}
       <footer
         className="border-t px-4 sm:px-8 py-10"
         style={{
@@ -586,7 +691,7 @@ export default function HomePage({ setPage }) {
               <div
                 className="font-orbitron font-black text-lg tracking-widest mb-1"
                 style={{
-                  background: "linear-gradient(90deg, #22d3ee, #34d399)",
+                  background: "linear-gradient(90deg,#22d3ee,#34d399)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                 }}
@@ -600,19 +705,20 @@ export default function HomePage({ setPage }) {
                 Scientific Visualization Platform v3.0
               </div>
             </div>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap justify-center gap-4">
               {[
                 ["Home", "home"],
                 ["2D Plotter", "plotter2d"],
                 ["3D Plotter", "plotter3d"],
                 ["Complex", "complex"],
                 ["Parametric", "parametric"],
+                ["Activations", "activation"],
               ].map(([l, p]) => (
                 <button
                   key={p}
                   onClick={() => setPage(p)}
                   className="font-rajdhani text-sm hover:text-cyan-400 transition-colors"
-                  style={{ color: "#475569" }}
+                  style={{ color: p === "activation" ? "#a78bfa" : "#475569" }}
                 >
                   {l}
                 </button>
