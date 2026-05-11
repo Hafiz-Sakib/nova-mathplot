@@ -335,7 +335,6 @@ function ParametricCanvas({
     canvas.width = W;
     canvas.height = H;
 
-    // Build points
     const N = example.is3d ? 2400 : 1800;
     const raw = [];
     for (let i = 0; i <= N; i++) {
@@ -346,7 +345,6 @@ function ParametricCanvas({
       if (isFinite(x) && isFinite(y) && isFinite(z)) raw.push([x, y, z]);
     }
 
-    // 2D auto-scale
     let s2 = 1,
       cx = 0,
       cy = 0;
@@ -375,7 +373,6 @@ function ParametricCanvas({
     const drawAxes = () => {
       if (!showAxes) return;
       if (example.is3d) {
-        // XYZ axis arrows
         const L = 1.35 * zoom;
         [
           { vec: [L, 0, 0], lbl: "X", col: "rgba(255,90,90,0.85)" },
@@ -397,13 +394,12 @@ function ParametricCanvas({
           ctx.moveTo(so[0], so[1]);
           ctx.lineTo(se[0], se[1]);
           ctx.stroke();
-          // Arrowhead
           const dx = se[0] - so[0],
             dy = se[1] - so[1],
             len = Math.hypot(dx, dy) || 1;
           const ux = dx / len,
-            uy = dy / len;
-          const as = 9 * dpr;
+            uy = dy / len,
+            as = 9 * dpr;
           ctx.beginPath();
           ctx.moveTo(se[0], se[1]);
           ctx.lineTo(
@@ -422,7 +418,6 @@ function ParametricCanvas({
           ctx.fillText(lbl, se[0] + 7 * dpr, se[1] + 4 * dpr);
           ctx.restore();
         });
-        // Ground grid on XZ plane
         ctx.strokeStyle = "rgba(255,255,255,0.035)";
         ctx.lineWidth = 0.7;
         for (let g = -2; g <= 2; g += 0.5) {
@@ -456,8 +451,9 @@ function ParametricCanvas({
           });
         }
       } else {
-        // 2D grid lines
-        ctx.strokeStyle = isDark ? "rgba(167,139,250,0.05)" : "rgba(139,92,246,0.1)";
+        ctx.strokeStyle = isDark
+          ? "rgba(167,139,250,0.05)"
+          : "rgba(139,92,246,0.1)";
         ctx.lineWidth = 0.7 * dpr;
         for (let gx = 0; gx < W; gx += W / 14) {
           ctx.beginPath();
@@ -471,14 +467,12 @@ function ParametricCanvas({
           ctx.lineTo(W, gy);
           ctx.stroke();
         }
-        // X axis (red)
         ctx.strokeStyle = "rgba(255,100,100,0.55)";
         ctx.lineWidth = 1.4 * dpr;
         ctx.beginPath();
         ctx.moveTo(0, H / 2);
         ctx.lineTo(W, H / 2);
         ctx.stroke();
-        // Arrowhead X
         ctx.fillStyle = "rgba(255,100,100,0.55)";
         ctx.beginPath();
         ctx.moveTo(W - 2, H / 2);
@@ -486,13 +480,11 @@ function ParametricCanvas({
         ctx.lineTo(W - 14 * dpr, H / 2 + 5 * dpr);
         ctx.closePath();
         ctx.fill();
-        // Y axis (green)
         ctx.strokeStyle = "rgba(80,230,120,0.55)";
         ctx.beginPath();
         ctx.moveTo(W / 2, 0);
         ctx.lineTo(W / 2, H);
         ctx.stroke();
-        // Arrowhead Y
         ctx.fillStyle = "rgba(80,230,120,0.55)";
         ctx.beginPath();
         ctx.moveTo(W / 2, 2);
@@ -500,14 +492,14 @@ function ParametricCanvas({
         ctx.lineTo(W / 2 + 5 * dpr, 14 * dpr);
         ctx.closePath();
         ctx.fill();
-        // Labels
         ctx.fillStyle = "rgba(255,120,120,0.8)";
         ctx.font = `bold ${11 * dpr}px JetBrains Mono,monospace`;
         ctx.fillText("X", W - 22 * dpr, H / 2 - 8 * dpr);
         ctx.fillStyle = "rgba(80,230,120,0.8)";
         ctx.fillText("Y", W / 2 + 8 * dpr, 18 * dpr);
-        // Tick marks along axes
-        ctx.strokeStyle = isDark ? "rgba(255,255,255,0.12)" : "rgba(100,116,139,0.4)";
+        ctx.strokeStyle = isDark
+          ? "rgba(255,255,255,0.12)"
+          : "rgba(100,116,139,0.4)";
         ctx.lineWidth = 0.8 * dpr;
         for (let tx = ((W / 2) % s2) + s2; tx < W; tx += s2) {
           ctx.beginPath();
@@ -529,8 +521,6 @@ function ParametricCanvas({
       drawAxes();
       const cnt = Math.floor(raw.length * progress);
       if (cnt < 2) return;
-
-      // Draw curve with fading alpha
       ctx.lineJoin = "round";
       ctx.lineCap = "round";
       for (let i = 1; i < cnt; i++) {
@@ -549,8 +539,6 @@ function ParametricCanvas({
       }
       ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
-
-      // Leading dot (while animating)
       if (progress < 1) {
         const [hx, hy] = toSc(raw[cnt - 1]);
         ctx.fillStyle = isDark ? "#fff" : "#334155";
@@ -627,6 +615,7 @@ export default function ParametricPage() {
     },
     [selected.is3d, rx, ry],
   );
+
   const onMouseMove = useCallback((e) => {
     if (!dragRef.current) return;
     const dx = e.clientX - dragRef.current.x,
@@ -634,6 +623,7 @@ export default function ParametricPage() {
     setRy(dragRef.current.ry + dx * 0.008);
     setRx(dragRef.current.rx + dy * 0.008);
   }, []);
+
   const onMouseUp = useCallback(() => {
     dragRef.current = null;
   }, []);
@@ -647,12 +637,14 @@ export default function ParametricPage() {
     },
     [selected.is3d, rx, ry],
   );
+
   const onTouchMove = useCallback((e) => {
     if (!touchRef.current) return;
     const t = e.touches[0];
     setRy(touchRef.current.ry + (t.clientX - touchRef.current.x) * 0.01);
     setRx(touchRef.current.rx + (t.clientY - touchRef.current.y) * 0.01);
   }, []);
+
   const onTouchEnd = useCallback(() => {
     touchRef.current = null;
   }, []);
@@ -664,6 +656,7 @@ export default function ParametricPage() {
       Math.max(0.15, Math.min(6, z * (e.deltaY < 0 ? 1.1 : 0.91))),
     );
   }, []);
+
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
@@ -671,12 +664,25 @@ export default function ParametricPage() {
     return () => el.removeEventListener("wheel", onWheel);
   }, [onWheel]);
 
+  // Zoom toolbar helpers (matches 2D/3D page style)
+  const zoomIn = useCallback(() => setZoom((z) => Math.min(6, z * 1.35)), []);
+  const zoomOut = useCallback(
+    () => setZoom((z) => Math.max(0.15, z * 0.74)),
+    [],
+  );
+  const zoomReset = useCallback(() => setZoom(1), []);
+
   const Toggle = ({ label, value, set }) => (
     <div
       className="flex justify-between items-center py-1 cursor-pointer"
       onClick={() => set((v) => !v)}
     >
-      <span className="text-xs" style={{ color: isDark ? "#cbd5e1" : "#334155" }}>{label}</span>
+      <span
+        className="text-xs"
+        style={{ color: isDark ? "#cbd5e1" : "#334155" }}
+      >
+        {label}
+      </span>
       <div
         className="w-9 h-5 rounded-full relative transition-all duration-300"
         style={{
@@ -696,10 +702,43 @@ export default function ParametricPage() {
     </div>
   );
 
+  // Shared zoom button style (matches GraphPanel ZoomBtn from 2D/3D pages)
+  const ZoomBtn = ({ onClick, title, children, wide }) => (
+    <button
+      onClick={onClick}
+      title={title}
+      className="font-mono flex items-center justify-center rounded-lg transition-all"
+      style={{
+        width: wide ? 38 : 28,
+        height: 28,
+        background: isDark ? "rgba(2,8,20,0.8)" : "rgba(255,255,255,0.97)",
+        border: `1px solid ${color}30`,
+        color: "#64748b",
+        fontSize: "0.75rem",
+        flexShrink: 0,
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = color;
+        e.currentTarget.style.color = color;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = `${color}30`;
+        e.currentTarget.style.color = "#64748b";
+      }}
+    >
+      {children}
+    </button>
+  );
+
   return (
     <div
       className="flex flex-1 overflow-hidden"
-      style={{ height: "calc(100vh - 68px)", background: isDark ? "#070212" : "linear-gradient(145deg,#eef4ff,#e8f0fc)" }}
+      style={{
+        height: "calc(100vh - 60px)",
+        background: isDark
+          ? "#070212"
+          : "linear-gradient(145deg,#eef4ff,#e8f0fc)",
+      }}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseUp}
@@ -714,22 +753,19 @@ export default function ParametricPage() {
 
       {/* ── SIDEBAR ── */}
       <aside
-        className={`
-        fixed lg:relative inset-y-0 left-0 z-40 flex flex-col border-r
-        w-72 xl:w-80 flex-shrink-0 overflow-y-auto
-        transition-transform duration-300 ease-in-out
-        lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-      `}
+        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto flex flex-col border-r w-72 sm:w-88 xl:w-[26rem] 2xl:w-[28rem] flex-shrink-0 overflow-y-auto transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{
-          background: isDark ? "linear-gradient(180deg,#0e0520 0%,#070212 100%)" : "linear-gradient(180deg,#eef4ff 0%,#e8f0fc 100%)",
+          background: isDark
+            ? "linear-gradient(180deg,#0e0520 0%,#070212 100%)"
+            : "linear-gradient(180deg,#eef4ff 0%,#e8f0fc 100%)",
           borderColor: `${color}18`,
-          height: "100%",
-          top: 0,
+          top: "60px",
+          height: "calc(100vh - 60px)",
         }}
       >
         {/* Header */}
         <div
-          className="p-4 border-b flex-shrink-0"
+          className="p-3 sm:p-4 border-b flex-shrink-0"
           style={{ borderColor: `${color}18` }}
         >
           <div
@@ -739,35 +775,38 @@ export default function ParametricPage() {
             PARAMETRIC PLOTTER
           </div>
           <div
-            className="font-mono text-[9px] tracking-widest mt-0.5 opacity-50"
-            style={{ color }}
+            className="font-mono text-[9px] tracking-widest mt-0.5"
+            style={{ color, opacity: isDark ? 0.5 : 0.75 }}
           >
             3D · INTERACTIVE · ANIMATED
           </div>
         </div>
 
-        {/* Color */}
+        {/* Color theme — smaller swatches */}
         <div
-          className="p-4 border-b flex-shrink-0"
+          className="px-3 sm:px-4 py-3 border-b flex-shrink-0"
           style={{ borderColor: `${color}12` }}
         >
           <div
-            className="text-[9px] font-mono tracking-[3px] uppercase mb-2.5"
-            style={{ color: `${color}60` }}
+            className="text-[9px] font-mono tracking-[3px] uppercase mb-2"
+            style={{ color: isDark ? `${color}60` : `${color}` }}
           >
             THEME
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {COLOR_SCHEMES.map((s) => (
               <button
                 key={s.id}
                 onClick={() => setColorScheme(s.id)}
-                className="w-8 h-8 rounded-xl transition-all duration-200"
+                title={s.name}
+                className="rounded-lg transition-all duration-200"
                 style={{
+                  width: 22,
+                  height: 22,
                   background: s.color,
-                  transform: colorScheme === s.id ? "scale(1.2)" : "scale(1)",
+                  transform: colorScheme === s.id ? "scale(1.18)" : "scale(1)",
                   boxShadow:
-                    colorScheme === s.id ? `0 0 14px ${s.color}` : "none",
+                    colorScheme === s.id ? `0 0 10px ${s.color}` : "none",
                   outline:
                     colorScheme === s.id
                       ? `2px solid ${s.color}`
@@ -781,12 +820,12 @@ export default function ParametricPage() {
 
         {/* Controls */}
         <div
-          className="p-4 border-b flex-shrink-0 space-y-3"
+          className="px-3 sm:px-4 py-3 border-b flex-shrink-0 space-y-3"
           style={{ borderColor: `${color}12` }}
         >
           <div
             className="text-[9px] font-mono tracking-[3px] uppercase mb-1"
-            style={{ color: `${color}60` }}
+            style={{ color: isDark ? `${color}60` : `${color}` }}
           >
             CONTROLS
           </div>
@@ -795,7 +834,12 @@ export default function ParametricPage() {
 
           <div>
             <div className="flex justify-between mb-1.5">
-              <span className="text-xs" style={{ color: isDark ? "#94a3b8" : "#475569" }}>Speed</span>
+              <span
+                className="text-xs"
+                style={{ color: isDark ? "#94a3b8" : "#334155" }}
+              >
+                Speed
+              </span>
               <span className="font-mono text-xs" style={{ color }}>
                 {speed.toFixed(1)}×
               </span>
@@ -812,18 +856,24 @@ export default function ParametricPage() {
             />
           </div>
 
+          {/* Sidebar zoom buttons (always visible for mobile) */}
           <div>
             <div className="flex justify-between mb-1.5">
-              <span className="text-xs" style={{ color: isDark ? "#94a3b8" : "#475569" }}>Zoom</span>
+              <span
+                className="text-xs"
+                style={{ color: isDark ? "#94a3b8" : "#334155" }}
+              >
+                Zoom
+              </span>
               <span className="font-mono text-xs" style={{ color }}>
                 {zoom.toFixed(2)}×
               </span>
             </div>
             <div className="flex gap-1.5">
               {[
-                ["−", () => setZoom((z) => Math.max(0.15, z * 0.75))],
-                ["·1·", () => setZoom(1)],
-                ["+", () => setZoom((z) => Math.min(6, z * 1.35))],
+                ["−", zoomOut],
+                ["·1·", zoomReset],
+                ["+", zoomIn],
               ].map(([l, fn]) => (
                 <button
                   key={l}
@@ -850,7 +900,7 @@ export default function ParametricPage() {
                 }}
                 className="flex-1 py-1.5 text-[10px] font-mono rounded-lg transition-all"
                 style={{
-                  color: `${color}80`,
+                  color: isDark ? `${color}80` : color,
                   background: `${color}0a`,
                   border: `1px solid ${color}20`,
                 }}
@@ -860,7 +910,7 @@ export default function ParametricPage() {
               <div
                 className="text-[10px] font-mono text-center px-2 py-1.5 rounded-lg"
                 style={{
-                  color: `${color}60`,
+                  color: isDark ? `${color}60` : color,
                   background: `${color}08`,
                   border: `1px dashed ${color}20`,
                 }}
@@ -877,7 +927,7 @@ export default function ParametricPage() {
             <div key={cat}>
               <button
                 onClick={() => setOpenCat(openCat === cat ? "" : cat)}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left transition-all"
+                className="w-full flex items-center gap-2.5 px-3 sm:px-4 py-2.5 text-left transition-all"
                 style={{
                   background: openCat === cat ? `${color}09` : "transparent",
                   borderBottom: `1px solid ${color}0e`,
@@ -885,13 +935,20 @@ export default function ParametricPage() {
               >
                 <span
                   className="text-[9px] font-mono tracking-widest uppercase flex-1"
-                  style={{ color: openCat === cat ? color : `${color}45` }}
+                  style={{
+                    color:
+                      openCat === cat
+                        ? color
+                        : isDark
+                          ? `${color}45`
+                          : `${color}aa`,
+                  }}
                 >
                   {cat}
                 </span>
                 <span
                   style={{
-                    color: `${color}40`,
+                    color: isDark ? `${color}40` : `${color}80`,
                     display: "inline-block",
                     transition: "transform 0.2s",
                     transform: openCat === cat ? "rotate(180deg)" : "none",
@@ -910,7 +967,7 @@ export default function ParametricPage() {
                       setSelected(ex);
                       setSidebarOpen(false);
                     }}
-                    className="w-full text-left px-4 py-2.5 flex items-start gap-2.5 transition-all duration-150"
+                    className="w-full text-left px-3 sm:px-4 py-2.5 flex items-start gap-2.5 transition-all duration-150"
                     style={{
                       background:
                         selected.label === ex.label
@@ -926,7 +983,11 @@ export default function ParametricPage() {
                       className="w-2 h-2 rounded-full mt-1 flex-shrink-0"
                       style={{
                         background:
-                          selected.label === ex.label ? color : isDark ? "#334155" : "#94a3b8",
+                          selected.label === ex.label
+                            ? color
+                            : isDark
+                              ? "#334155"
+                              : "#94a3b8",
                         boxShadow:
                           selected.label === ex.label
                             ? `0 0 6px ${color}`
@@ -938,17 +999,29 @@ export default function ParametricPage() {
                         className="text-xs font-medium"
                         style={{
                           color:
-                            selected.label === ex.label ? color : isDark ? "#94a3b8" : "#475569",
+                            selected.label === ex.label
+                              ? color
+                              : isDark
+                                ? "#94a3b8"
+                                : "#1e293b",
                         }}
                       >
                         {ex.label}
                         {ex.is3d && (
-                          <span className="ml-1 text-[8px] font-mono opacity-50">
+                          <span
+                            className="ml-1 text-[8px] font-mono"
+                            style={{ opacity: isDark ? 0.5 : 0.7 }}
+                          >
                             3D
                           </span>
                         )}
                       </div>
-                      <div className="font-mono text-[9px] mt-0.5" style={{ color: isDark ? "rgba(148,163,184,0.5)" : "#64748b" }}>
+                      <div
+                        className="font-mono text-[9px] mt-0.5"
+                        style={{
+                          color: isDark ? "rgba(148,163,184,0.5)" : "#475569",
+                        }}
+                      >
                         {ex.formula}
                       </div>
                     </div>
@@ -971,10 +1044,11 @@ export default function ParametricPage() {
             minHeight: "46px",
           }}
         >
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {/* Mobile hamburger */}
             <button
               onClick={() => setSidebarOpen((o) => !o)}
-              className="lg:hidden flex flex-col gap-[4px] justify-center w-7 h-7 p-1 rounded"
+              className="lg:hidden flex flex-col gap-[4px] justify-center w-7 h-7 p-1 rounded flex-shrink-0"
               style={{ background: `${color}12` }}
             >
               {[0, 1, 2].map((i) => (
@@ -995,16 +1069,20 @@ export default function ParametricPage() {
                 />
               ))}
             </button>
+
             <div
               className="w-2.5 h-2.5 rounded-full flex-shrink-0"
               style={{ background: color, boxShadow: `0 0 8px ${color}` }}
             />
-            <span className="text-sm font-medium" style={{ color: isDark ? "#ffffff" : "#1e293b" }}>
+            <span
+              className="text-sm font-medium truncate"
+              style={{ color: isDark ? "#ffffff" : "#1e293b" }}
+            >
               {selected.label}
             </span>
             {selected.is3d && (
               <span
-                className="text-[9px] px-1.5 py-0.5 rounded font-mono"
+                className="text-[9px] px-1.5 py-0.5 rounded font-mono flex-shrink-0"
                 style={{
                   color,
                   background: `${color}18`,
@@ -1016,7 +1094,7 @@ export default function ParametricPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             {selected.is3d && (
               <button
                 onClick={() => {
@@ -1035,7 +1113,7 @@ export default function ParametricPage() {
             )}
             <button
               onClick={() => setAnimated((a) => !a)}
-              className="px-3 sm:px-5 py-1.5 rounded-xl text-xs font-mono font-bold transition-all duration-200"
+              className="px-2.5 sm:px-5 py-1.5 rounded-xl text-xs font-mono font-bold transition-all duration-200"
               style={{
                 background: animated ? color : "#1e293b",
                 color: animated ? "#000" : "#94a3b8",
@@ -1045,6 +1123,72 @@ export default function ParametricPage() {
               {animated ? "⏸ PAUSE" : "▶ PLAY"}
             </button>
           </div>
+        </div>
+
+        {/* ── ZOOM TOOLBAR (desktop, matches 2D/3D/Complex page style) ── */}
+        <div
+          className="hidden lg:flex flex-shrink-0 items-center gap-1.5 px-3 py-2 border-b"
+          style={{
+            borderColor: `${color}15`,
+            background: isDark ? "rgba(7,2,18,0.6)" : "rgba(238,244,255,0.7)",
+          }}
+        >
+          {/* Zoom group */}
+          <div className="flex items-center gap-1">
+            <ZoomBtn onClick={zoomIn} title="Zoom In">
+              +
+            </ZoomBtn>
+            <ZoomBtn onClick={zoomOut} title="Zoom Out">
+              −
+            </ZoomBtn>
+            <ZoomBtn onClick={zoomReset} title="Reset Zoom" wide>
+              RST
+            </ZoomBtn>
+          </div>
+
+          {/* 3D rotation reset — only for 3D curves */}
+          {selected.is3d && (
+            <>
+              <div
+                className="w-px h-5 mx-1"
+                style={{ background: `${color}20` }}
+              />
+              <ZoomBtn
+                onClick={() => {
+                  setRx(-0.35);
+                  setRy(0.5);
+                }}
+                title="Reset 3D View"
+                wide
+              >
+                ↺ ROT
+              </ZoomBtn>
+            </>
+          )}
+
+          <div className="w-px h-5 mx-1" style={{ background: `${color}20` }} />
+
+          {/* Zoom readout */}
+          <span
+            className="font-mono text-[9px] hidden sm:inline"
+            style={{ color: `${color}70` }}
+          >
+            zoom {zoom.toFixed(2)}×
+          </span>
+
+          {/* Scroll / drag hint */}
+          <span
+            className="ml-auto font-mono text-[9px] hidden sm:flex items-center gap-1"
+            style={{ color: "#334155" }}
+          >
+            <span style={{ color }}>⊙</span> scroll to zoom
+            {selected.is3d ? " · drag to rotate" : ""}
+          </span>
+
+          {/* Zoom status right-aligned */}
+          <span className="font-mono text-[9px]" style={{ color: "#334155" }}>
+            t ∈ [0, {selected.tMax.toFixed(2)}]
+          </span>
         </div>
 
         {/* Canvas wrapper */}
@@ -1057,7 +1201,9 @@ export default function ParametricPage() {
                 ? "linear-gradient(135deg,#050112 0%,#08021a 50%,#050115 100%)"
                 : "linear-gradient(135deg,#f0f4ff 0%,#eaeffc 50%,#f0f4ff 100%)",
               border: `1px solid ${color}${isDark ? "15" : "30"}`,
-              boxShadow: isDark ? `inset 0 0 80px rgba(0,0,0,0.5)` : `inset 0 0 40px rgba(139,92,246,0.05)`,
+              boxShadow: isDark
+                ? `inset 0 0 80px rgba(0,0,0,0.5)`
+                : `inset 0 0 40px rgba(139,92,246,0.05)`,
               cursor: selected.is3d ? "grab" : "crosshair",
               userSelect: "none",
             }}
@@ -1105,7 +1251,9 @@ export default function ParametricPage() {
               className="absolute top-3 right-3 z-10 font-mono text-[10px] px-2.5 py-1.5 rounded-lg pointer-events-none"
               style={{
                 color: `${color}90`,
-                background: isDark ? "rgba(5,1,18,0.75)" : "rgba(255,255,255,0.88)",
+                background: isDark
+                  ? "rgba(5,1,18,0.75)"
+                  : "rgba(255,255,255,0.88)",
                 border: `1px solid ${color}20`,
                 backdropFilter: "blur(8px)",
               }}
@@ -1113,9 +1261,9 @@ export default function ParametricPage() {
               {selected.formula}
             </div>
 
-            {/* Hint */}
+            {/* Mobile hint (hidden on desktop since toolbar handles it) */}
             <div
-              className="absolute bottom-3 right-3 z-10 text-[9px] font-mono pointer-events-none"
+              className="lg:hidden absolute bottom-3 right-3 z-10 text-[9px] font-mono pointer-events-none"
               style={{ color: `${color}35` }}
             >
               scroll zoom{selected.is3d ? " · drag rotate" : ""}
@@ -1137,7 +1285,7 @@ export default function ParametricPage() {
 
         {/* Status bar */}
         <div
-          className="flex-shrink-0 flex flex-wrap items-center gap-3 px-4 py-1.5 border-t font-mono text-[10px]"
+          className="flex-shrink-0 flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 border-t font-mono text-[10px]"
           style={{
             borderColor: `${color}10`,
             background: isDark ? "#070115" : "rgba(238,244,255,0.9)",
