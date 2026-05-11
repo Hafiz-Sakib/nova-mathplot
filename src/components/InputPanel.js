@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import { useTheme } from "../ThemeContext";
 
 const SYMBOLS = [
   { label: "sin", insert: "sin(", desc: "Sine" },
@@ -59,6 +60,7 @@ const sb = { borderColor: "rgba(139,92,246,0.08)" };
 
 function DarkInput({ value, onChange, placeholder, type = "text" }) {
   const [focused, setFocused] = useState(false);
+  const { isDark } = useTheme();
   return (
     <input
       type={type}
@@ -70,10 +72,10 @@ function DarkInput({ value, onChange, placeholder, type = "text" }) {
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       style={{
-        background: "rgba(2,6,20,0.9)",
-        border: `1px solid ${focused ? "rgba(139,92,246,0.55)" : "rgba(139,92,246,0.2)"}`,
+        background: isDark ? "rgba(2,6,20,0.9)" : "rgba(255,255,255,0.92)",
+        border: `1px solid ${focused ? (isDark ? "rgba(139,92,246,0.55)" : "rgba(6,182,212,0.6)") : (isDark ? "rgba(139,92,246,0.2)" : "rgba(148,163,184,0.35)")}`,
         borderRadius: 8,
-        color: "#94a3b8",
+        color: isDark ? "#94a3b8" : "#0f172a",
         fontFamily: "'JetBrains Mono', monospace",
         fontSize: "0.8rem",
         padding: "7px 10px",

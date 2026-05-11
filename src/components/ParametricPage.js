@@ -1,3 +1,4 @@
+import { useTheme } from "../ThemeContext";
 import React, { useState, useRef, useEffect, useCallback } from "react";
 
 const TAU = 2 * Math.PI;
@@ -596,6 +597,7 @@ function ParametricCanvas({
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function ParametricPage() {
+  const { isDark } = useTheme();
   const [selected, setSelected] = useState(EXAMPLES[0]);
   const [animated, setAnimated] = useState(true);
   const [speed, setSpeed] = useState(1);
@@ -696,7 +698,7 @@ export default function ParametricPage() {
   return (
     <div
       className="flex flex-1 overflow-hidden"
-      style={{ height: "calc(100vh - 68px)", background: "#070212" }}
+      style={{ height: "calc(100vh - 68px)", background: isDark ? "#070212" : "linear-gradient(145deg,#eef4ff,#e8f0fc)" }}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseUp}
@@ -718,7 +720,7 @@ export default function ParametricPage() {
         lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}
         style={{
-          background: "linear-gradient(180deg,#0e0520 0%,#070212 100%)",
+          background: isDark ? "linear-gradient(180deg,#0e0520 0%,#070212 100%)" : "linear-gradient(180deg,#eef4ff 0%,#e8f0fc 100%)",
           borderColor: `${color}18`,
           height: "100%",
           top: 0,
@@ -963,7 +965,7 @@ export default function ParametricPage() {
         <div
           className="flex-shrink-0 flex items-center justify-between px-3 sm:px-5 py-2"
           style={{
-            background: "#0a0218",
+            background: isDark ? "#0a0218" : "rgba(255,255,255,0.88)",
             borderBottom: `1px solid ${color}15`,
             minHeight: "46px",
           }}
@@ -1101,7 +1103,7 @@ export default function ParametricPage() {
               className="absolute top-3 right-3 z-10 font-mono text-[10px] px-2.5 py-1.5 rounded-lg pointer-events-none"
               style={{
                 color: `${color}90`,
-                background: "rgba(5,1,18,0.75)",
+                background: isDark ? "rgba(5,1,18,0.75)" : "rgba(255,255,255,0.88)",
                 border: `1px solid ${color}20`,
                 backdropFilter: "blur(8px)",
               }}
@@ -1135,7 +1137,7 @@ export default function ParametricPage() {
           className="flex-shrink-0 flex flex-wrap items-center gap-3 px-4 py-1.5 border-t font-mono text-[10px]"
           style={{
             borderColor: `${color}10`,
-            background: "#070115",
+            background: isDark ? "#070115" : "rgba(238,244,255,0.9)",
             color: `${color}35`,
           }}
         >

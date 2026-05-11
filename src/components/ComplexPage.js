@@ -17,6 +17,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import * as math from "mathjs";
+import { useTheme } from "../ThemeContext";
 
 const POINTS = 600;
 const SCOPE = { pi: Math.PI, e: Math.E, tau: 2 * Math.PI };
@@ -116,6 +117,7 @@ const EXAMPLES = [
 
 /* ─── Argand Diagram (canvas) ─── */
 function ArgandDiagram({ data }) {
+  const { isDark } = useTheme();
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -216,7 +218,7 @@ function ArgandDiagram({ data }) {
     <div
       className="rounded-xl overflow-hidden"
       style={{
-        background: "rgba(4,10,24,0.85)",
+        background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.9)",
         border: "1px solid rgba(6,182,212,0.15)",
       }}
     >
@@ -294,6 +296,7 @@ const zoomBtnStyle = {
 
 /* ─── Main Component ─── */
 export default function ComplexPage() {
+  const { isDark } = useTheme();
   /* committed (plotted) expression */
   const [expr, setExpr] = useState("e^(i*x)");
   /* draft expression — only committed on Plot click or Enter */
@@ -440,7 +443,7 @@ export default function ComplexPage() {
           <div
             className="flex items-center rounded-xl overflow-hidden mb-2"
             style={{
-              background: "rgba(10,15,28,0.9)",
+              background: isDark ? "rgba(10,15,28,0.9)" : "rgba(255,255,255,0.95)",
               border: "1px solid rgba(6,182,212,0.25)",
             }}
           >
@@ -455,7 +458,7 @@ export default function ComplexPage() {
                  The component is now stable (not re-created each render)
                  so focus is never lost between keystrokes.              */
               className="flex-1 bg-transparent outline-none font-mono-code text-sm py-3 pr-3"
-              style={{ color: "#e2e8f0", caretColor: "#22d3ee" }}
+              style={{ color: isDark ? "#e2e8f0" : "#0f172a", caretColor: "#22d3ee" }}
               value={inputExpr}
               onChange={(e) => setInputExpr(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && commitExpr()}
@@ -471,7 +474,7 @@ export default function ComplexPage() {
             className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all"
             style={{
               background: "linear-gradient(90deg,#f472b6,#a78bfa)",
-              color: "#000",
+              color: "#fff",
               fontFamily: "Space Grotesk, sans-serif",
             }}
             onMouseEnter={(e) =>
@@ -486,9 +489,9 @@ export default function ComplexPage() {
           <div
             className="mt-2 p-3 rounded-xl text-[10px] font-mono leading-relaxed"
             style={{
-              background: "rgba(15,23,42,0.6)",
+              background: isDark ? "rgba(15,23,42,0.6)" : "rgba(238,244,255,0.88)",
               border: "1px solid rgba(236,72,153,0.15)",
-              color: "#94a3b8",
+              color: isDark ? "#94a3b8" : "#475569",
             }}
           >
             <span style={{ color: "#f472b6" }}>Tips:</span> Use{" "}
@@ -556,9 +559,13 @@ export default function ComplexPage() {
                 <input
                   type="number"
                   step="0.5"
-                  className="w-full bg-[#0a0f1c] border border-cyan-500/30 focus:border-cyan-400 
-                     rounded-xl px-4 py-3 text-sm font-mono text-white 
+                  className="w-full border border-cyan-500/30 focus:border-cyan-400 
+                     rounded-xl px-4 py-3 text-sm font-mono 
                      focus:outline-none transition-colors"
+                  style={{
+                    background: isDark ? "#0a0f1c" : "rgba(255,255,255,0.95)",
+                    color: isDark ? "#fff" : "#0f172a",
+                  }}
                   value={value}
                   onChange={(e) => {
                     const newVal = +e.target.value;
@@ -655,7 +662,7 @@ export default function ComplexPage() {
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 lg:hidden"
-          style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+          style={{ background: isDark ? "rgba(0,0,0,0.7)" : "rgba(30,41,59,0.5)", backdropFilter: "blur(4px)" }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -688,7 +695,7 @@ export default function ComplexPage() {
           width: "clamp(280px, 85vw, 320px)",
           maxWidth: "100vw",
           borderColor: "rgba(236,72,153,0.15)",
-          background: "linear-gradient(180deg,#020810,#0a020e)",
+          background: isDark ? "linear-gradient(180deg,#020810,#0a020e)" : "linear-gradient(180deg,#eef4ff,#e8f0fc)",
           top: "60px",
           height: "calc(100vh - 60px)",
         }}
@@ -703,7 +710,7 @@ export default function ComplexPage() {
           className="flex items-center gap-2 px-3 py-2 border-b flex-wrap"
           style={{
             borderColor: "rgba(236,72,153,0.1)",
-            background: "rgba(2,4,16,0.8)",
+            background: isDark ? "rgba(2,4,16,0.8)" : "rgba(238,244,255,0.92)",
           }}
         >
           {/* Current expression badge */}
@@ -752,7 +759,7 @@ export default function ComplexPage() {
                   background:
                     expr === ex.expr
                       ? "rgba(236,72,153,0.12)"
-                      : "rgba(6,18,40,0.8)",
+                      : isDark ? "rgba(6,18,40,0.8)" : "rgba(238,244,255,0.8)",
                   border: `1px solid ${expr === ex.expr ? "rgba(236,72,153,0.4)" : "rgba(236,72,153,0.12)"}`,
                   color: expr === ex.expr ? "#f472b6" : "#64748b",
                 }}
@@ -811,7 +818,7 @@ export default function ComplexPage() {
                   domain={[internalXMin, internalXMax]}
                   tickCount={7}
                   tick={{
-                    fill: "#334155",
+                    fill: isDark ? "#334155" : "#475569",
                     fontFamily: "JetBrains Mono",
                     fontSize: 8,
                   }}
@@ -823,7 +830,7 @@ export default function ComplexPage() {
                   type="number"
                   tickCount={7}
                   tick={{
-                    fill: "#334155",
+                    fill: isDark ? "#334155" : "#475569",
                     fontFamily: "JetBrains Mono",
                     fontSize: 8,
                   }}
@@ -914,13 +921,13 @@ export default function ComplexPage() {
                 key={item.label}
                 className="px-3 py-2 rounded-xl"
                 style={{
-                  background: "rgba(4,10,24,0.8)",
+                  background: isDark ? "rgba(4,10,24,0.8)" : "rgba(255,255,255,0.88)",
                   border: `1px solid ${item.color}20`,
                 }}
               >
                 <div
                   className="font-mono-code text-[9px] mb-1"
-                  style={{ color: "#334155" }}
+                  style={{ color: isDark ? "#334155" : "#64748b" }}
                 >
                   {item.label}
                 </div>

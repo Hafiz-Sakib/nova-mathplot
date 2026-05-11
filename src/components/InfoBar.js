@@ -1,9 +1,11 @@
+import { useTheme } from "../ThemeContext";
 import React from 'react';
 
 export default function InfoBar() {
+  const { isDark } = useTheme();
   return (
     <div className="flex items-center justify-between px-4 sm:px-5 py-2 flex-wrap gap-2"
-         style={{ borderTop: '1px solid rgba(34,197,94,0.1)', background: 'rgba(2,8,4,0.6)' }}>
+         style={{ borderTop: '1px solid rgba(34,197,94,0.1)', background: isDark ? 'rgba(2,8,4,0.6)' : 'rgba(238,244,255,0.9)' }}>
       <div className="flex items-center gap-4 flex-wrap">
         {[['mathjs', 'Engine'], ['recharts', 'Renderer']].map(([name, label]) => (
           <span key={name} className="font-mono-code text-[10px] flex items-center gap-1.5" style={{ color: '#166534' }}>

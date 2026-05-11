@@ -1,3 +1,4 @@
+import { useTheme } from "../ThemeContext";
 import React, { useRef, useState, useMemo, useEffect, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Grid, Stars } from "@react-three/drei";
@@ -1851,6 +1852,7 @@ const ALL_CATEGORIES = [
 ];
 
 export default function Plotter3DPage() {
+  const { isDark } = useTheme();
   const [preset, setPreset] = useState(PRESETS[0]);
   const [colorScheme, setColorScheme] = useState("cyan");
   const [autoRotate, setAutoRotate] = useState(false);
@@ -1907,7 +1909,7 @@ export default function Plotter3DPage() {
         style={{
           width: "clamp(260px, 30vw, 300px)",
           borderColor: "rgba(139,92,246,0.15)",
-          background: "linear-gradient(180deg,#020810 0%,#060418 100%)",
+          background: isDark ? "linear-gradient(180deg,#020810 0%,#060418 100%)" : "linear-gradient(180deg,#eef4ff 0%,#e8f0fc 100%)",
           top: "56px",
           height: "calc(100vh - 56px)",
         }}
@@ -1935,7 +1937,7 @@ export default function Plotter3DPage() {
               </div>
               <div
                 className="font-mono-code text-[9px]"
-                style={{ color: "#334155" }}
+                style={{ color: isDark ? "#334155" : "#64748b" }}
               >
                 {PRESETS.length} surfaces & curves
               </div>
@@ -2010,7 +2012,7 @@ export default function Plotter3DPage() {
                   className="flex items-center gap-1 px-1.5 py-0.5 rounded font-mono-code text-[9px]"
                   style={{
                     background:
-                      colorScheme === s.id ? `${s.c}18` : "rgba(4,10,24,0.7)",
+                      colorScheme === s.id ? `${s.c}18` : isDark ? "rgba(4,10,24,0.7)" : "rgba(255,255,255,0.88)",
                     border: `1px solid ${colorScheme === s.id ? s.c + "60" : "rgba(139,92,246,0.12)"}`,
                     color: colorScheme === s.id ? s.c : "#475569",
                   }}
@@ -2079,7 +2081,7 @@ export default function Plotter3DPage() {
               onChange={(e) => setOpacity(+e.target.value)}
               className="w-full h-1 rounded-full appearance-none cursor-pointer"
               style={{
-                background: `linear-gradient(90deg, rgba(139,92,246,0.7) ${opacity * 100}%, rgba(6,18,40,0.8) ${opacity * 100}%)`,
+                background: `linear-gradient(90deg, rgba(139,92,246,0.7) ${opacity * 100}%, ${isDark ? "rgba(6,18,40,0.8)" : "rgba(238,244,255,0.8)"} ${opacity * 100}%)`,
               }}
             />
           </div>
@@ -2239,12 +2241,12 @@ export default function Plotter3DPage() {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 relative" style={{ background: "#020810" }}>
+        <div className="flex-1 relative" style={{ background: isDark ? "#020810" : "#eef4ff" }}>
           <Canvas
             camera={{ position: [6, 5, 8], fov: 50 }}
             gl={{ antialias: true, alpha: false }}
           >
-            <color attach="background" args={["#020810"]} />
+            <color attach="background" args={[isDark ? "#020810" : "#eef4ff"]} />
             <SceneLighting
               colorScheme={
                 customMode ? colorScheme : preset.color || colorScheme

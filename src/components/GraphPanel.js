@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
+import { useTheme } from "../ThemeContext";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -68,12 +69,13 @@ function CustomTooltip({ active, payload, label }) {
   return (
     <div
       style={{
-        background: "rgba(2,6,20,0.97)",
+        background: "var(--c-tooltip-bg, rgba(2,6,20,0.97))",
         border: "1px solid rgba(139,92,246,0.25)",
         borderRadius: 10,
         padding: "10px 14px",
         backdropFilter: "blur(12px)",
         boxShadow: "0 0 20px rgba(139,92,246,0.15)",
+        color: "var(--c-text)",
       }}
     >
       <div
@@ -120,6 +122,7 @@ export default function GraphPanel({
   setYMax,
   setError,
 }) {
+  const { isDark } = useTheme();
   const [intXMin, setIntXMin] = useState(xMin);
   const [intXMax, setIntXMax] = useState(xMax);
   const containerRef = useRef(null);
@@ -285,7 +288,7 @@ export default function GraphPanel({
       style={{
         width: wide ? 38 : 28,
         height: 28,
-        background: "rgba(2,8,20,0.8)",
+        background: isDark ? "rgba(2,8,20,0.8)" : "rgba(255,255,255,0.97)",
         border: "1px solid rgba(139,92,246,0.18)",
         color: "#64748b",
         fontSize: "0.75rem",
@@ -423,7 +426,7 @@ export default function GraphPanel({
                 domain={[intXMin, intXMax]}
                 tickCount={9}
                 tick={{
-                  fill: "#334155",
+                  fill: isDark ? "#334155" : "#475569",
                   fontFamily: "JetBrains Mono",
                   fontSize: 9,
                 }}
@@ -436,7 +439,7 @@ export default function GraphPanel({
                 domain={yDomain}
                 tickCount={7}
                 tick={{
-                  fill: "#334155",
+                  fill: isDark ? "#334155" : "#475569",
                   fontFamily: "JetBrains Mono",
                   fontSize: 9,
                 }}

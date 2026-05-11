@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import developerImg from "../images/developer.png";
+import { useTheme } from "../ThemeContext";
 
 /* ─── Skills data ─── */
 const SKILLS = [
@@ -122,6 +123,7 @@ function OrbitalRings({ color = "#22d3ee" }) {
 }
 
 export default function DeveloperPage({ setPage }) {
+  const { isDark } = useTheme();
   const [devImage, setDevImage] = useState(null);
   const fileRef = useRef(null);
 
@@ -137,7 +139,7 @@ export default function DeveloperPage({ setPage }) {
     <div
       className="min-h-screen"
       style={{
-        background: "rgb(2,8,20)",
+        background: isDark ? "rgb(2,8,20)" : "linear-gradient(145deg, #eef4ff 0%, #e8f0fc 100%)",
         fontFamily: "'Space Grotesk', sans-serif",
       }}
     >
@@ -206,7 +208,7 @@ export default function DeveloperPage({ setPage }) {
         <div
           className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
           style={{
-            background: "rgba(4,10,24,0.9)",
+            background: isDark ? "rgba(4,10,24,0.9)" : "rgba(255,255,255,0.88)",
             border: "1px solid rgba(244,114,182,0.18)",
             boxShadow: "0 0 40px rgba(244,114,182,0.06)",
           }}
@@ -254,14 +256,14 @@ export default function DeveloperPage({ setPage }) {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-1">
                 <h2
                   className="font-orbitron font-black text-xl sm:text-2xl"
-                  style={{ color: "#e2e8f0" }}
+                  style={{ color: isDark ? "#e2e8f0" : "#0f172a" }}
                 >
                   Mohammad Hafizur Rahman Sakib
                 </h2>
                 <span
                   className="font-mono text-[10px] px-2 py-0.5 rounded-full"
                   style={{
-                    background: "rgba(34,211,238,0.1)",
+                    background: isDark ? "rgba(34,211,238,0.1)" : "rgba(6,182,212,0.08)",
                     color: "#22d3ee",
                     border: "1px solid rgba(34,211,238,0.25)",
                   }}
@@ -284,7 +286,7 @@ export default function DeveloperPage({ setPage }) {
 
               <p
                 className="font-rajdhani text-base leading-relaxed mb-5"
-                style={{ color: "#94a3b8" }}
+                style={{ color: isDark ? "#94a3b8" : "#475569" }}
               >
                 I'm a passionate Full Stack Developer currently pursuing my
                 Computer Science degree. I build fast, clean, and interactive
@@ -330,7 +332,7 @@ export default function DeveloperPage({ setPage }) {
         <div
           className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
           style={{
-            background: "rgba(4,10,24,0.85)",
+            background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.88)",
             border: "1px solid rgba(139,92,246,0.18)",
           }}
         >
@@ -400,7 +402,7 @@ export default function DeveloperPage({ setPage }) {
                 key={p.name}
                 className="rounded-xl p-5 relative overflow-hidden group transition-all duration-200"
                 style={{
-                  background: "rgba(4,10,24,0.85)",
+                  background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.88)",
                   border: `1px solid ${p.color}22`,
                 }}
                 onMouseEnter={(e) => {
@@ -492,7 +494,7 @@ export default function DeveloperPage({ setPage }) {
           <div
             className="rounded-2xl p-6 relative overflow-hidden"
             style={{
-              background: "rgba(4,10,24,0.85)",
+              background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.88)",
               border: "1px solid rgba(34,211,238,0.15)",
             }}
           >
@@ -568,7 +570,7 @@ export default function DeveloperPage({ setPage }) {
           <div
             className="rounded-2xl p-6 relative overflow-hidden"
             style={{
-              background: "rgba(4,10,24,0.85)",
+              background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.88)",
               border: "1px solid rgba(251,146,60,0.15)",
             }}
           >
@@ -610,7 +612,7 @@ export default function DeveloperPage({ setPage }) {
                   <div>
                     <div
                       className="font-rajdhani font-semibold text-sm"
-                      style={{ color: "#94a3b8" }}
+                      style={{ color: isDark ? "#94a3b8" : "#475569" }}
                     >
                       {i.label}
                     </div>
@@ -631,7 +633,7 @@ export default function DeveloperPage({ setPage }) {
         <div
           className="rounded-2xl p-8 text-center relative overflow-hidden"
           style={{
-            background: "rgba(4,10,24,0.9)",
+            background: isDark ? "rgba(4,10,24,0.9)" : "rgba(255,255,255,0.88)",
             border: "1px solid rgba(244,114,182,0.2)",
             boxShadow: "0 0 40px rgba(244,114,182,0.05)",
           }}

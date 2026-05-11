@@ -1,3 +1,4 @@
+import { useTheme } from "../ThemeContext";
 import React, { useState, useRef, useEffect, useMemo } from "react";
 
 /* ─────────────────────────────────────────────
@@ -501,6 +502,7 @@ function MainPlot({ selected, showDerivative, xRange, onXRangeChange }) {
    MAIN COMPONENT
 ───────────────────────────────────────────── */
 export default function ActivationPage({ setPage }) {
+  const { isDark } = useTheme();
   const [selectedIds, setSelectedIds] = useState(["relu", "sigmoid", "tanh"]);
   const [showDerivative, setShowDerivative] = useState(false);
   const [xRange, setXRange] = useState([-6, 6]);
@@ -528,7 +530,7 @@ export default function ActivationPage({ setPage }) {
     <div
       className="min-h-screen"
       style={{
-        background: "rgb(2,8,20)",
+        background: isDark ? "rgb(2,8,20)" : "linear-gradient(145deg, #eef4ff 0%, #e8f0fc 100%)",
         fontFamily: "'Space Grotesk', sans-serif",
       }}
     >
@@ -602,7 +604,7 @@ export default function ActivationPage({ setPage }) {
               style={{
                 background: showDerivative
                   ? "rgba(139,92,246,0.15)"
-                  : "rgba(15,23,42,0.8)",
+                  : isDark ? "rgba(15,23,42,0.8)" : "rgba(255,255,255,0.88)",
                 border: `1px solid ${showDerivative ? "rgba(139,92,246,0.4)" : "rgba(139,92,246,0.15)"}`,
                 color: showDerivative ? "#c084fc" : "#64748b",
               }}
@@ -616,7 +618,7 @@ export default function ActivationPage({ setPage }) {
               onClick={() => setSelectedIds([])}
               className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
               style={{
-                background: "rgba(15,23,42,0.8)",
+                background: isDark ? "rgba(15,23,42,0.8)" : "rgba(255,255,255,0.88)",
                 border: "1px solid rgba(139,92,246,0.1)",
                 color: "#475569",
               }}
@@ -736,7 +738,7 @@ export default function ActivationPage({ setPage }) {
           <div
             className="rounded-2xl overflow-hidden"
             style={{
-              background: "rgba(4,10,24,0.9)",
+              background: isDark ? "rgba(4,10,24,0.9)" : "rgba(255,255,255,0.88)",
               border: "1px solid rgba(139,92,246,0.15)",
               boxShadow: "0 0 40px rgba(139,92,246,0.06)",
             }}
@@ -893,7 +895,7 @@ export default function ActivationPage({ setPage }) {
                   key={act.id}
                   className="rounded-xl p-4 relative overflow-hidden"
                   style={{
-                    background: "rgba(4,10,24,0.85)",
+                    background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.88)",
                     border: `1px solid ${act.color}25`,
                   }}
                 >
@@ -970,7 +972,7 @@ export default function ActivationPage({ setPage }) {
             <div
               className="rounded-xl p-4"
               style={{
-                background: "rgba(4,10,24,0.9)",
+                background: isDark ? "rgba(4,10,24,0.9)" : "rgba(255,255,255,0.88)",
                 border: "1px solid rgba(139,92,246,0.15)",
               }}
             >
@@ -1012,7 +1014,7 @@ export default function ActivationPage({ setPage }) {
           <div
             className="rounded-2xl overflow-hidden"
             style={{
-              background: "rgba(4,10,24,0.85)",
+              background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.88)",
               border: "1px solid rgba(139,92,246,0.12)",
             }}
           >

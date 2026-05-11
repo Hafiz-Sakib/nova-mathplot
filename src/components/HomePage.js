@@ -1,3 +1,4 @@
+import { useTheme } from "../ThemeContext";
 import React, { useEffect, useRef, useState } from "react";
 
 /* ─── Animated sine wave ─── */
@@ -401,6 +402,7 @@ const HOW_IT_WORKS = [
 
 /* ─── Main Component ─── */
 export default function HomePage({ setPage }) {
+  const { isDark } = useTheme();
   const [hoveredFeature, setHoveredFeature] = useState(null);
 
   return (
@@ -581,7 +583,7 @@ export default function HomePage({ setPage }) {
                   key={item.label}
                   className="rounded-xl p-3"
                   style={{
-                    background: "rgba(6,18,40,0.6)",
+                    background: isDark ? "rgba(6,18,40,0.6)" : "rgba(255,255,255,0.88)",
                     border: `1px solid ${item.color}20`,
                   }}
                 >

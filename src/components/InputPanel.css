@@ -278,3 +278,34 @@
   background: var(--cyan);
   box-shadow: 0 0 6px var(--cyan);
 }
+
+[data-theme="light"] .input-panel,
+[data-theme="light"] .input-panel * {
+  color: #334155;
+}
+
+/* ─── PREMIUM LIGHT MODE: InputPanel ─── */
+[data-theme="light"] .expr-input-wrapper {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(100, 149, 237, 0.3) !important;
+}
+[data-theme="light"] .expr-input-wrapper:focus-within {
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.12) !important;
+}
+[data-theme="light"] .expr-input { color: #0891b2 !important; }
+[data-theme="light"] .range-grid input {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(100, 149, 237, 0.3) !important;
+  color: #0f172a !important;
+}
+[data-theme="light"] .toggle-slider { background: #dde8f8 !important; border-color: rgba(100,149,237,0.3) !important; }
+[data-theme="light"] .sym-btn {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(100, 149, 237, 0.25) !important;
+  color: #475569 !important;
+}
+[data-theme="light"] .sym-btn:hover {
+  background: rgba(6, 182, 212, 0.08) !important;
+  border-color: rgba(6, 182, 212, 0.4) !important;
+  color: #06b6d4 !important;
+}

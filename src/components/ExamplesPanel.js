@@ -1,3 +1,4 @@
+import { useTheme } from "../ThemeContext";
 import React, { useState } from "react";
 
 const CATEGORIES = [
@@ -424,6 +425,7 @@ const CATEGORIES = [
 ];
 
 export default function ExamplesPanel({ onLoad }) {
+  const { isDark } = useTheme();
   const [openCat, setOpenCat] = useState("Trigonometry");
   const [search, setSearch] = useState("");
 
@@ -517,7 +519,7 @@ export default function ExamplesPanel({ onLoad }) {
                 }
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-200"
                 style={{
-                  background: isOpen ? `${cat.color}0d` : "rgba(2,8,20,0.5)",
+                  background: isOpen ? `${cat.color}0d` : isDark ? "rgba(2,8,20,0.5)" : "rgba(255,255,255,0.88)",
                   border: `1px solid ${isOpen ? cat.color + "30" : "rgba(6,182,212,0.07)"}`,
                 }}
               >
@@ -576,7 +578,7 @@ export default function ExamplesPanel({ onLoad }) {
                       onClick={() => onLoad(ex)}
                       className="w-full text-left px-3 py-2.5 rounded-xl transition-all duration-150 group"
                       style={{
-                        background: "rgba(2,8,20,0.4)",
+                        background: isDark ? "rgba(2,8,20,0.4)" : "rgba(255,255,255,0.88)",
                         border: "1px solid rgba(6,182,212,0.05)",
                       }}
                       onMouseEnter={(e) => {
@@ -584,7 +586,7 @@ export default function ExamplesPanel({ onLoad }) {
                         e.currentTarget.style.borderColor = `${cat.color}28`;
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "rgba(2,8,20,0.4)";
+                        e.currentTarget.style.background = isDark ? "rgba(2,8,20,0.4)" : "rgba(255,255,255,0.88)";
                         e.currentTarget.style.borderColor =
                           "rgba(6,182,212,0.05)";
                       }}
