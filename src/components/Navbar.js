@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { label: "Complex", page: "complex", icon: "ℂ" },
   { label: "Parametric", page: "parametric", icon: "∑" },
   { label: "Activations", page: "activation", icon: "σ" },
+  { label: "Developer", page: "developer", icon: "💻" },
 ];
 
 export default function Navbar({ page, setPage }) {

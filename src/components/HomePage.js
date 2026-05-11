@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
+/* ─── Animated sine wave ─── */
 function AnimatedSine({ color = "#22d3ee", color2 = "#10b981" }) {
   const id = `sG-${color.replace("#", "")}-${color2.replace("#", "")}`;
   return (
@@ -34,6 +35,7 @@ function AnimatedSine({ color = "#22d3ee", color2 = "#10b981" }) {
   );
 }
 
+/* ─── Gaussian bell curve preview ─── */
 function GaussianPreview() {
   const pts = [];
   for (let x = -3.5; x <= 3.5; x += 0.08) {
@@ -62,13 +64,80 @@ function GaussianPreview() {
   );
 }
 
-/* ── Activation preview: sigmoid + relu + tanh preview ── */
+/* ─── FIXED: Real Euler Spiral (Cornu spiral) preview ─── */
+function EulerSpiralPreview() {
+  const W = 280,
+    H = 80;
+  // Euler/Cornu spiral: parametric x=∫cos(t²/2)dt, y=∫sin(t²/2)dt
+  const pts = [];
+  const steps = 300;
+  const tMax = 4.5;
+  let cx = 0,
+    cy = 0;
+  const dt = tMax / steps;
+  for (let i = 0; i <= steps; i++) {
+    const t = i * dt;
+    if (i > 0) {
+      cx += Math.cos((t * t) / 2) * dt;
+      cy += Math.sin((t * t) / 2) * dt;
+    }
+    pts.push([cx, cy]);
+  }
+  // Scale & center in SVG
+  const xs = pts.map((p) => p[0]),
+    ys = pts.map((p) => p[1]);
+  const minX = Math.min(...xs),
+    maxX = Math.max(...xs);
+  const minY = Math.min(...ys),
+    maxY = Math.max(...ys);
+  const rangeX = maxX - minX || 1,
+    rangeY = maxY - minY || 1;
+  const pad = 8;
+  const toSX = (x) => pad + ((x - minX) / rangeX) * (W - pad * 2);
+  const toSY = (y) => H - pad - ((y - minY) / rangeY) * (H - pad * 2);
+
+  const d = pts
+    .map(
+      (p, i) =>
+        `${i === 0 ? "M" : "L"}${toSX(p[0]).toFixed(1)},${toSY(p[1]).toFixed(1)}`,
+    )
+    .join(" ");
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      <defs>
+        <linearGradient id="eulerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#a78bfa" stopOpacity="0.3" />
+          <stop offset="50%" stopColor="#f472b6" stopOpacity="1" />
+          <stop offset="100%" stopColor="#a78bfa" stopOpacity="0.3" />
+        </linearGradient>
+        <filter id="eulerGlow">
+          <feGaussianBlur stdDeviation="1.8" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <path
+        d={d}
+        fill="none"
+        stroke="url(#eulerGrad)"
+        strokeWidth="2"
+        filter="url(#eulerGlow)"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/* ─── Activation preview: sigmoid + relu + tanh ─── */
 function ActivationPreview() {
   const W = 280,
     H = 80;
   const toX = (x) => ((x + 5) / 10) * W;
   const toY = (y) => H - ((y + 1.2) / 2.4) * H;
-
   const sigmoid = [],
     relu = [],
     tanh_ = [];
@@ -83,7 +152,6 @@ function ActivationPreview() {
         (p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`,
       )
       .join(" ");
-
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
@@ -99,7 +167,6 @@ function ActivationPreview() {
           </feMerge>
         </filter>
       </defs>
-      {/* zero line */}
       <line
         x1="0"
         y1={toY(0)}
@@ -136,6 +203,7 @@ function ActivationPreview() {
   );
 }
 
+/* ─── Particle field background ─── */
 function ParticleField() {
   const canvasRef = useRef(null);
   useEffect(() => {
@@ -203,13 +271,15 @@ function ParticleField() {
   );
 }
 
+/* ─── Data ─── */
 const FEATURES = [
   {
     icon: "📈",
     title: "2D Function Plotter",
     color: "#22d3ee",
-    bgColor: "rgba(6,182,212,0.08)",
-    borderColor: "rgba(6,182,212,0.2)",
+    bgColor: "rgba(6,182,212,0.07)",
+    borderColor: "rgba(6,182,212,0.35)",
+    glowColor: "rgba(6,182,212,0.12)",
     desc: "Plot any mathematical expression — trig, polynomial, exponential. Multi-function overlay, zoom & pan, animated waves.",
     items: [
       "50+ example functions",
@@ -224,8 +294,9 @@ const FEATURES = [
     icon: "🌌",
     title: "3D Surface Visualizer",
     color: "#a78bfa",
-    bgColor: "rgba(139,92,246,0.08)",
-    borderColor: "rgba(139,92,246,0.2)",
+    bgColor: "rgba(139,92,246,0.07)",
+    borderColor: "rgba(139,92,246,0.35)",
+    glowColor: "rgba(139,92,246,0.12)",
     desc: "Immersive 3D graphing with orbit controls, cinematic animations, helix, torus, Möbius strip, and GPU-accelerated rendering.",
     items: [
       "Orbit camera controls",
@@ -240,8 +311,9 @@ const FEATURES = [
     icon: "ℂ",
     title: "Complex Analysis",
     color: "#f472b6",
-    bgColor: "rgba(236,72,153,0.08)",
-    borderColor: "rgba(236,72,153,0.2)",
+    bgColor: "rgba(236,72,153,0.07)",
+    borderColor: "rgba(236,72,153,0.35)",
+    glowColor: "rgba(236,72,153,0.12)",
     desc: "Euler's formula e^(ix) = cos(x)+i·sin(x), complex spirals, phase visualization, and magnitude surfaces.",
     items: [
       "Euler's formula viz",
@@ -256,8 +328,9 @@ const FEATURES = [
     icon: "∑",
     title: "Parametric & Polar",
     color: "#fb923c",
-    bgColor: "rgba(249,115,22,0.08)",
-    borderColor: "rgba(249,115,22,0.2)",
+    bgColor: "rgba(249,115,22,0.07)",
+    borderColor: "rgba(249,115,22,0.35)",
+    glowColor: "rgba(249,115,22,0.12)",
     desc: "Lissajous curves, Fourier series, rose curves, epitrochoids, parametric spirals, and polar equations with animation.",
     items: [
       "Lissajous figures",
@@ -272,8 +345,9 @@ const FEATURES = [
     icon: "σ",
     title: "Activation Functions",
     color: "#a78bfa",
-    bgColor: "rgba(139,92,246,0.08)",
-    borderColor: "rgba(139,92,246,0.2)",
+    bgColor: "rgba(139,92,246,0.07)",
+    borderColor: "rgba(139,92,246,0.35)",
+    glowColor: "rgba(139,92,246,0.12)",
     desc: "Interactive neural network activation function explorer — ReLU, Sigmoid, Tanh, GELU, Swish, Mish and 12 more with adjustable parameters.",
     items: [
       "18 activation functions",
@@ -293,6 +367,8 @@ const TECH_STACK = [
   { name: "React Three Fiber", color: "#f97316" },
   { name: "Math.js", color: "#22d3ee" },
   { name: "Recharts", color: "#10b981" },
+  { name: "Tailwind CSS", color: "#38bdf8" },
+  { name: "Vite", color: "#a78bfa" },
 ];
 
 const STATS = [
@@ -302,7 +378,31 @@ const STATS = [
   { num: "100%", label: "Browser-Based", color: "#fb923c" },
 ];
 
+const HOW_IT_WORKS = [
+  {
+    step: "01",
+    title: "Pick a Mode",
+    desc: "Choose from 2D, 3D, Complex, Parametric, or Activation visualizer.",
+    color: "#22d3ee",
+  },
+  {
+    step: "02",
+    title: "Enter Your Function",
+    desc: "Type any expression using standard math notation. Live preview updates instantly.",
+    color: "#a78bfa",
+  },
+  {
+    step: "03",
+    title: "Explore & Interact",
+    desc: "Zoom, pan, animate, compare — interact with the math in real time.",
+    color: "#34d399",
+  },
+];
+
+/* ─── Main Component ─── */
 export default function HomePage({ setPage }) {
+  const [hoveredFeature, setHoveredFeature] = useState(null);
+
   return (
     <main className="flex-1 overflow-y-auto nova-bg">
       {/* ── HERO ── */}
@@ -349,7 +449,6 @@ export default function HomePage({ setPage }) {
             </span>
           </div>
 
-          {/* title */}
           <h1
             className="font-orbitron font-black mb-4 leading-none"
             style={{
@@ -469,7 +568,7 @@ export default function HomePage({ setPage }) {
                 },
                 {
                   label: "Euler Spiral",
-                  content: <AnimatedSine color="#a78bfa" color2="#f472b6" />,
+                  content: <EulerSpiralPreview />,
                   color: "#a78bfa",
                 },
                 {
@@ -507,10 +606,19 @@ export default function HomePage({ setPage }) {
           {STATS.map((s) => (
             <div
               key={s.label}
-              className="text-center p-6 rounded-2xl"
+              className="text-center p-6 rounded-2xl transition-all duration-300"
               style={{
                 background: "rgba(4,10,24,0.7)",
-                border: `1px solid ${s.color}20`,
+                border: `1px solid ${s.color}25`,
+                boxShadow: `0 0 0px ${s.color}00`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = `0 0 24px ${s.color}20`;
+                e.currentTarget.style.borderColor = `${s.color}55`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = `0 0 0px ${s.color}00`;
+                e.currentTarget.style.borderColor = `${s.color}25`;
               }}
             >
               <div
@@ -530,8 +638,84 @@ export default function HomePage({ setPage }) {
         </div>
       </section>
 
+      {/* ── HOW IT WORKS ── */}
+      <section className="px-4 sm:px-6 lg:px-8 pb-20 max-w-7xl mx-auto">
+        <div className="nova-divider mb-12" />
+        <div className="text-center mb-10">
+          <div
+            className="section-label justify-center mb-3"
+            style={{ letterSpacing: "0.3em" }}
+          >
+            Workflow
+          </div>
+          <h2
+            className="font-orbitron font-bold text-2xl sm:text-3xl mb-3"
+            style={{ color: "#34d399" }}
+          >
+            How It Works
+          </h2>
+          <p className="font-rajdhani text-lg" style={{ color: "#475569" }}>
+            From equation to insight in three steps
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-3 gap-6">
+          {HOW_IT_WORKS.map((step, i) => (
+            <div
+              key={step.step}
+              className="relative p-6 rounded-2xl text-center"
+              style={{
+                background: "rgba(4,10,24,0.75)",
+                border: `1px solid ${step.color}25`,
+              }}
+            >
+              {i < HOW_IT_WORKS.length - 1 && (
+                <div
+                  className="hidden sm:block absolute top-1/2 -right-3 z-10 font-mono text-xs"
+                  style={{
+                    color: "rgba(71,85,105,0.5)",
+                    transform: "translateY(-50%)",
+                  }}
+                >
+                  →
+                </div>
+              )}
+              <div
+                className="font-orbitron font-black text-4xl mb-3"
+                style={{ color: `${step.color}30` }}
+              >
+                {step.step}
+              </div>
+              <div
+                className="w-10 h-10 rounded-xl mx-auto mb-4 flex items-center justify-center"
+                style={{
+                  background: `${step.color}12`,
+                  border: `1px solid ${step.color}30`,
+                }}
+              >
+                <span style={{ color: step.color, fontSize: "1.1rem" }}>
+                  {i === 0 ? "⊞" : i === 1 ? "f(x)" : "⟳"}
+                </span>
+              </div>
+              <h3
+                className="font-orbitron font-bold text-sm mb-2"
+                style={{ color: step.color }}
+              >
+                {step.title}
+              </h3>
+              <p
+                className="font-rajdhani text-sm leading-relaxed"
+                style={{ color: "#64748b" }}
+              >
+                {step.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── FEATURES ── */}
       <section className="px-4 sm:px-6 lg:px-8 pb-20 max-w-7xl mx-auto">
+        <div className="nova-divider mb-12" />
         <div className="text-center mb-12">
           <div
             className="section-label justify-center mb-3"
@@ -552,14 +736,35 @@ export default function HomePage({ setPage }) {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {FEATURES.map((f) => (
-            <div key={f.title} className="feature-card-nova p-6 sm:p-8">
-              {/* top accent */}
+            <div
+              key={f.title}
+              className="feature-card-nova p-6 sm:p-8 cursor-pointer"
+              style={{
+                border: `1.5px solid ${hoveredFeature === f.title ? f.borderColor : f.color + "22"}`,
+                boxShadow:
+                  hoveredFeature === f.title
+                    ? `0 0 32px ${f.glowColor}, inset 0 0 24px ${f.color}06`
+                    : `0 0 0px transparent`,
+                transition:
+                  "border-color 0.25s, box-shadow 0.25s, transform 0.2s",
+                transform:
+                  hoveredFeature === f.title ? "translateY(-3px)" : "none",
+                background:
+                  hoveredFeature === f.title
+                    ? `${f.bgColor}`
+                    : "rgba(4,10,24,0.75)",
+              }}
+              onMouseEnter={() => setHoveredFeature(f.title)}
+              onMouseLeave={() => setHoveredFeature(null)}
+            >
+              {/* top accent line */}
               <div
                 className="absolute top-0 left-0 right-0 h-px"
                 style={{
-                  background: `linear-gradient(90deg,transparent,${f.color}50,transparent)`,
+                  background: `linear-gradient(90deg,transparent,${f.color}${hoveredFeature === f.title ? "80" : "40"},transparent)`,
                 }}
               />
+
               {/* NEW badge */}
               {f.badge && (
                 <div className="absolute top-3 right-3">
@@ -575,6 +780,7 @@ export default function HomePage({ setPage }) {
                   </span>
                 </div>
               )}
+
               <div className="flex items-start gap-4 mb-5">
                 <div
                   className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-xl sm:text-2xl flex-shrink-0"
@@ -601,6 +807,7 @@ export default function HomePage({ setPage }) {
                   </p>
                 </div>
               </div>
+
               <div className="grid grid-cols-2 gap-2 mb-6">
                 {f.items.map((item) => (
                   <div key={item} className="flex items-center gap-2">
@@ -616,6 +823,7 @@ export default function HomePage({ setPage }) {
                   </div>
                 ))}
               </div>
+
               <button
                 onClick={() => setPage(f.page)}
                 className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-200"
@@ -626,12 +834,12 @@ export default function HomePage({ setPage }) {
                   color: f.color,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = `0 0 20px ${f.color}25`;
-                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = `0 0 20px ${f.color}30`;
+                  e.currentTarget.style.background = `${f.color}18`;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.boxShadow = "none";
-                  e.currentTarget.style.transform = "none";
+                  e.currentTarget.style.background = f.bgColor;
                 }}
               >
                 {f.cta} →
@@ -656,10 +864,18 @@ export default function HomePage({ setPage }) {
           {TECH_STACK.map((t) => (
             <div
               key={t.name}
-              className="flex items-center gap-2 px-4 py-2 rounded-full"
+              className="flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200"
               style={{
                 background: "rgba(4,10,24,0.8)",
                 border: "1px solid rgba(6,182,212,0.1)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = `${t.color}40`;
+                e.currentTarget.style.boxShadow = `0 0 12px ${t.color}15`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "rgba(6,182,212,0.1)";
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
               <div
@@ -679,17 +895,19 @@ export default function HomePage({ setPage }) {
 
       {/* ── FOOTER ── */}
       <footer
-        className="border-t px-4 sm:px-8 py-10"
+        className="border-t px-4 sm:px-8 py-12"
         style={{
           borderColor: "rgba(6,182,212,0.1)",
-          background: "rgba(2,5,14,0.8)",
+          background: "rgba(2,5,14,0.9)",
         }}
       >
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
-            <div>
+          {/* Top row */}
+          <div className="flex flex-col lg:flex-row items-start justify-between gap-10 mb-10">
+            {/* Brand */}
+            <div className="flex-shrink-0">
               <div
-                className="font-orbitron font-black text-lg tracking-widest mb-1"
+                className="font-orbitron font-black text-xl tracking-widest mb-1"
                 style={{
                   background: "linear-gradient(90deg,#22d3ee,#34d399)",
                   WebkitBackgroundClip: "text",
@@ -699,46 +917,160 @@ export default function HomePage({ setPage }) {
                 NOVA MathPlot
               </div>
               <div
-                className="font-mono-code text-xs"
+                className="font-mono-code text-xs mb-4"
                 style={{ color: "#334155" }}
               >
                 Scientific Visualization Platform v3.0
               </div>
-            </div>
-            <div className="flex flex-wrap justify-center gap-4">
-              {[
-                ["Home", "home"],
-                ["2D Plotter", "plotter2d"],
-                ["3D Plotter", "plotter3d"],
-                ["Complex", "complex"],
-                ["Parametric", "parametric"],
-                ["Activations", "activation"],
-              ].map(([l, p]) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className="font-rajdhani text-sm hover:text-cyan-400 transition-colors"
-                  style={{ color: p === "activation" ? "#a78bfa" : "#475569" }}
+              {/* Links */}
+              <div className="flex flex-col gap-2">
+                <a
+                  href="https://nova-mathplot.vercel.app/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2 group"
                 >
-                  {l}
+                  <span style={{ color: "#334155", fontSize: "0.65rem" }}>
+                    🌐
+                  </span>
+                  <span
+                    className="font-mono-code text-xs transition-colors"
+                    style={{ color: "#475569" }}
+                    onMouseEnter={(e) => (e.target.style.color = "#22d3ee")}
+                    onMouseLeave={(e) => (e.target.style.color = "#475569")}
+                  >
+                    nova-mathplot.vercel.app
+                  </span>
+                </a>
+                <a
+                  href="https://github.com/Hafiz-Sakib/nova-mathplot"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2"
+                >
+                  <span style={{ color: "#334155", fontSize: "0.65rem" }}>
+                    ⌥
+                  </span>
+                  <span
+                    className="font-mono-code text-xs transition-colors"
+                    style={{ color: "#475569" }}
+                    onMouseEnter={(e) => (e.target.style.color = "#a78bfa")}
+                    onMouseLeave={(e) => (e.target.style.color = "#475569")}
+                  >
+                    github.com/Hafiz-Sakib/nova-mathplot
+                  </span>
+                </a>
+              </div>
+            </div>
+
+            {/* Nav links */}
+            <div className="flex flex-wrap gap-x-8 gap-y-3">
+              <div className="flex flex-col gap-2">
+                <span
+                  className="font-orbitron text-[10px] tracking-widest uppercase mb-1"
+                  style={{ color: "#1e293b" }}
+                >
+                  Pages
+                </span>
+                {[
+                  ["Home", "home"],
+                  ["2D Plotter", "plotter2d"],
+                  ["3D Plotter", "plotter3d"],
+                ].map(([l, p]) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className="font-rajdhani text-sm text-left transition-colors"
+                    style={{ color: "#475569" }}
+                    onMouseEnter={(e) => (e.target.style.color = "#22d3ee")}
+                    onMouseLeave={(e) => (e.target.style.color = "#475569")}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-col gap-2">
+                <span
+                  className="font-orbitron text-[10px] tracking-widest uppercase mb-1"
+                  style={{ color: "#1e293b" }}
+                >
+                  Tools
+                </span>
+                {[
+                  ["Complex", "complex"],
+                  ["Parametric", "parametric"],
+                  ["Activations", "activation"],
+                ].map(([l, p]) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className="font-rajdhani text-sm text-left transition-colors"
+                    style={{
+                      color: p === "activation" ? "#a78bfa" : "#475569",
+                    }}
+                    onMouseEnter={(e) => (e.target.style.color = "#22d3ee")}
+                    onMouseLeave={(e) =>
+                      (e.target.style.color =
+                        p === "activation" ? "#a78bfa" : "#475569")
+                    }
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-col gap-2">
+                <span
+                  className="font-orbitron text-[10px] tracking-widest uppercase mb-1"
+                  style={{ color: "#1e293b" }}
+                >
+                  Info
+                </span>
+                <button
+                  onClick={() => setPage("developer")}
+                  className="font-rajdhani text-sm text-left transition-colors"
+                  style={{ color: "#475569" }}
+                  onMouseEnter={(e) => (e.target.style.color = "#f472b6")}
+                  onMouseLeave={(e) => (e.target.style.color = "#475569")}
+                >
+                  Developer
                 </button>
-              ))}
+              </div>
             </div>
           </div>
+
           <div className="nova-divider mb-6" />
-          <div
-            className="text-center font-mono-code text-xs"
-            style={{ color: "#1e293b" }}
-          >
-            Powered by{" "}
-            {["mathjs", "recharts", "Three.js", "React Three Fiber"].map(
-              (t, i) => (
-                <span key={t}>
-                  <span style={{ color: "#22d3ee" }}>{t}</span>
-                  {i < 3 && <span style={{ color: "#1e293b" }}> · </span>}
-                </span>
-              ),
-            )}
+
+          {/* Bottom row */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div
+              className="font-mono-code text-xs"
+              style={{ color: "#1e293b" }}
+            >
+              Powered by{" "}
+              {["mathjs", "recharts", "Three.js", "React Three Fiber"].map(
+                (t, i) => (
+                  <span key={t}>
+                    <span style={{ color: "#22d3ee" }}>{t}</span>
+                    {i < 3 && <span style={{ color: "#1e293b" }}> · </span>}
+                  </span>
+                ),
+              )}
+            </div>
+            <div
+              className="font-mono-code text-xs"
+              style={{ color: "#1e293b" }}
+            >
+              Built by{" "}
+              <button
+                onClick={() => setPage("developer")}
+                className="transition-colors"
+                style={{ color: "#475569" }}
+                onMouseEnter={(e) => (e.target.style.color = "#f472b6")}
+                onMouseLeave={(e) => (e.target.style.color = "#475569")}
+              >
+                Hafizur Rahman Sakib
+              </button>
+            </div>
           </div>
         </div>
       </footer>
