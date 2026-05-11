@@ -317,6 +317,7 @@ function ParametricCanvas({
   color,
   rx,
   ry,
+  isDark,
 }) {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
@@ -456,7 +457,7 @@ function ParametricCanvas({
         }
       } else {
         // 2D grid lines
-        ctx.strokeStyle = "rgba(167,139,250,0.05)";
+        ctx.strokeStyle = isDark ? "rgba(167,139,250,0.05)" : "rgba(139,92,246,0.1)";
         ctx.lineWidth = 0.7 * dpr;
         for (let gx = 0; gx < W; gx += W / 14) {
           ctx.beginPath();
@@ -506,7 +507,7 @@ function ParametricCanvas({
         ctx.fillStyle = "rgba(80,230,120,0.8)";
         ctx.fillText("Y", W / 2 + 8 * dpr, 18 * dpr);
         // Tick marks along axes
-        ctx.strokeStyle = "rgba(255,255,255,0.12)";
+        ctx.strokeStyle = isDark ? "rgba(255,255,255,0.12)" : "rgba(100,116,139,0.4)";
         ctx.lineWidth = 0.8 * dpr;
         for (let tx = ((W / 2) % s2) + s2; tx < W; tx += s2) {
           ctx.beginPath();
@@ -552,7 +553,7 @@ function ParametricCanvas({
       // Leading dot (while animating)
       if (progress < 1) {
         const [hx, hy] = toSc(raw[cnt - 1]);
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = isDark ? "#fff" : "#334155";
         ctx.shadowColor = color;
         ctx.shadowBlur = 22;
         ctx.beginPath();
@@ -580,7 +581,7 @@ function ParametricCanvas({
     }
 
     return () => cancelAnimationFrame(animRef.current);
-  }, [example, animated, speed, showAxes, zoom, color, rx, ry]);
+  }, [example, animated, speed, showAxes, zoom, color, rx, ry, isDark]);
 
   return (
     <canvas
@@ -675,12 +676,12 @@ export default function ParametricPage() {
       className="flex justify-between items-center py-1 cursor-pointer"
       onClick={() => set((v) => !v)}
     >
-      <span className="text-xs text-slate-300">{label}</span>
+      <span className="text-xs" style={{ color: isDark ? "#cbd5e1" : "#334155" }}>{label}</span>
       <div
         className="w-9 h-5 rounded-full relative transition-all duration-300"
         style={{
-          background: value ? `${color}50` : "#1e293b",
-          border: `1px solid ${value ? color + "70" : "#334155"}`,
+          background: value ? `${color}50` : isDark ? "#1e293b" : "#e2e8f0",
+          border: `1px solid ${value ? color + "70" : isDark ? "#334155" : "#cbd5e1"}`,
         }}
       >
         <div
@@ -794,7 +795,7 @@ export default function ParametricPage() {
 
           <div>
             <div className="flex justify-between mb-1.5">
-              <span className="text-xs text-slate-400">Speed</span>
+              <span className="text-xs" style={{ color: isDark ? "#94a3b8" : "#475569" }}>Speed</span>
               <span className="font-mono text-xs" style={{ color }}>
                 {speed.toFixed(1)}×
               </span>
@@ -813,7 +814,7 @@ export default function ParametricPage() {
 
           <div>
             <div className="flex justify-between mb-1.5">
-              <span className="text-xs text-slate-400">Zoom</span>
+              <span className="text-xs" style={{ color: isDark ? "#94a3b8" : "#475569" }}>Zoom</span>
               <span className="font-mono text-xs" style={{ color }}>
                 {zoom.toFixed(2)}×
               </span>
@@ -925,7 +926,7 @@ export default function ParametricPage() {
                       className="w-2 h-2 rounded-full mt-1 flex-shrink-0"
                       style={{
                         background:
-                          selected.label === ex.label ? color : "#334155",
+                          selected.label === ex.label ? color : isDark ? "#334155" : "#94a3b8",
                         boxShadow:
                           selected.label === ex.label
                             ? `0 0 6px ${color}`
@@ -937,7 +938,7 @@ export default function ParametricPage() {
                         className="text-xs font-medium"
                         style={{
                           color:
-                            selected.label === ex.label ? color : "#94a3b8",
+                            selected.label === ex.label ? color : isDark ? "#94a3b8" : "#475569",
                         }}
                       >
                         {ex.label}
@@ -947,7 +948,7 @@ export default function ParametricPage() {
                           </span>
                         )}
                       </div>
-                      <div className="font-mono text-[9px] mt-0.5 opacity-40 text-slate-400">
+                      <div className="font-mono text-[9px] mt-0.5" style={{ color: isDark ? "rgba(148,163,184,0.5)" : "#64748b" }}>
                         {ex.formula}
                       </div>
                     </div>
@@ -998,7 +999,7 @@ export default function ParametricPage() {
               className="w-2.5 h-2.5 rounded-full flex-shrink-0"
               style={{ background: color, boxShadow: `0 0 8px ${color}` }}
             />
-            <span className="text-sm font-medium text-white">
+            <span className="text-sm font-medium" style={{ color: isDark ? "#ffffff" : "#1e293b" }}>
               {selected.label}
             </span>
             {selected.is3d && (
@@ -1052,10 +1053,11 @@ export default function ParametricPage() {
             ref={wrapRef}
             className="relative flex-1 rounded-2xl overflow-hidden"
             style={{
-              background:
-                "linear-gradient(135deg,#050112 0%,#08021a 50%,#050115 100%)",
-              border: `1px solid ${color}15`,
-              boxShadow: `inset 0 0 80px rgba(0,0,0,0.5)`,
+              background: isDark
+                ? "linear-gradient(135deg,#050112 0%,#08021a 50%,#050115 100%)"
+                : "linear-gradient(135deg,#f0f4ff 0%,#eaeffc 50%,#f0f4ff 100%)",
+              border: `1px solid ${color}${isDark ? "15" : "30"}`,
+              boxShadow: isDark ? `inset 0 0 80px rgba(0,0,0,0.5)` : `inset 0 0 40px rgba(139,92,246,0.05)`,
               cursor: selected.is3d ? "grab" : "crosshair",
               userSelect: "none",
             }}
@@ -1128,6 +1130,7 @@ export default function ParametricPage() {
               color={color}
               rx={rx}
               ry={ry}
+              isDark={isDark}
             />
           </div>
         </div>

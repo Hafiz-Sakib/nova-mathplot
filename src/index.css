@@ -496,3 +496,38 @@
   0%, 100% { opacity: 1; box-shadow: 0 0 6px currentColor; }
   50% { opacity: 0.5; box-shadow: 0 0 2px currentColor; }
 }
+
+/* ══ ADDITIONAL LIGHT MODE FIXES ══ */
+/* Override any remaining dark gradient backgrounds on containers */
+[data-theme="light"] [style*="background: linear-gradient(135deg,#020810"],
+[data-theme="light"] [style*="background: linear-gradient(135deg, #020810"],
+[data-theme="light"] [style*="background: linear-gradient(135deg,#050112"],
+[data-theme="light"] [style*="background: linear-gradient(135deg, #050112"],
+[data-theme="light"] [style*="background: linear-gradient(135deg,#0a0218"],
+[data-theme="light"] [style*="background: #070212"],
+[data-theme="light"] [style*="background: #070115"] {
+  background: linear-gradient(135deg, #f0f4ff 0%, #eaeffc 50%, #f0f4ff 100%) !important;
+}
+
+/* Ensure all regular text is dark enough on light backgrounds */
+[data-theme="light"] .font-mono-code,
+[data-theme="light"] .font-mono {
+  color: inherit;
+}
+
+/* Fix any remaining rgba(2,8,20) or rgba(2,6,20) dark backgrounds */
+[data-theme="light"] [style*="background: rgba(2,8,20"],
+[data-theme="light"] [style*="background: rgba(2, 8, 20"],
+[data-theme="light"] [style*="background: rgba(2,6,20"],
+[data-theme="light"] [style*="background: rgba(2, 6, 20"],
+[data-theme="light"] [style*="background: rgba(4,8,28"],
+[data-theme="light"] [style*="background: rgba(4, 8, 28"] {
+  background: rgba(241, 245, 249, 0.9) !important;
+  color: #1e293b !important;
+}
+
+/* Parametric page canvas wrapper */
+[data-theme="light"] [style*="background: rgba(5,1,18"],
+[data-theme="light"] [style*="background: rgba(5, 1, 18"] {
+  background: rgba(255, 255, 255, 0.92) !important;
+}

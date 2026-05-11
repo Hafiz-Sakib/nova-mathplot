@@ -351,9 +351,10 @@ export default function GraphPanel({
         ref={containerRef}
         className="relative flex-1 min-h-0 rounded-xl overflow-hidden"
         style={{
-          background:
-            "linear-gradient(135deg,#020810 0%,#080418 50%,#020810 100%)",
-          border: "1px solid rgba(139,92,246,0.12)",
+          background: isDark
+            ? "linear-gradient(135deg,#020810 0%,#080418 50%,#020810 100%)"
+            : "linear-gradient(135deg,#f8fafc 0%,#eef4ff 50%,#f0f4ff 100%)",
+          border: isDark ? "1px solid rgba(139,92,246,0.12)" : "1px solid rgba(139,92,246,0.2)",
           cursor: "crosshair",
           userSelect: "none",
         }}
@@ -418,7 +419,7 @@ export default function GraphPanel({
             >
               <CartesianGrid
                 strokeDasharray="2 6"
-                stroke="rgba(139,92,246,0.07)"
+                stroke={isDark ? "rgba(139,92,246,0.07)" : "rgba(139,92,246,0.15)"}
               />
               <XAxis
                 dataKey="x"

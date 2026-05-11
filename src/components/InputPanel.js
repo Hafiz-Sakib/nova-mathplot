@@ -102,10 +102,11 @@ function SectionLabel({ children }) {
 function XnBuilder({ onInsert }) {
   const [coeff, setCoeff] = useState("1");
   const [exp, setExp] = useState("2");
+  const { isDark } = useTheme();
   const preview = `${coeff === "1" ? "" : coeff + "*"}x^${exp}`;
   const miniInput = (val, set, label) => (
     <div className="flex flex-col gap-1">
-      <span className="font-mono-code text-[9px]" style={{ color: "#475569" }}>
+      <span className="font-mono-code text-[9px]" style={{ color: isDark ? "#475569" : "#64748b" }}>
         {label}
       </span>
       <input
@@ -113,10 +114,10 @@ function XnBuilder({ onInsert }) {
         onChange={(e) => set(e.target.value)}
         style={{
           width: 52,
-          background: "rgba(2,6,20,0.9)",
+          background: isDark ? "rgba(2,6,20,0.9)" : "rgba(255,255,255,0.9)",
           border: "1px solid rgba(139,92,246,0.2)",
           borderRadius: 6,
-          color: "#94a3b8",
+          color: isDark ? "#94a3b8" : "#1e293b",
           fontFamily: "'JetBrains Mono',monospace",
           fontSize: "0.75rem",
           padding: "4px 6px",
@@ -197,6 +198,7 @@ export default function InputPanel({
 }) {
   const inputRef = useRef(null);
   const [showGuide, setShowGuide] = useState(false);
+  const { isDark } = useTheme();
   const [showXn, setShowXn] = useState(false);
   const activePlot = plots.find((p) => p.id === activeId);
 
@@ -248,8 +250,8 @@ export default function InputPanel({
                 onClick={() => setActiveId(plot.id)}
                 className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200"
                 style={{
-                  background: isActive ? `${c}10` : "rgba(2,6,20,0.5)",
-                  border: `1px solid ${isActive ? c + "45" : "rgba(139,92,246,0.07)"}`,
+                  background: isActive ? `${c}10` : isDark ? "rgba(2,6,20,0.5)" : "rgba(241,245,249,0.8)",
+                  border: `1px solid ${isActive ? c + "45" : isDark ? "rgba(139,92,246,0.07)" : "rgba(148,163,184,0.2)"}`,
                   boxShadow: isActive ? `0 0 14px ${c}18` : "none",
                 }}
               >
@@ -434,7 +436,7 @@ export default function InputPanel({
                 height: 28,
                 borderRadius: 6,
                 border: "1px solid rgba(139,92,246,0.2)",
-                background: "rgba(2,6,20,0.9)",
+                background: isDark ? "rgba(2,6,20,0.9)" : "rgba(255,255,255,0.9)",
                 cursor: "pointer",
                 padding: 2,
                 flexShrink: 0,
@@ -471,7 +473,7 @@ export default function InputPanel({
           <div
             className="relative rounded-xl overflow-hidden mb-2"
             style={{
-              background: "rgba(2,6,20,0.9)",
+              background: isDark ? "rgba(2,6,20,0.9)" : "rgba(255,255,255,0.95)",
               border: "1px solid rgba(139,92,246,0.28)",
             }}
           >
@@ -565,9 +567,9 @@ export default function InputPanel({
                 title={`${s.insert} — ${s.desc}`}
                 className="font-mono-code text-[10px] px-2 py-1 rounded-lg transition-all"
                 style={{
-                  background: "rgba(2,6,20,0.9)",
+                  background: isDark ? "rgba(2,6,20,0.9)" : "rgba(241,245,249,0.9)",
                   border: "1px solid rgba(139,92,246,0.12)",
-                  color: "#475569",
+                  color: isDark ? "#475569" : "#334155",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = "rgba(139,92,246,0.12)";
@@ -575,9 +577,9 @@ export default function InputPanel({
                   e.currentTarget.style.color = "#a78bfa";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(2,6,20,0.9)";
+                  e.currentTarget.style.background = isDark ? "rgba(2,6,20,0.9)" : "rgba(241,245,249,0.9)";
                   e.currentTarget.style.borderColor = "rgba(139,92,246,0.12)";
-                  e.currentTarget.style.color = "#475569";
+                  e.currentTarget.style.color = isDark ? "#475569" : "#334155";
                 }}
               >
                 {s.label}
@@ -606,9 +608,9 @@ export default function InputPanel({
                   style={{
                     background: isAct
                       ? "rgba(139,92,246,0.14)"
-                      : "rgba(2,6,20,0.8)",
+                      : isDark ? "rgba(2,6,20,0.8)" : "rgba(241,245,249,0.9)",
                     border: `1px solid ${isAct ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.1)"}`,
-                    color: isAct ? "#a78bfa" : "#334155",
+                    color: isAct ? "#a78bfa" : isDark ? "#334155" : "#475569",
                   }}
                 >
                   {ex}
@@ -643,9 +645,9 @@ export default function InputPanel({
                   style={{
                     background: isAct
                       ? "rgba(139,92,246,0.14)"
-                      : "rgba(2,6,20,0.8)",
+                      : isDark ? "rgba(2,6,20,0.8)" : "rgba(241,245,249,0.9)",
                     border: `1px solid ${isAct ? "rgba(139,92,246,0.5)" : "rgba(139,92,246,0.1)"}`,
-                    color: isAct ? "#a78bfa" : "#475569",
+                    color: isAct ? "#a78bfa" : isDark ? "#475569" : "#334155",
                     boxShadow: isAct ? "0 0 8px rgba(139,92,246,0.12)" : "none",
                   }}
                 >
@@ -679,7 +681,7 @@ export default function InputPanel({
           className="flex items-center gap-3 mb-2 cursor-pointer select-none p-2.5 rounded-xl transition-all"
           onClick={() => setAutoY((v) => !v)}
           style={{
-            background: autoY ? "rgba(139,92,246,0.06)" : "rgba(2,6,20,0.4)",
+            background: autoY ? "rgba(139,92,246,0.06)" : isDark ? "rgba(2,6,20,0.4)" : "rgba(241,245,249,0.7)",
             border: `1px solid ${autoY ? "rgba(139,92,246,0.25)" : "rgba(139,92,246,0.07)"}`,
           }}
         >
@@ -688,7 +690,7 @@ export default function InputPanel({
             style={{
               width: 34,
               height: 18,
-              background: autoY ? "rgba(139,92,246,0.3)" : "rgba(4,8,28,0.8)",
+              background: autoY ? "rgba(139,92,246,0.3)" : isDark ? "rgba(4,8,28,0.8)" : "rgba(203,213,225,0.8)",
               border: `1px solid ${autoY ? "rgba(139,92,246,0.6)" : "rgba(139,92,246,0.15)"}`,
               borderRadius: 9,
               transition: "all 0.2s",
@@ -702,7 +704,7 @@ export default function InputPanel({
                 width: 12,
                 height: 12,
                 borderRadius: "50%",
-                background: autoY ? "#a78bfa" : "#334155",
+                background: autoY ? "#a78bfa" : isDark ? "#334155" : "#94a3b8",
                 boxShadow: autoY ? "0 0 6px #a78bfa" : "none",
                 transition: "all 0.2s",
               }}
