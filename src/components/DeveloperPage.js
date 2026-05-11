@@ -76,6 +76,51 @@ const SOCIAL_LINKS = [
   },
 ];
 
+/* ─── Animated ring decoration ─── */
+function OrbitalRings({ color = "#22d3ee" }) {
+  return (
+    <svg
+      width="160"
+      height="160"
+      viewBox="0 0 160 160"
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        opacity: 0.18,
+      }}
+    >
+      <ellipse
+        cx="80"
+        cy="80"
+        rx="74"
+        ry="38"
+        stroke={color}
+        strokeWidth="0.8"
+        fill="none"
+        style={{
+          animation: "spin 14s linear infinite",
+          transformOrigin: "80px 80px",
+        }}
+      />
+      <ellipse
+        cx="80"
+        cy="80"
+        rx="38"
+        ry="74"
+        stroke={color}
+        strokeWidth="0.8"
+        fill="none"
+        style={{
+          animation: "spin 10s linear infinite reverse",
+          transformOrigin: "80px 80px",
+        }}
+      />
+    </svg>
+  );
+}
 
 export default function DeveloperPage({ setPage }) {
   const { isDark } = useTheme();
