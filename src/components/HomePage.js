@@ -409,7 +409,7 @@ export default function HomePage({ setPage }) {
     <main className="flex-1 overflow-y-auto nova-bg">
       {/* ── HERO ── */}
       <section className="relative min-h-[88vh] flex flex-col items-center justify-center overflow-hidden px-4 py-16">
-        <div className="absolute inset-0 nova-grid opacity-50" />
+        {isDark && <div className="absolute inset-0 nova-grid opacity-50" />}
         <div className="absolute inset-0">
           <ParticleField />
         </div>
@@ -518,84 +518,120 @@ export default function HomePage({ setPage }) {
 
           {/* Hero preview card */}
           <div
-            className="max-w-3xl mx-auto rounded-2xl overflow-hidden"
+            className="max-w-3xl mx-auto rounded-2xl"
             style={{
-              background: "rgba(4,10,24,0.82)",
-              border: "1px solid rgba(6,182,212,0.18)",
-              boxShadow:
-                "0 0 60px rgba(6,182,212,0.1),0 30px 60px rgba(0,0,0,0.5)",
+              position: "relative",
+              padding: isDark ? 0 : "1px",
+              background: isDark
+                ? "transparent"
+                : "linear-gradient(135deg, rgba(59,130,246,0.12), rgba(99,102,241,0.08))",
+              borderRadius: "1rem",
             }}
           >
+            {!isDark && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: "1rem",
+                  backgroundImage:
+                    "linear-gradient(rgba(15,23,42,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.10) 1px, transparent 1px)",
+                  backgroundSize: "32px 32px",
+                  pointerEvents: "none",
+                }}
+              />
+            )}
             <div
-              className="flex items-center gap-3 px-5 py-3 border-b"
-              style={{ borderColor: "rgba(6,182,212,0.1)" }}
+              className="relative rounded-2xl overflow-hidden"
+              style={{
+                background: isDark
+                  ? "rgba(4,10,24,0.82)"
+                  : "rgba(255,255,255,0.92)",
+                border: isDark
+                  ? "1px solid rgba(6,182,212,0.18)"
+                  : "1px solid rgba(100,149,237,0.25)",
+                boxShadow: isDark
+                  ? "0 0 60px rgba(6,182,212,0.1),0 30px 60px rgba(0,0,0,0.5)"
+                  : "0 8px 40px rgba(30,64,175,0.1),0 2px 8px rgba(0,0,0,0.06)",
+              }}
             >
-              <div className="flex gap-1.5">
-                {["#ef4444", "#f59e0b", "#10b981"].map((c) => (
-                  <div
-                    key={c}
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ background: c }}
+              <div
+                className="flex items-center gap-3 px-5 py-3 border-b"
+                style={{
+                  borderColor: isDark
+                    ? "rgba(6,182,212,0.1)"
+                    : "rgba(100,149,237,0.2)",
+                }}
+              >
+                <div className="flex gap-1.5">
+                  {["#ef4444", "#f59e0b", "#10b981"].map((c) => (
+                    <div
+                      key={c}
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ background: c }}
+                    />
+                  ))}
+                </div>
+                <span
+                  className="font-mono-code text-xs"
+                  style={{ color: isDark ? "#334155" : "#0f172a" }}
+                >
+                  f(x) = sin(x)·cos(2x) + e^(-x²/4)
+                </span>
+                <div className="ml-auto flex items-center gap-1.5">
+                  <span
+                    className="w-1.5 h-1.5 rounded-full animate-pulse-glow"
+                    style={{ background: "#22d3ee" }}
                   />
+                  <span
+                    className="font-mono-code text-[10px]"
+                    style={{ color: isDark ? "#334155" : "#0f172a" }}
+                  >
+                    LIVE
+                  </span>
+                </div>
+              </div>
+              <div className="p-4">
+                <AnimatedSine />
+              </div>
+              <div className="px-4 pb-4 grid grid-cols-3 gap-3">
+                {[
+                  {
+                    label: "Gaussian",
+                    content: <GaussianPreview />,
+                    color: "#10b981",
+                  },
+                  {
+                    label: "Euler Spiral",
+                    content: <EulerSpiralPreview />,
+                    color: "#a78bfa",
+                  },
+                  {
+                    label: "Activations",
+                    content: <ActivationPreview />,
+                    color: "#fb923c",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-xl p-3"
+                    style={{
+                      background: isDark
+                        ? "rgba(6,18,40,0.6)"
+                        : "rgba(255,255,255,0.88)",
+                      border: `1px solid ${item.color}20`,
+                    }}
+                  >
+                    {item.content}
+                    <p
+                      className="font-mono-code text-[10px] text-center mt-1.5"
+                      style={{ color: item.color, opacity: 0.6 }}
+                    >
+                      {item.label}
+                    </p>
+                  </div>
                 ))}
               </div>
-              <span
-                className="font-mono-code text-xs"
-                style={{ color: "#334155" }}
-              >
-                f(x) = sin(x)·cos(2x) + e^(-x²/4)
-              </span>
-              <div className="ml-auto flex items-center gap-1.5">
-                <span
-                  className="w-1.5 h-1.5 rounded-full animate-pulse-glow"
-                  style={{ background: "#22d3ee" }}
-                />
-                <span
-                  className="font-mono-code text-[10px]"
-                  style={{ color: "#334155" }}
-                >
-                  LIVE
-                </span>
-              </div>
-            </div>
-            <div className="p-4">
-              <AnimatedSine />
-            </div>
-            <div className="px-4 pb-4 grid grid-cols-3 gap-3">
-              {[
-                {
-                  label: "Gaussian",
-                  content: <GaussianPreview />,
-                  color: "#10b981",
-                },
-                {
-                  label: "Euler Spiral",
-                  content: <EulerSpiralPreview />,
-                  color: "#a78bfa",
-                },
-                {
-                  label: "Activations",
-                  content: <ActivationPreview />,
-                  color: "#fb923c",
-                },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-xl p-3"
-                  style={{
-                    background: isDark ? "rgba(6,18,40,0.6)" : "rgba(255,255,255,0.88)",
-                    border: `1px solid ${item.color}20`,
-                  }}
-                >
-                  {item.content}
-                  <p
-                    className="font-mono-code text-[10px] text-center mt-1.5"
-                    style={{ color: item.color, opacity: 0.6 }}
-                  >
-                    {item.label}
-                  </p>
-                </div>
-              ))}
             </div>
           </div>
         </div>
@@ -610,7 +646,9 @@ export default function HomePage({ setPage }) {
               key={s.label}
               className="text-center p-6 rounded-2xl transition-all duration-300"
               style={{
-                background: "rgba(4,10,24,0.7)",
+                background: isDark
+                  ? "rgba(4,10,24,0.7)"
+                  : "rgba(255,255,255,0.92)",
                 border: `1px solid ${s.color}25`,
                 boxShadow: `0 0 0px ${s.color}00`,
               }}
@@ -631,7 +669,7 @@ export default function HomePage({ setPage }) {
               </div>
               <div
                 className="font-mono-code text-xs"
-                style={{ color: "#475569" }}
+                style={{ color: isDark ? "#475569" : "#1e293b" }}
               >
                 {s.label}
               </div>
@@ -666,7 +704,9 @@ export default function HomePage({ setPage }) {
               key={step.step}
               className="relative p-6 rounded-2xl text-center"
               style={{
-                background: "rgba(4,10,24,0.75)",
+                background: isDark
+                  ? "rgba(4,10,24,0.75)"
+                  : "rgba(255,255,255,0.92)",
                 border: `1px solid ${step.color}25`,
               }}
             >
@@ -706,7 +746,7 @@ export default function HomePage({ setPage }) {
               </h3>
               <p
                 className="font-rajdhani text-sm leading-relaxed"
-                style={{ color: "#64748b" }}
+                style={{ color: isDark ? "#64748b" : "#1e293b" }}
               >
                 {step.desc}
               </p>
@@ -857,7 +897,7 @@ export default function HomePage({ setPage }) {
         <div className="text-center mb-6">
           <h3
             className="font-orbitron font-bold text-base"
-            style={{ color: "#334155" }}
+            style={{ color: isDark ? "#94a3b8" : "#1e293b" }}
           >
             Built With
           </h3>
@@ -868,15 +908,21 @@ export default function HomePage({ setPage }) {
               key={t.name}
               className="flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-200"
               style={{
-                background: "rgba(4,10,24,0.8)",
-                border: "1px solid rgba(6,182,212,0.1)",
+                background: isDark
+                  ? "rgba(4,10,24,0.8)"
+                  : "rgba(255,255,255,0.92)",
+                border: isDark
+                  ? "1px solid rgba(6,182,212,0.1)"
+                  : "1px solid rgba(100,149,237,0.25)",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = `${t.color}40`;
                 e.currentTarget.style.boxShadow = `0 0 12px ${t.color}15`;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(6,182,212,0.1)";
+                e.currentTarget.style.borderColor = isDark
+                  ? "rgba(6,182,212,0.1)"
+                  : "rgba(100,149,237,0.25)";
                 e.currentTarget.style.boxShadow = "none";
               }}
             >
@@ -886,7 +932,13 @@ export default function HomePage({ setPage }) {
               />
               <span
                 className="font-mono-code text-xs"
-                style={{ color: t.color }}
+                style={{
+                  color: isDark
+                    ? t.color
+                    : t.color === "#ffffff"
+                      ? "#1e293b"
+                      : t.color,
+                }}
               >
                 {t.name}
               </span>
@@ -932,14 +984,21 @@ export default function HomePage({ setPage }) {
                   rel="noreferrer"
                   className="flex items-center gap-2 group"
                 >
-                  <span style={{ color: isDark ? "#334155" : "#64748b", fontSize: "0.65rem" }}>
+                  <span
+                    style={{
+                      color: isDark ? "#334155" : "#64748b",
+                      fontSize: "0.65rem",
+                    }}
+                  >
                     🌐
                   </span>
                   <span
                     className="font-mono-code text-xs transition-colors"
                     style={{ color: isDark ? "#475569" : "#334155" }}
                     onMouseEnter={(e) => (e.target.style.color = "#22d3ee")}
-                    onMouseLeave={(e) => (e.target.style.color = isDark ? "#475569" : "#334155")}
+                    onMouseLeave={(e) =>
+                      (e.target.style.color = isDark ? "#475569" : "#334155")
+                    }
                   >
                     nova-mathplot.vercel.app
                   </span>
@@ -950,14 +1009,21 @@ export default function HomePage({ setPage }) {
                   rel="noreferrer"
                   className="flex items-center gap-2"
                 >
-                  <span style={{ color: isDark ? "#334155" : "#64748b", fontSize: "0.65rem" }}>
+                  <span
+                    style={{
+                      color: isDark ? "#334155" : "#64748b",
+                      fontSize: "0.65rem",
+                    }}
+                  >
                     ⌥
                   </span>
                   <span
                     className="font-mono-code text-xs transition-colors"
                     style={{ color: isDark ? "#475569" : "#334155" }}
                     onMouseEnter={(e) => (e.target.style.color = "#a78bfa")}
-                    onMouseLeave={(e) => (e.target.style.color = isDark ? "#475569" : "#334155")}
+                    onMouseLeave={(e) =>
+                      (e.target.style.color = isDark ? "#475569" : "#334155")
+                    }
                   >
                     github.com/Hafiz-Sakib/nova-mathplot
                   </span>
@@ -985,7 +1051,9 @@ export default function HomePage({ setPage }) {
                     className="font-rajdhani text-sm text-left transition-colors"
                     style={{ color: isDark ? "#475569" : "#334155" }}
                     onMouseEnter={(e) => (e.target.style.color = "#22d3ee")}
-                    onMouseLeave={(e) => (e.target.style.color = isDark ? "#475569" : "#334155")}
+                    onMouseLeave={(e) =>
+                      (e.target.style.color = isDark ? "#475569" : "#334155")
+                    }
                   >
                     {l}
                   </button>
@@ -1008,12 +1076,21 @@ export default function HomePage({ setPage }) {
                     onClick={() => setPage(p)}
                     className="font-rajdhani text-sm text-left transition-colors"
                     style={{
-                      color: p === "activation" ? "#a78bfa" : isDark ? "#475569" : "#334155",
+                      color:
+                        p === "activation"
+                          ? "#a78bfa"
+                          : isDark
+                            ? "#475569"
+                            : "#334155",
                     }}
                     onMouseEnter={(e) => (e.target.style.color = "#22d3ee")}
                     onMouseLeave={(e) =>
                       (e.target.style.color =
-                        p === "activation" ? "#a78bfa" : isDark ? "#475569" : "#334155")
+                        p === "activation"
+                          ? "#a78bfa"
+                          : isDark
+                            ? "#475569"
+                            : "#334155")
                     }
                   >
                     {l}
@@ -1032,7 +1109,9 @@ export default function HomePage({ setPage }) {
                   className="font-rajdhani text-sm text-left transition-colors"
                   style={{ color: isDark ? "#475569" : "#334155" }}
                   onMouseEnter={(e) => (e.target.style.color = "#f472b6")}
-                  onMouseLeave={(e) => (e.target.style.color = isDark ? "#475569" : "#334155")}
+                  onMouseLeave={(e) =>
+                    (e.target.style.color = isDark ? "#475569" : "#334155")
+                  }
                 >
                   Developer
                 </button>
@@ -1053,7 +1132,12 @@ export default function HomePage({ setPage }) {
                 (t, i) => (
                   <span key={t}>
                     <span style={{ color: "#22d3ee" }}>{t}</span>
-                    {i < 3 && <span style={{ color: isDark ? "#334155" : "#94a3b8" }}> · </span>}
+                    {i < 3 && (
+                      <span style={{ color: isDark ? "#334155" : "#94a3b8" }}>
+                        {" "}
+                        ·{" "}
+                      </span>
+                    )}
                   </span>
                 ),
               )}
@@ -1068,7 +1152,9 @@ export default function HomePage({ setPage }) {
                 className="transition-colors"
                 style={{ color: isDark ? "#475569" : "#334155" }}
                 onMouseEnter={(e) => (e.target.style.color = "#f472b6")}
-                onMouseLeave={(e) => (e.target.style.color = isDark ? "#475569" : "#334155")}
+                onMouseLeave={(e) =>
+                  (e.target.style.color = isDark ? "#475569" : "#334155")
+                }
               >
                 Hafizur Rahman Sakib
               </button>

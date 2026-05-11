@@ -86,8 +86,9 @@ function AxisLines({ size = 6 }) {
 }
 
 /* ─── Attractor Line (animated draw-in) ─── */
-function AttractorLine({ preset, colorScheme }) {
+function AttractorLine({ preset, colorScheme, animSpeed }) {
   const lineRef = useRef();
+  const timeRef = useRef(0);
 
   const { geo, total } = useMemo(() => {
     const pts = [];
@@ -117,9 +118,10 @@ function AttractorLine({ preset, colorScheme }) {
     return { geo: g, total: count };
   }, [preset, colorScheme]);
 
-  useFrame(({ clock }) => {
+  useFrame((_, delta) => {
     if (!lineRef.current) return;
-    const progress = Math.min(1, clock.getElapsedTime() / 5);
+    timeRef.current += delta * (animSpeed ?? 1);
+    const progress = Math.min(1, timeRef.current / 5);
     lineRef.current.geometry.setDrawRange(
       0,
       Math.max(2, Math.floor(progress * total)),
@@ -134,8 +136,9 @@ function AttractorLine({ preset, colorScheme }) {
 }
 
 /* ─── Surface Mesh ─── */
-function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
+function SurfaceMesh({ preset, colorScheme, wireframe, opacity, animSpeed }) {
   const meshRef = useRef();
+  const timeRef = useRef(0);
   const N = 60;
 
   // Build geometry — recompute only when preset changes
@@ -207,9 +210,10 @@ function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
   }, [colorScheme, geometry, rawPts, yMinBase, yMaxBase]);
 
   // Animate vertices + recolor live
-  useFrame(({ clock }) => {
+  useFrame((_, delta) => {
     if (!meshRef.current || !preset.animated) return;
-    const t = clock.getElapsedTime();
+    timeRef.current += delta * (animSpeed ?? 1);
+    const t = timeRef.current;
     const range = preset.range || [
       [-4, 4],
       [-4, 4],
@@ -276,8 +280,9 @@ function SurfaceMesh({ preset, colorScheme, wireframe, opacity }) {
 }
 
 /* ─── Parametric Line ─── */
-function ParametricLine({ preset, colorScheme, animated }) {
+function ParametricLine({ preset, colorScheme, animated, animSpeed }) {
   const ref = useRef();
+  const timeRef = useRef(0);
   const N = 800;
 
   const geometry = useMemo(() => {
@@ -317,9 +322,10 @@ function ParametricLine({ preset, colorScheme, animated }) {
     colorAttr.needsUpdate = true;
   }, [colorScheme, geometry]);
 
-  useFrame(({ clock }) => {
+  useFrame((_, delta) => {
     if (!ref.current || !animated) return;
-    const t = clock.getElapsedTime();
+    timeRef.current += delta * (animSpeed ?? 1);
+    const t = timeRef.current;
     const range = preset.range || [
       [-1, 1],
       [-1, 1],
@@ -1861,6 +1867,8 @@ export default function Plotter3DPage() {
   const [showAxes, setShowAxes] = useState(true);
   const [wireframe, setWireframe] = useState(false);
   const [opacity, setOpacity] = useState(0.92);
+  const [animSpeed, setAnimSpeed] = useState(0.3);
+  const [isPaused, setIsPaused] = useState(false);
   const [customMode, setCustomMode] = useState(false);
   const [customExpr, setCustomExpr] = useState("sin(sqrt(x^2+y^2))");
   const [customInput, setCustomInput] = useState("sin(sqrt(x^2+y^2))");
@@ -1909,7 +1917,9 @@ export default function Plotter3DPage() {
         style={{
           width: "clamp(260px, 30vw, 300px)",
           borderColor: "rgba(139,92,246,0.15)",
-          background: isDark ? "linear-gradient(180deg,#020810 0%,#060418 100%)" : "linear-gradient(180deg,#eef4ff 0%,#e8f0fc 100%)",
+          background: isDark
+            ? "linear-gradient(180deg,#020810 0%,#060418 100%)"
+            : "linear-gradient(180deg,#eef4ff 0%,#e8f0fc 100%)",
           top: "56px",
           height: "calc(100vh - 56px)",
         }}
@@ -2012,7 +2022,11 @@ export default function Plotter3DPage() {
                   className="flex items-center gap-1 px-1.5 py-0.5 rounded font-mono-code text-[9px]"
                   style={{
                     background:
-                      colorScheme === s.id ? `${s.c}18` : isDark ? "rgba(4,10,24,0.7)" : "rgba(255,255,255,0.88)",
+                      colorScheme === s.id
+                        ? `${s.c}18`
+                        : isDark
+                          ? "rgba(4,10,24,0.7)"
+                          : "rgba(255,255,255,0.88)",
                     border: `1px solid ${colorScheme === s.id ? s.c + "60" : "rgba(139,92,246,0.12)"}`,
                     color: colorScheme === s.id ? s.c : "#475569",
                   }}
@@ -2084,6 +2098,57 @@ export default function Plotter3DPage() {
                 background: `linear-gradient(90deg, rgba(139,92,246,0.7) ${opacity * 100}%, ${isDark ? "rgba(6,18,40,0.8)" : "rgba(238,244,255,0.8)"} ${opacity * 100}%)`,
               }}
             />
+          </div>
+
+          {/* Animation Speed */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <div
+                className="section-label text-[10px]"
+                style={{ color: isDark ? "#a78bfa" : "#6d28d9" }}
+              >
+                Anim Speed: {animSpeed.toFixed(2)}x
+              </div>
+              <button
+                onClick={() => setIsPaused((p) => !p)}
+                className="font-mono-code text-[9px] px-2 py-0.5 rounded"
+                style={{
+                  background: isPaused
+                    ? "rgba(239,68,68,0.15)"
+                    : "rgba(16,185,129,0.12)",
+                  border: `1px solid ${isPaused ? "rgba(239,68,68,0.4)" : "rgba(16,185,129,0.35)"}`,
+                  color: isPaused ? "#f87171" : "#34d399",
+                }}
+              >
+                {isPaused ? "▶ Resume" : "⏸ Pause"}
+              </button>
+            </div>
+            <input
+              type="range"
+              min="0.01"
+              max="2"
+              step="0.01"
+              value={animSpeed}
+              onChange={(e) => setAnimSpeed(+e.target.value)}
+              className="w-full h-1 rounded-full appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(90deg, rgba(236,72,153,0.7) ${(animSpeed / 2) * 100}%, ${isDark ? "rgba(6,18,40,0.8)" : "rgba(238,244,255,0.8)"} ${(animSpeed / 2) * 100}%)`,
+              }}
+            />
+            <div className="flex justify-between mt-0.5">
+              <span
+                className="font-mono-code text-[8px]"
+                style={{ color: isDark ? "#334155" : "#64748b" }}
+              >
+                Slow
+              </span>
+              <span
+                className="font-mono-code text-[8px]"
+                style={{ color: isDark ? "#334155" : "#64748b" }}
+              >
+                Fast
+              </span>
+            </div>
           </div>
         </div>
 
@@ -2241,12 +2306,18 @@ export default function Plotter3DPage() {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 relative" style={{ background: isDark ? "#020810" : "#eef4ff" }}>
+        <div
+          className="flex-1 relative"
+          style={{ background: isDark ? "#020810" : "#eef4ff" }}
+        >
           <Canvas
             camera={{ position: [6, 5, 8], fov: 50 }}
             gl={{ antialias: true, alpha: false }}
           >
-            <color attach="background" args={[isDark ? "#020810" : "#eef4ff"]} />
+            <color
+              attach="background"
+              args={[isDark ? "#020810" : "#eef4ff"]}
+            />
             <SceneLighting
               colorScheme={
                 customMode ? colorScheme : preset.color || colorScheme
@@ -2261,7 +2332,7 @@ export default function Plotter3DPage() {
                 factor={4}
                 saturation={0}
                 fade
-                speed={0.3}
+                speed={animSpeed}
               />
             )}
             {showAxes && <AxisLines size={5} />}
@@ -2278,12 +2349,14 @@ export default function Plotter3DPage() {
                 <AttractorLine
                   preset={preset}
                   colorScheme={preset.color || colorScheme}
+                  animSpeed={isPaused ? 0 : animSpeed}
                 />
               ) : preset.type === "line" ? (
                 <ParametricLine
                   preset={preset}
                   colorScheme={preset.color || colorScheme}
                   animated={preset.animated}
+                  animSpeed={isPaused ? 0 : animSpeed}
                 />
               ) : (
                 <SurfaceMesh
@@ -2291,6 +2364,7 @@ export default function Plotter3DPage() {
                   colorScheme={colorScheme}
                   wireframe={wireframe}
                   opacity={opacity}
+                  animSpeed={isPaused ? 0 : animSpeed}
                 />
               )}
             </Suspense>
@@ -2301,10 +2375,10 @@ export default function Plotter3DPage() {
                 args={[20, 20]}
                 cellSize={1}
                 cellThickness={0.4}
-                cellColor="#0e1f3a"
+                cellColor={isDark ? "#0e1f3a" : "#94a3b8"}
                 sectionSize={5}
                 sectionThickness={0.8}
-                sectionColor="#0a3060"
+                sectionColor={isDark ? "#0a3060" : "#475569"}
                 fadeDistance={25}
                 fadeStrength={1}
                 infiniteGrid
@@ -2315,7 +2389,7 @@ export default function Plotter3DPage() {
               enableDamping
               dampingFactor={0.05}
               autoRotate={autoRotate}
-              autoRotateSpeed={1.5}
+              autoRotateSpeed={1.5 * animSpeed}
               minDistance={2}
               maxDistance={40}
               enableZoom
@@ -2329,8 +2403,12 @@ export default function Plotter3DPage() {
             <div
               className="absolute bottom-10 right-3 flex flex-col gap-1 pointer-events-none"
               style={{
-                background: "rgba(2,4,16,0.7)",
-                border: "1px solid rgba(139,92,246,0.1)",
+                background: isDark
+                  ? "rgba(2,4,16,0.7)"
+                  : "rgba(255,255,255,0.88)",
+                border: isDark
+                  ? "1px solid rgba(139,92,246,0.1)"
+                  : "1px solid rgba(100,149,237,0.25)",
                 borderRadius: 8,
                 padding: "6px 10px",
               }}
@@ -2360,7 +2438,9 @@ export default function Plotter3DPage() {
           <div
             className="absolute top-3 right-3 flex items-center gap-1.5 pointer-events-none"
             style={{
-              background: "rgba(2,4,16,0.75)",
+              background: isDark
+                ? "rgba(2,4,16,0.75)"
+                : "rgba(255,255,255,0.88)",
               border: `1px solid ${activeColor}30`,
               borderRadius: 8,
               padding: "4px 10px",
@@ -2386,8 +2466,10 @@ export default function Plotter3DPage() {
         <div
           className="flex items-center justify-between px-3 py-1.5 border-t"
           style={{
-            borderColor: "rgba(139,92,246,0.08)",
-            background: "rgba(2,4,16,0.8)",
+            borderColor: isDark
+              ? "rgba(139,92,246,0.08)"
+              : "rgba(100,149,237,0.2)",
+            background: isDark ? "rgba(2,4,16,0.8)" : "rgba(238,244,255,0.95)",
           }}
         >
           <div className="flex items-center gap-3">
@@ -2410,7 +2492,7 @@ export default function Plotter3DPage() {
           </div>
           <span
             className="font-mono-code text-[9px]"
-            style={{ color: "#1e293b" }}
+            style={{ color: isDark ? "#475569" : "#1e293b" }}
           >
             {customMode ? "55×55" : "60×60"} mesh · {PRESETS.length} presets
           </span>
