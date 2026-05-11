@@ -328,7 +328,7 @@ const FEATURES = [
     glowColor: "rgba(6,182,212,0.12)",
     desc: "Plot any mathematical expression — trig, polynomial, exponential. Multi-function overlay, zoom & pan, animated waves.",
     items: [
-      "50+ example functions",
+      "350+ example functions",
       "Multi-curve overlay",
       "Zoom & pan controls",
       "Animated waveforms",
