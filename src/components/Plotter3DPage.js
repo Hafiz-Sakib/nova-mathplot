@@ -1838,6 +1838,875 @@ const PRESETS = [
     ],
     type: "surface",
   },
+
+  /* ── Waves & Physics ── */
+  {
+    id: "standing_wave",
+    name: "Standing Wave",
+    equation: "y = sin(πx)·cos(πz)·cos(2t)",
+    icon: "〰",
+    color: "cyan",
+    animated: true,
+    category: "Waves & Physics",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (x, z, t = 0) => [
+      x,
+      Math.sin(Math.PI * x) * Math.cos(Math.PI * z) * Math.cos(2 * t) * 1.2,
+      z,
+    ],
+    type: "surface",
+  },
+  {
+    id: "double_slit",
+    name: "Double-Slit Interference",
+    equation: "y = cos(r₁)·e^(−r₁/4) + cos(r₂)·e^(−r₂/4)",
+    icon: "🔬",
+    color: "emerald",
+    animated: true,
+    category: "Waves & Physics",
+    range: [
+      [-4, 4],
+      [-4, 4],
+    ],
+    fn: (x, z, t = 0) => {
+      const r1 = Math.sqrt((x - 1) ** 2 + z * z) + 0.01;
+      const r2 = Math.sqrt((x + 1) ** 2 + z * z) + 0.01;
+      return [
+        x,
+        (Math.cos(r1 * 3 - t * 2) * Math.exp(-r1 / 4) +
+          Math.cos(r2 * 3 - t * 2) * Math.exp(-r2 / 4)) *
+          0.8,
+        z,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "drum_membrane",
+    name: "Drum Membrane Mode",
+    equation: "y = J₀(kr)·cos(ωt)",
+    icon: "🥁",
+    color: "orange",
+    animated: true,
+    category: "Waves & Physics",
+    range: [
+      [-4, 4],
+      [-4, 4],
+    ],
+    fn: (x, z, t = 0) => {
+      const r = Math.sqrt(x * x + z * z);
+      const j0 = Math.cos(r * 1.5) * Math.exp(-r * 0.08);
+      return [x, j0 * Math.cos(t * 2.5) * 1.5, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "shockwave",
+    name: "Shockwave Cone",
+    equation: "y = e^(−2(r−vt)²)·sin(8(r−vt))",
+    icon: "💢",
+    color: "pink",
+    animated: true,
+    category: "Waves & Physics",
+    range: [
+      [-4, 4],
+      [-4, 4],
+    ],
+    fn: (x, z, t = 0) => {
+      const r = Math.sqrt(x * x + z * z);
+      const front = r - t * 1.2;
+      return [x, Math.exp(-2 * front * front) * Math.sin(8 * front) * 1.2, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "electromagnetic_field",
+    name: "EM Dipole Field",
+    equation: "y = cos(θ)/r² · sin(ωt)",
+    icon: "⚡",
+    color: "gold",
+    animated: true,
+    category: "Waves & Physics",
+    range: [
+      [-3.5, 3.5],
+      [-3.5, 3.5],
+    ],
+    fn: (x, z, t = 0) => {
+      const r = Math.sqrt(x * x + z * z) + 0.3;
+      const cos_theta = x / r;
+      return [x, (cos_theta / (r * r)) * Math.sin(t * 2) * 3, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "soliton_wave",
+    name: "Soliton Wave",
+    equation: "y = sech²(x − vt)",
+    icon: "🌊",
+    color: "cyan",
+    animated: true,
+    category: "Waves & Physics",
+    range: [
+      [-4, 4],
+      [-4, 4],
+    ],
+    fn: (x, z, t = 0) => {
+      const sech = (a) => 2 / (Math.exp(a) + Math.exp(-a));
+      return [x, sech(x - t * 1.5) ** 2 * Math.cos(z * 0.8) * 1.5, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "schrodinger_packet",
+    name: "Schrödinger Wave Packet",
+    equation: "ψ = e^(−σr²)·cos(kx − ωt)",
+    icon: "Ψ",
+    color: "violet",
+    animated: true,
+    category: "Waves & Physics",
+    range: [
+      [-4, 4],
+      [-4, 4],
+    ],
+    fn: (x, z, t = 0) => {
+      const envelope = Math.exp(-0.15 * ((x - t) ** 2 + z * z * 0.3));
+      return [x, envelope * Math.cos(3 * x - t * 2) * 1.5, z];
+    },
+    type: "surface",
+  },
+
+  /* ── Algebraic Surfaces ── */
+  {
+    id: "cassini_oval",
+    name: "Cassini Oval Surface",
+    equation: "((x²+z²)² = a⁴cos 2θ)",
+    icon: "🥚",
+    color: "gold",
+    category: "Algebraic",
+    range: [
+      [0, Math.PI * 2],
+      [-1.2, 1.2],
+    ],
+    fn: (theta, v) => {
+      const a = 1.8;
+      const cos2 = Math.cos(2 * theta);
+      if (cos2 < 0) return [0, v * 0.01, 0];
+      const r = a * Math.sqrt(Math.abs(cos2));
+      return [r * Math.cos(theta) * 1.5, v * 1.2, r * Math.sin(theta) * 1.5];
+    },
+    type: "surface",
+  },
+  {
+    id: "kuen_surface",
+    name: "Kuen Surface",
+    equation: "(2(cos u+u sin u)sin v/(1+u²sin²v), ...)",
+    icon: "𝒦",
+    color: "emerald",
+    category: "Algebraic",
+    range: [
+      [-4, 4],
+      [0.05, Math.PI - 0.05],
+    ],
+    fn: (u, v) => {
+      const d = 1 + u * u * Math.sin(v) * Math.sin(v);
+      return [
+        ((2 * (Math.cos(u) + u * Math.sin(u)) * Math.sin(v)) / d) * 0.7,
+        ((2 * (Math.sin(u) - u * Math.cos(u)) * Math.sin(v)) / d) * 0.7,
+        (Math.log(Math.tan(v / 2)) + (2 * Math.cos(v)) / d) * 0.7,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "cross_cap",
+    name: "Cross-Cap",
+    equation: "(sin u sin 2v, sin 2u cos²v, cos 2u cos²v)",
+    icon: "✚",
+    color: "pink",
+    category: "Algebraic",
+    range: [
+      [0, Math.PI],
+      [0, Math.PI],
+    ],
+    fn: (u, v) => [
+      Math.sin(u) * Math.sin(2 * v) * 2,
+      Math.sin(2 * u) * Math.cos(v) * Math.cos(v) * 2,
+      Math.cos(2 * u) * Math.cos(v) * Math.cos(v) * 2,
+    ],
+    type: "surface",
+  },
+  {
+    id: "bohemian_dome",
+    name: "Bohemian Dome",
+    equation: "(a·cos u, b·cos v+a·sin u, c·sin v)",
+    icon: "⛺",
+    color: "orange",
+    animated: true,
+    category: "Algebraic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v, t = 0) => {
+      const a = 0.5,
+        b = 1.5,
+        c = 1.0;
+      return [
+        a * Math.cos(u + t * 0.2) * 2,
+        (b * Math.cos(v) + a * Math.sin(u + t * 0.2)) * 2,
+        c * Math.sin(v) * 2,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "steiners_roman",
+    name: "Steiner's Roman Surface II",
+    equation: "(sin 2u·cos²v, sin u·sin 2v, cos u·sin 2v)",
+    icon: "🏛",
+    color: "violet",
+    category: "Algebraic",
+    range: [
+      [0, Math.PI],
+      [0, Math.PI],
+    ],
+    fn: (u, v) => [
+      Math.sin(2 * u) * Math.cos(v) ** 2 * 2.2,
+      Math.sin(u) * Math.sin(2 * v) * 2.2,
+      Math.cos(u) * Math.sin(2 * v) * 2.2,
+    ],
+    type: "surface",
+  },
+  {
+    id: "barth_sextic",
+    name: "Barth Sextic (approx)",
+    equation: "4(φ²x²−y²)(φ²y²−z²)(φ²z²−x²) = (1+2φ)(x²+y²+z²−1)²",
+    icon: "✡",
+    color: "gold",
+    category: "Algebraic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (u, v) => {
+      const phi = (1 + Math.sqrt(5)) / 2;
+      const r = 1 + 0.4 * Math.abs(Math.sin(3 * u) * Math.cos(3 * v));
+      return [
+        r * Math.sin(v) * Math.cos(u) * 2,
+        r * Math.cos(v) * 2,
+        r * Math.sin(v) * Math.sin(u) * 2,
+      ];
+    },
+    type: "surface",
+  },
+
+  /* ── Nature & Organic ── */
+  {
+    id: "seashell",
+    name: "Seashell",
+    equation:
+      "(e^(bu/2π)cos u(1+cos v), e^(bu/2π)sin u(1+cos v), e^(bu/2π)sin v)",
+    icon: "🐚",
+    color: "orange",
+    category: "Nature",
+    range: [
+      [0, Math.PI * 6],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v) => {
+      const b = 0.2,
+        scale = 0.3;
+      const r = Math.exp((b * u) / (2 * Math.PI)) * scale;
+      return [
+        r * Math.cos(u) * (1 + Math.cos(v)),
+        r * Math.sin(u) * (1 + Math.cos(v)),
+        r * Math.sin(v) - r * 0.5,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "leaf_surface",
+    name: "Leaf Surface",
+    equation: "y = e^(−r)·sin²(4θ)",
+    icon: "🍃",
+    color: "emerald",
+    animated: true,
+    category: "Nature",
+    range: [
+      [0, Math.PI * 2],
+      [0, 3],
+    ],
+    fn: (theta, r, t = 0) => {
+      const mask = Math.sin(theta) * Math.sin(theta);
+      const y = Math.exp(-r) * mask * (1 + 0.05 * Math.sin(t * 3));
+      return [r * Math.cos(theta), y * 2, r * Math.sin(theta)];
+    },
+    type: "surface",
+  },
+  {
+    id: "rose_surface",
+    name: "3D Rose Surface",
+    equation: "r = cos(kθ), revolved around y",
+    icon: "🌹",
+    color: "pink",
+    animated: true,
+    category: "Nature",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (phi, theta, t = 0) => {
+      const k = 4;
+      const r = Math.abs(Math.cos(k * phi + t * 0.2)) + 0.2;
+      return [
+        r * Math.sin(theta) * Math.cos(phi) * 2.5,
+        r * Math.cos(theta) * 2.5,
+        r * Math.sin(theta) * Math.sin(phi) * 2.5,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "coral_surface",
+    name: "Coral Reef Surface",
+    equation: "y = sin(πx/2)·cos(πz/2)·e^(−0.1r) + noise",
+    icon: "🪸",
+    color: "orange",
+    animated: true,
+    category: "Nature",
+    range: [
+      [-4, 4],
+      [-4, 4],
+    ],
+    fn: (x, z, t = 0) => {
+      const r = Math.sqrt(x * x + z * z);
+      const base =
+        Math.sin(x * Math.PI * 0.5) *
+        Math.cos(z * Math.PI * 0.5) *
+        Math.exp(-0.1 * r);
+      const ripple = 0.15 * Math.sin(r * 3 - t * 2);
+      return [x, (base + ripple) * 1.5, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "fern_curve",
+    name: "Fern Spiral",
+    equation: "(r·cos(θ+e^(−0.1θ)), e^(−0.1θ), r·sin θ)",
+    icon: "🌿",
+    color: "emerald",
+    animated: true,
+    category: "Nature",
+    range: [
+      [-1, 1],
+      [0, Math.PI * 8],
+    ],
+    fn: (u, theta, t = 0) => {
+      const decay = Math.exp(-0.1 * theta);
+      const r = decay + 0.1;
+      return [
+        r * Math.cos(theta + t * 0.3) * 1.5,
+        theta * 0.2 - Math.PI * 0.8,
+        r * Math.sin(theta + t * 0.3) * 1.5,
+      ];
+    },
+    type: "line",
+  },
+  {
+    id: "brain_coral",
+    name: "Brain Coral Maze",
+    equation: "y = 0.3·sin(10x)·cos(10z)·sech(r)",
+    icon: "🧠",
+    color: "pink",
+    animated: true,
+    category: "Nature",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (x, z, t = 0) => {
+      const r = Math.sqrt(x * x + z * z);
+      const sech = 2 / (Math.exp(r) + Math.exp(-r));
+      return [
+        x,
+        0.3 * Math.sin(10 * x + t * 0.5) * Math.cos(10 * z) * sech * 4,
+        z,
+      ];
+    },
+    type: "surface",
+  },
+
+  /* ── Fractals ── */
+  {
+    id: "mandelbulb_slice",
+    name: "Mandelbulb Slice",
+    equation: "Mandelbulb cross-section escape-time map",
+    icon: "🔮",
+    color: "violet",
+    category: "Fractals",
+    range: [
+      [-2.5, 2.5],
+      [-2.5, 2.5],
+    ],
+    fn: (x, z) => {
+      let cx = x,
+        cz = z,
+        cy = 0;
+      let bx = 0,
+        by = 0,
+        bz = 0;
+      let i = 0;
+      for (; i < 8; i++) {
+        const r = Math.sqrt(bx * bx + by * by + bz * bz);
+        if (r > 2) break;
+        const n = 8;
+        const theta = Math.atan2(Math.sqrt(bx * bx + bz * bz), by);
+        const phi = Math.atan2(bz, bx);
+        const rn = Math.pow(r, n);
+        bx = rn * Math.sin(n * theta) * Math.cos(n * phi) + cx;
+        by = rn * Math.cos(n * theta) + cy;
+        bz = rn * Math.sin(n * theta) * Math.sin(n * phi) + cz;
+      }
+      return [x, (i / 8) * 2 - 0.5, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "julia_landscape",
+    name: "Julia Set Landscape",
+    equation: "z_{n+1} = z_n² + c, height = escape time",
+    icon: "🌀",
+    color: "rainbow",
+    category: "Fractals",
+    range: [
+      [-2, 2],
+      [-2, 2],
+    ],
+    fn: (x, z) => {
+      const cx = -0.7,
+        cy = 0.27015;
+      let zx = x,
+        zy = z;
+      let i = 0;
+      for (; i < 16; i++) {
+        if (zx * zx + zy * zy > 4) break;
+        const tmp = zx * zx - zy * zy + cx;
+        zy = 2 * zx * zy + cy;
+        zx = tmp;
+      }
+      return [x, (i / 16) * 2, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "sierpinski_approx",
+    name: "Sierpiński Pyramid Approx",
+    equation: "Iterated function system surface",
+    icon: "△",
+    color: "gold",
+    category: "Fractals",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (x, z) => {
+      const r = Math.sqrt(x * x + z * z);
+      let y = 0;
+      for (let n = 1; n <= 6; n++) {
+        y +=
+          Math.sin(x * Math.pow(2, n) + z * Math.pow(2, n) * 0.7) /
+          Math.pow(2, n);
+      }
+      return [x, y * (1 - Math.min(1, r / 3.5)) * 1.5, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "dragon_curve_surface",
+    name: "Dragon Flame Surface",
+    equation: "y = Σ sin(3ⁿx)·cos(2ⁿz) / 3ⁿ",
+    icon: "🐉",
+    color: "orange",
+    animated: true,
+    category: "Fractals",
+    range: [
+      [-3, 3],
+      [-3, 3],
+    ],
+    fn: (x, z, t = 0) => {
+      let y = 0;
+      for (let n = 1; n <= 5; n++) {
+        y +=
+          (Math.sin(Math.pow(3, n) * x * 0.4 + t * 0.3) *
+            Math.cos(Math.pow(2, n) * z * 0.4)) /
+          Math.pow(3, n);
+      }
+      return [x, y * 2.5, z];
+    },
+    type: "surface",
+  },
+
+  /* ── More Attractors ── */
+  {
+    id: "aizawa_attractor",
+    name: "Aizawa Attractor",
+    equation: "ẋ=(z−b)x−dy, ẏ=dx+(z−b)y, ż=c+az−z³/3−(x²+y²)(1+ez)+fzx³",
+    icon: "🌀",
+    color: "emerald",
+    category: "Attractors",
+    type: "attractor",
+    attractor: {
+      init: [0.1, 0, 0],
+      scale: 0.6,
+      dt: 0.01,
+      steps: 10000,
+      deriv: (x, y, z) => {
+        const a = 0.95,
+          b = 0.7,
+          c = 0.6,
+          d = 3.5,
+          e = 0.25,
+          f = 0.1;
+        return [
+          (z - b) * x - d * y,
+          d * x + (z - b) * y,
+          c +
+            a * z -
+            (z * z * z) / 3 -
+            (x * x + y * y) * (1 + e * z) +
+            f * z * x * x * x,
+        ];
+      },
+    },
+  },
+  {
+    id: "halvorsen_attractor",
+    name: "Halvorsen Attractor",
+    equation: "ẋ=−ax−4y−4z−y², ẏ=−ay−4z−4x−z², ż=−az−4x−4y−x²",
+    icon: "🔯",
+    color: "pink",
+    category: "Attractors",
+    type: "attractor",
+    attractor: {
+      init: [-1.48, -1.51, 2.04],
+      scale: 0.12,
+      dt: 0.005,
+      steps: 10000,
+      deriv: (x, y, z) => {
+        const a = 1.89;
+        return [
+          -a * x - 4 * y - 4 * z - y * y,
+          -a * y - 4 * z - 4 * x - z * z,
+          -a * z - 4 * x - 4 * y - x * x,
+        ];
+      },
+    },
+  },
+  {
+    id: "dadras_attractor",
+    name: "Dadras Attractor",
+    equation: "ẋ=y−ax+byz, ẏ=cy−xz+z, ż=dxy−ez",
+    icon: "🪷",
+    color: "gold",
+    category: "Attractors",
+    type: "attractor",
+    attractor: {
+      init: [1, 1, 0],
+      scale: 0.12,
+      dt: 0.005,
+      steps: 9000,
+      deriv: (x, y, z) => {
+        const a = 3,
+          b = 2.7,
+          c = 1.7,
+          d = 2,
+          e = 9;
+        return [y - a * x + b * y * z, c * y - x * z + z, d * x * y - e * z];
+      },
+    },
+  },
+  {
+    id: "chen_attractor",
+    name: "Chen Attractor",
+    equation: "ẋ=a(y−x), ẏ=(c−a)x−xz+cy, ż=xy−bz",
+    icon: "🌊",
+    color: "cyan",
+    category: "Attractors",
+    type: "attractor",
+    attractor: {
+      init: [1, 0, 0],
+      scale: 0.08,
+      dt: 0.004,
+      steps: 10000,
+      deriv: (x, y, z) => {
+        const a = 35,
+          b = 3,
+          c = 28;
+        return [a * (y - x), (c - a) * x - x * z + c * y, x * y - b * z];
+      },
+    },
+  },
+
+  /* ── More Knots ── */
+  {
+    id: "cinquefoil_knot",
+    name: "Cinquefoil Knot (2,5)",
+    equation: "((R+r·cos 5t)cos 2t, r·sin 5t, (R+r·cos 5t)sin 2t)",
+    icon: "✿",
+    color: "pink",
+    animated: true,
+    category: "Knots",
+    range: [
+      [-1, 1],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v, t = 0) => {
+      const p = 2,
+        q = 5,
+        R = 2,
+        r = 0.5;
+      return [
+        (R + r * Math.cos(q * v)) * Math.cos(p * v + t * 0.3),
+        r * Math.sin(q * v),
+        (R + r * Math.cos(q * v)) * Math.sin(p * v + t * 0.3),
+      ];
+    },
+    type: "line",
+  },
+  {
+    id: "torus_knot_3_4",
+    name: "Torus Knot (3,4)",
+    equation: "((R+r·cos 4t)cos 3t, r·sin 4t, (R+r·cos 4t)sin 3t)",
+    icon: "🔗",
+    color: "gold",
+    animated: true,
+    category: "Knots",
+    range: [
+      [-1, 1],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v, t = 0) => {
+      const p = 3,
+        q = 4,
+        R = 2,
+        r = 0.5;
+      return [
+        (R + r * Math.cos(q * v)) * Math.cos(p * v + t * 0.2),
+        r * Math.sin(q * v),
+        (R + r * Math.cos(q * v)) * Math.sin(p * v + t * 0.2),
+      ];
+    },
+    type: "line",
+  },
+
+  /* ── Quadrics (more) ── */
+  {
+    id: "ellipsoid",
+    name: "Ellipsoid",
+    equation: "x²/a² + y²/b² + z²/c² = 1",
+    icon: "🥚",
+    color: "emerald",
+    animated: true,
+    category: "Quadrics",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (u, v, t = 0) => {
+      const a = 2 + 0.1 * Math.sin(t),
+        b = 3,
+        c = 1.5;
+      return [
+        a * Math.sin(v) * Math.cos(u),
+        b * Math.cos(v),
+        c * Math.sin(v) * Math.sin(u),
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "one_sheet_hyperboloid",
+    name: "Hyperboloid (One Sheet)",
+    equation: "x²+z² − y² = 1",
+    icon: "⌛",
+    color: "cyan",
+    animated: true,
+    category: "Quadrics",
+    range: [
+      [0, Math.PI * 2],
+      [-2, 2],
+    ],
+    fn: (u, v, t = 0) => [
+      Math.cosh(v * 0.8) * Math.cos(u + t * 0.3) * 1.5,
+      v * 1.5,
+      Math.cosh(v * 0.8) * Math.sin(u + t * 0.3) * 1.5,
+    ],
+    type: "surface",
+  },
+  {
+    id: "cone_surface",
+    name: "Elliptic Cone",
+    equation: "z = √(x²/a² + y²/b²)",
+    icon: "🔺",
+    color: "orange",
+    category: "Quadrics",
+    range: [
+      [0, Math.PI * 2],
+      [0, 3],
+    ],
+    fn: (u, v) => [v * Math.cos(u) * 1.2, v, v * Math.sin(u) * 0.8],
+    type: "surface",
+  },
+
+  /* ── Differential Geometry (more) ── */
+  {
+    id: "pseudosphere",
+    name: "Pseudosphere (Tractroid)",
+    equation: "(sech v·cos u, sech v·sin u, v−tanh v)",
+    icon: "🪣",
+    color: "violet",
+    category: "Differential Geometry",
+    range: [
+      [0, Math.PI * 2],
+      [-3, 3],
+    ],
+    fn: (u, v) => {
+      const sech = 1 / Math.cosh(v);
+      return [
+        sech * Math.cos(u) * 1.5,
+        (v - Math.tanh(v)) * 1.5,
+        sech * Math.sin(u) * 1.5,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "figure8_immersion",
+    name: "Figure-8 Immersion of Klein",
+    equation: "cos(u/2)·cos²(v/2)·κ(u,v)",
+    icon: "∞",
+    color: "pink",
+    category: "Differential Geometry",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v) => {
+      const cos_half = Math.cos(u / 2);
+      const sin_half = Math.sin(u / 2);
+      return [
+        (2 + cos_half * Math.sin(v) - sin_half * Math.sin(2 * v)) *
+          Math.cos(u) *
+          0.5,
+        (2 + cos_half * Math.sin(v) - sin_half * Math.sin(2 * v)) *
+          Math.sin(u) *
+          0.5,
+        sin_half * Math.sin(v) + cos_half * Math.sin(2 * v) * 0.5,
+      ];
+    },
+    type: "surface",
+  },
+
+  /* ── Classic (more) ── */
+  {
+    id: "astroid_surface",
+    name: "Astroid Surface",
+    equation: "(cos³u·cos³v, sin³u, cos³u·sin³v)",
+    icon: "⭐",
+    color: "gold",
+    animated: true,
+    category: "Classic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI],
+    ],
+    fn: (u, v, t = 0) => {
+      const scale = 1 + 0.05 * Math.sin(t * 2);
+      return [
+        Math.cos(u) ** 3 * Math.cos(v) ** 3 * 2.5 * scale,
+        Math.sin(u) ** 3 * 2.5 * scale,
+        Math.cos(u) ** 3 * Math.sin(v) ** 3 * 2.5 * scale,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "limacon_surface",
+    name: "Limaçon Revolved",
+    equation: "r = 1 + 2cos θ, revolved",
+    icon: "🐌",
+    color: "emerald",
+    animated: true,
+    category: "Classic",
+    range: [
+      [0, Math.PI * 2],
+      [0, Math.PI * 2],
+    ],
+    fn: (u, v, t = 0) => {
+      const r = Math.abs(1 + 2 * Math.cos(u + t * 0.2));
+      return [
+        r * Math.cos(u + t * 0.2) * Math.sin(v) * 0.7,
+        r * Math.cos(v) * 0.7,
+        r * Math.sin(u + t * 0.2) * Math.sin(v) * 0.7,
+      ];
+    },
+    type: "surface",
+  },
+  {
+    id: "sinc_surface",
+    name: "Sinc Surface",
+    equation: "y = sin(r)/r",
+    icon: "📡",
+    color: "cyan",
+    animated: true,
+    category: "Classic",
+    range: [
+      [-5, 5],
+      [-5, 5],
+    ],
+    fn: (x, z, t = 0) => {
+      const r = Math.sqrt(x * x + z * z) + 0.001;
+      return [x, (Math.sin(r - t * 0.5) / r) * 3, z];
+    },
+    type: "surface",
+  },
+  {
+    id: "egg_carton",
+    name: "Egg Carton",
+    equation: "y = sin x · cos z",
+    icon: "🥚",
+    color: "orange",
+    category: "Classic",
+    range: [
+      [-Math.PI * 1.5, Math.PI * 1.5],
+      [-Math.PI * 1.5, Math.PI * 1.5],
+    ],
+    fn: (x, z) => [x, Math.sin(x) * Math.cos(z) * 1.5, z],
+    type: "surface",
+  },
+  {
+    id: "bilinear_patch",
+    name: "Bilinear Saddle Twist",
+    equation: "y = x·z + sin(x²+z²+t)",
+    icon: "🌀",
+    color: "violet",
+    animated: true,
+    category: "Classic",
+    range: [
+      [-2, 2],
+      [-2, 2],
+    ],
+    fn: (x, z, t = 0) => [
+      x,
+      x * z * 0.5 + 0.3 * Math.sin(x * x + z * z + t * 2),
+      z,
+    ],
+    type: "surface",
+  },
 ];
 
 /* ─── Category colors ─── */
