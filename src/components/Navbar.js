@@ -1,16 +1,54 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../ThemeContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faHouse,
+  faChartLine,
+  faAtom,
+  faWaveSquare,
+  faDiagramProject,
+  faCode,
+  faCube,
+  faCubes,
+} from "@fortawesome/free-solid-svg-icons";
 
 const NAV_LINKS = [
-  { label: "Home", page: "home", icon: "⌂" },
-  { label: "2D Plotter", page: "plotter2d", icon: "∿" },
-  { label: "3D Visualizer", page: "plotter3d", icon: "🌌" },
-  { label: "Complex", page: "complex", icon: "ℂ" },
-  { label: "Parametric", page: "parametric", icon: "∑" },
-  { label: "Activations", page: "activation", icon: "σ" },
-  { label: "Developer", page: "developer", icon: "⌘" },
+  {
+    label: "Home",
+    page: "home",
+    icon: <FontAwesomeIcon icon={faHouse} />,
+  },
+  {
+    label: "2D Plotter",
+    page: "plotter2d",
+    icon: <FontAwesomeIcon icon={faChartLine} />,
+  },
+  {
+    label: "3D Visualizer",
+    page: "plotter3d",
+    icon: <FontAwesomeIcon icon={faCube} />,
+  },
+  {
+    label: "Complex",
+    page: "complex",
+    icon: <FontAwesomeIcon icon={faAtom} />,
+  },
+  {
+    label: "Parametric",
+    page: "parametric",
+    icon: <FontAwesomeIcon icon={faWaveSquare} />,
+  },
+  {
+    label: "Activation",
+    page: "activation",
+    icon: <FontAwesomeIcon icon={faDiagramProject} />,
+  },
+  {
+    label: "Developer",
+    page: "developer",
+    icon: <FontAwesomeIcon icon={faCode} />,
+  },
 ];
-
 /* ── Premium pill-shaped theme toggle ── */
 function ThemeToggle({ isDark, toggleTheme }) {
   return (
