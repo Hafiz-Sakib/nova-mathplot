@@ -232,7 +232,7 @@ export default function DeveloperPage({ setPage }) {
                 className="font-rajdhani text-base mb-1"
                 style={{ color: "#64748b" }}
               >
-                Full Stack Developer · Bangladesh 🇧🇩
+                Full Stack Developer · Bangladesh {"\u{1F1E7}\u{1F1E9}"}
               </p>
               <p
                 className="font-mono text-xs mb-4"
