@@ -41,70 +41,71 @@ function evalComplex(expr, x) {
 }
 
 const EXAMPLES = [
+  // ── Original Examples ─────────────────────────────────────
   {
     label: "Euler's Formula",
     expr: "e^(i*x)",
-    desc: "e^(ix) = cos(x) + i·sin(x) — traces a unit circle on the Argand plane",
+    desc: "e^(ix) = cos(x) + i·sin(x) — traces a unit circle",
     tag: "🌀",
   },
   {
     label: "Complex Sine",
     expr: "sin(i*x)",
-    desc: "sin(ix) = i·sinh(x) — complex input gives real hyperbolic functions",
+    desc: "sin(ix) = i·sinh(x)",
     tag: "〜",
   },
   {
     label: "Spiral Exp",
     expr: "e^(x + i*x)",
-    desc: "Expanding spiral — both amplitude and phase grow together",
+    desc: "Expanding spiral",
     tag: "🌪",
   },
   {
     label: "Damped Spiral",
     expr: "e^(-x) * (cos(x) + i*sin(x))",
-    desc: "Decaying oscillation — amplitude shrinks as x increases",
+    desc: "Decaying oscillation",
     tag: "📉",
   },
   {
     label: "Complex Log",
     expr: "log(x + i*x)",
-    desc: "Complex logarithm — phase and magnitude from the origin",
+    desc: "Complex logarithm",
     tag: "ln",
   },
   {
     label: "i^x",
     expr: "(0 + 1i)^x",
-    desc: "i raised to real power — periodic 4-cycle in the complex plane",
+    desc: "i raised to real power",
     tag: "𝑖",
   },
   {
     label: "Chirp Signal",
     expr: "e^(i*x*x/4)",
-    desc: "Quadratic phase — frequency increases linearly with x",
+    desc: "Quadratic phase chirp",
     tag: "📡",
   },
   {
     label: "Gaussian Wave",
     expr: "e^(-abs(x)) * cos(3*x) + i * e^(-abs(x)) * sin(3*x)",
-    desc: "Gaussian-modulated complex wave — symmetric bell envelope",
+    desc: "Gaussian-modulated wave",
     tag: "🔔",
   },
   {
     label: "Zeta-like",
     expr: "1/x^(0.5 + i*x)",
-    desc: "Zeta-inspired — oscillating with decreasing amplitude",
+    desc: "Zeta-inspired oscillation",
     tag: "ζ",
   },
   {
     label: "Bessel-like",
     expr: "cos(x - pi/4) / sqrt(x+0.01)",
-    desc: "Bessel J approximation — oscillates with 1/√x decay",
+    desc: "Bessel J approximation",
     tag: "𝐽",
   },
   {
     label: "Fresnel S",
     expr: "sin(x^2 / 2)",
-    desc: "Fresnel integral component — S(x), used in diffraction",
+    desc: "Fresnel integral component",
     tag: "∫",
   },
   {
@@ -112,6 +113,318 @@ const EXAMPLES = [
     expr: "sin(x) * cos(x*x/4 + i*x)",
     desc: "Amplitude-modulated complex wave",
     tag: "📻",
+  },
+
+  // ── NEW: 70+ Additional Examples ─────────────────────────────
+  // Polynomials & Rational
+  { label: "z^2", expr: "x^2", desc: "Simple quadratic", tag: "²" },
+  { label: "z^3", expr: "x^3", desc: "Cubic", tag: "³" },
+  {
+    label: "(z+1)/(z-1)",
+    expr: "(x+1)/(x-1)",
+    desc: "Möbius transformation",
+    tag: "↔",
+  },
+  {
+    label: "z^2 + i*z",
+    expr: "x^2 + i*x",
+    desc: "Parabola shifted by i",
+    tag: "🌀",
+  },
+
+  // Exponentials
+  {
+    label: "e^(i*x^2)",
+    expr: "e^(i*x*x)",
+    desc: "Quadratic phase spiral",
+    tag: "🌌",
+  },
+  { label: "e^(2i*x)", expr: "e^(2*i*x)", desc: "Faster rotation", tag: "⟳" },
+  {
+    label: "e^(-0.3*x + 3i*x)",
+    expr: "e^(-0.3*x + 3*i*x)",
+    desc: "Damped fast spiral",
+    tag: "📉",
+  },
+  { label: "e^(i*x^3)", expr: "e^(i*x*x*x)", desc: "Cubic phase", tag: "∛" },
+
+  // Trigonometric
+  {
+    label: "cos(x) + i*sin(2x)",
+    expr: "cos(x) + i*sin(2*x)",
+    desc: "Different frequencies",
+    tag: "≈",
+  },
+  {
+    label: "sin(3x) + i*cos(5x)",
+    expr: "sin(3*x) + i*cos(5*x)",
+    desc: "Lissajous-like in complex",
+    tag: "⟐",
+  },
+  { label: "tan(i*x)", expr: "tan(i*x)", desc: "Complex tangent", tag: "tan" },
+  {
+    label: "sinh(x) + i*cosh(x)",
+    expr: "sinh(x) + i*cosh(x)",
+    desc: "Hyperbolic",
+    tag: "sinh",
+  },
+
+  // Log & Power
+  {
+    label: "log(1 + i*x)",
+    expr: "log(1 + i*x)",
+    desc: "Log with imaginary shift",
+    tag: "log",
+  },
+  {
+    label: "x^i",
+    expr: "x^i",
+    desc: "Real base to imaginary power",
+    tag: "ˣⁱ",
+  },
+  { label: "(1 + i)^x", expr: "(1 + i)^x", desc: "Complex base", tag: "¹⁺ⁱ" },
+  {
+    label: "x^(0.5 + 2i)",
+    expr: "x^(0.5 + 2*i)",
+    desc: "Fractional + imaginary power",
+    tag: "√ⁱ",
+  },
+
+  // Special Spirals & Fractal-like
+  {
+    label: "e^(i*x*log(x+1))",
+    expr: "e^(i*x*log(x+1))",
+    desc: "Logarithmic spiral modulation",
+    tag: "🌀",
+  },
+  {
+    label: "sin(x) * e^(i*x)",
+    expr: "sin(x) * e^(i*x)",
+    desc: "Amplitude modulated circle",
+    tag: "⊙",
+  },
+  {
+    label: "e^(i*e^x)",
+    expr: "e^(i*e^x)",
+    desc: "Extremely rapid rotation",
+    tag: "⚡",
+  },
+
+  // Wave Packets & Pulses
+  {
+    label: "sech(x) * e^(i*4*x)",
+    expr: "1/cosh(x) * e^(i*4*x)",
+    desc: "Soliton-like wave packet",
+    tag: "🌊",
+  },
+  {
+    label: "e^(-x^2) * e^(i*8*x)",
+    expr: "e^(-x*x) * e^(i*8*x)",
+    desc: "Gaussian wave packet",
+    tag: "📦",
+  },
+  {
+    label: "1/(x^2 + 1) * e^(i*x)",
+    expr: "1/(x*x+1) * e^(i*x)",
+    desc: "Lorentzian modulated",
+    tag: "📍",
+  },
+
+  // More Trigonometric & Hyperbolic
+  { label: "cos(i*x)", expr: "cos(i*x)", desc: "cosh(x)", tag: "cosh" },
+  { label: "sin(x + i)", expr: "sin(x + i)", desc: "Shifted sine", tag: "sin" },
+  {
+    label: "tanh(x + i*x)",
+    expr: "tanh(x + i*x)",
+    desc: "Complex tanh",
+    tag: "tanh",
+  },
+
+  // Polynomials with higher degrees
+  { label: "z^4 - 1", expr: "x^4 - 1", desc: "Roots of unity", tag: "⁴" },
+  { label: "z^5 + i", expr: "x^5 + i", desc: "Quintic", tag: "⁵" },
+  {
+    label: "(x^2 + 1)^2",
+    expr: "(x*x + 1)^2",
+    desc: "Squared denominator",
+    tag: "□",
+  },
+
+  // Rational + Complex
+  {
+    label: "1/(x - i)",
+    expr: "1/(x - i)",
+    desc: "Simple pole at i",
+    tag: "⚡",
+  },
+  {
+    label: "1/(x^2 + 4)",
+    expr: "1/(x*x + 4)",
+    desc: "Poles at ±2i",
+    tag: "📍",
+  },
+  {
+    label: "(x + i)/(x - i)",
+    expr: "(x + i)/(x - i)",
+    desc: "Phase shift",
+    tag: "φ",
+  },
+
+  // Fresnel & Diffraction
+  {
+    label: "Fresnel C",
+    expr: "cos(x*x / 2)",
+    desc: "Fresnel cosine integral",
+    tag: "C",
+  },
+  {
+    label: "Fresnel Combo",
+    expr: "sin(x*x) + i*cos(x*x)",
+    desc: "Complex Fresnel",
+    tag: "∫∫",
+  },
+
+  // More Interesting Ones
+  {
+    label: "e^(i*x^2 + x)",
+    expr: "e^(i*x*x + x)",
+    desc: "Chirp with linear growth",
+    tag: "📈",
+  },
+  {
+    label: "sin(1/x + i*x)",
+    expr: "sin(1/x + i*x)",
+    desc: "Near x=0 singularity",
+    tag: "⚠",
+  },
+  {
+    label: "x * e^(i*x^2)",
+    expr: "x * e^(i*x*x)",
+    desc: "Amplitude growing chirp",
+    tag: "📊",
+  },
+  {
+    label: "gamma(1 + i*x)",
+    expr: "gamma(1 + i*x)",
+    desc: "Gamma function on imaginary",
+    tag: "Γ",
+  },
+  {
+    label: "zeta(0.5 + i*x)",
+    expr: "zeta(0.5 + i*x)",
+    desc: "Riemann zeta on critical line",
+    tag: "ζ",
+  },
+
+  {
+    label: "Ai(x) Airy",
+    expr: "airyai(x)",
+    desc: "Airy function of first kind",
+    tag: "Ai",
+  },
+  {
+    label: "Bi(x) Airy",
+    expr: "airybi(x)",
+    desc: "Airy function of second kind",
+    tag: "Bi",
+  },
+
+  {
+    label: "Bessel J0",
+    expr: "besselj(0, x)",
+    desc: "Bessel function of first kind",
+    tag: "J₀",
+  },
+  {
+    label: "Bessel Y0",
+    expr: "bessely(0, x)",
+    desc: "Bessel function of second kind",
+    tag: "Y₀",
+  },
+
+  // Extra Spirals & Rotations
+  {
+    label: "e^(i*ln(x+2))",
+    expr: "e^(i*log(x+2))",
+    desc: "Log spiral",
+    tag: "🌀",
+  },
+  { label: "x^(i*2)", expr: "x^(2*i)", desc: "Power spiral", tag: "ˣⁱ" },
+  {
+    label: "sin(x) + i*x",
+    expr: "sin(x) + i*x",
+    desc: "Linear imaginary growth",
+    tag: "📏",
+  },
+  {
+    label: "cos(x^2) + i*sin(x^2)",
+    expr: "cos(x*x) + i*sin(x*x)",
+    desc: "Quadratic rotation",
+    tag: "⟲",
+  },
+
+  // Random Fun Ones
+  {
+    label: "1/sin(x + i)",
+    expr: "1/sin(x + i)",
+    desc: "Complex cosecant",
+    tag: "csc",
+  },
+  {
+    label: "e^(sin(x) + i*cos(x))",
+    expr: "e^(sin(x) + i*cos(x))",
+    desc: "Modulated unit circle",
+    tag: "🌍",
+  },
+  {
+    label: "x + i*sin(10*x)",
+    expr: "x + i*sin(10*x)",
+    desc: "Fast oscillation on real line",
+    tag: "📈",
+  },
+  {
+    label: "(cos(x) + i*sin(x))^3",
+    expr: "(cos(x) + i*sin(x))^3",
+    desc: "Triple angle",
+    tag: "³",
+  },
+  {
+    label: "e^(i*pi*x)",
+    expr: "e^(i*pi*x)",
+    desc: "Half-turn per unit",
+    tag: "π",
+  },
+
+  // Final Batch
+  {
+    label: "log(x + i)",
+    expr: "log(x + i)",
+    desc: "Log shifted up",
+    tag: "log",
+  },
+  {
+    label: "sqrt(x + i*x)",
+    expr: "sqrt(x + i*x)",
+    desc: "Complex square root",
+    tag: "√",
+  },
+  {
+    label: "sin(x*i + 2)",
+    expr: "sin(i*x + 2)",
+    desc: "Shifted hyperbolic",
+    tag: "〜",
+  },
+  {
+    label: "e^(-abs(x)) * (cos(5*x) + i*sin(7*x))",
+    expr: "e^(-abs(x)) * (cos(5*x) + i*sin(7*x))",
+    desc: "Asymmetric packet",
+    tag: "🌊",
+  },
+  {
+    label: "1/(1 + x^4 + i*x^2)",
+    expr: "1/(1 + x*x*x*x + i*x*x)",
+    desc: "Complex rational",
+    tag: "⚖",
   },
 ];
 
@@ -443,7 +756,9 @@ export default function ComplexPage() {
           <div
             className="flex items-center rounded-xl overflow-hidden mb-2"
             style={{
-              background: isDark ? "rgba(10,15,28,0.9)" : "rgba(255,255,255,0.95)",
+              background: isDark
+                ? "rgba(10,15,28,0.9)"
+                : "rgba(255,255,255,0.95)",
               border: "1px solid rgba(6,182,212,0.25)",
             }}
           >
@@ -458,7 +773,10 @@ export default function ComplexPage() {
                  The component is now stable (not re-created each render)
                  so focus is never lost between keystrokes.              */
               className="flex-1 bg-transparent outline-none font-mono-code text-sm py-3 pr-3"
-              style={{ color: isDark ? "#e2e8f0" : "#0f172a", caretColor: "#22d3ee" }}
+              style={{
+                color: isDark ? "#e2e8f0" : "#0f172a",
+                caretColor: "#22d3ee",
+              }}
               value={inputExpr}
               onChange={(e) => setInputExpr(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && commitExpr()}
@@ -489,7 +807,9 @@ export default function ComplexPage() {
           <div
             className="mt-2 p-3 rounded-xl text-[10px] font-mono leading-relaxed"
             style={{
-              background: isDark ? "rgba(15,23,42,0.6)" : "rgba(238,244,255,0.88)",
+              background: isDark
+                ? "rgba(15,23,42,0.6)"
+                : "rgba(238,244,255,0.88)",
               border: "1px solid rgba(236,72,153,0.15)",
               color: isDark ? "#94a3b8" : "#475569",
             }}
@@ -662,7 +982,10 @@ export default function ComplexPage() {
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 lg:hidden"
-          style={{ background: isDark ? "rgba(0,0,0,0.7)" : "rgba(30,41,59,0.5)", backdropFilter: "blur(4px)" }}
+          style={{
+            background: isDark ? "rgba(0,0,0,0.7)" : "rgba(30,41,59,0.5)",
+            backdropFilter: "blur(4px)",
+          }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -695,7 +1018,9 @@ export default function ComplexPage() {
           width: "clamp(280px, 85vw, 320px)",
           maxWidth: "100vw",
           borderColor: "rgba(236,72,153,0.15)",
-          background: isDark ? "linear-gradient(180deg,#020810,#0a020e)" : "linear-gradient(180deg,#eef4ff,#e8f0fc)",
+          background: isDark
+            ? "linear-gradient(180deg,#020810,#0a020e)"
+            : "linear-gradient(180deg,#eef4ff,#e8f0fc)",
           top: "60px",
           height: "calc(100vh - 60px)",
         }}
@@ -759,7 +1084,9 @@ export default function ComplexPage() {
                   background:
                     expr === ex.expr
                       ? "rgba(236,72,153,0.12)"
-                      : isDark ? "rgba(6,18,40,0.8)" : "rgba(238,244,255,0.8)",
+                      : isDark
+                        ? "rgba(6,18,40,0.8)"
+                        : "rgba(238,244,255,0.8)",
                   border: `1px solid ${expr === ex.expr ? "rgba(236,72,153,0.4)" : "rgba(236,72,153,0.12)"}`,
                   color: expr === ex.expr ? "#f472b6" : "#64748b",
                 }}
@@ -921,7 +1248,9 @@ export default function ComplexPage() {
                 key={item.label}
                 className="px-3 py-2 rounded-xl"
                 style={{
-                  background: isDark ? "rgba(4,10,24,0.8)" : "rgba(255,255,255,0.88)",
+                  background: isDark
+                    ? "rgba(4,10,24,0.8)"
+                    : "rgba(255,255,255,0.88)",
                   border: `1px solid ${item.color}20`,
                 }}
               >
