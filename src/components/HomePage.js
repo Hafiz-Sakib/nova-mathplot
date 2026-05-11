@@ -328,7 +328,7 @@ const FEATURES = [
     glowColor: "rgba(6,182,212,0.12)",
     desc: "Plot any mathematical expression — trig, polynomial, exponential. Multi-function overlay, zoom & pan, animated waves.",
     items: [
-      "350+ example functions",
+      "50+ example functions",
       "Multi-curve overlay",
       "Zoom & pan controls",
       "Animated waveforms",
@@ -418,7 +418,7 @@ const TECH_STACK = [
 ];
 
 const STATS = [
-  { num: "50+", label: "Example Functions", color: "#22d3ee" },
+  { num: "350+", label: "Example Functions", color: "#22d3ee" },
   { num: "18", label: "Activation Fns", color: "#a78bfa" },
   { num: "5", label: "Visualization Modes", color: "#10b981" },
   { num: "100%", label: "Browser-Based", color: "#fb923c" },
