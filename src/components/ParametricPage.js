@@ -2,13 +2,21 @@ import React, { useState, useRef, useEffect } from "react";
 
 const TAU = 2 * Math.PI;
 
+const COLOR_SCHEMES = [
+  { id: "cyan", name: "Cyan", color: "#22d3ee" },
+  { id: "violet", name: "Violet", color: "#a78bfa" },
+  { id: "emerald", name: "Emerald", color: "#34d399" },
+  { id: "orange", name: "Orange", color: "#fb923c" },
+  { id: "pink", name: "Pink", color: "#f472b6" },
+  { id: "gold", name: "Gold", color: "#fbbf24" },
+];
+
 const EXAMPLES = [
-  // ==================== BASIC ====================
+  // Basic
   {
     label: "Circle",
     category: "Basic",
-    formula: "x = cos(t), y = sin(t)",
-    desc: "Unit circle",
+    formula: "x=cos(t), y=sin(t)",
     xfn: (t) => Math.cos(t),
     yfn: (t) => Math.sin(t),
     tMax: TAU,
@@ -17,20 +25,18 @@ const EXAMPLES = [
   {
     label: "Ellipse",
     category: "Basic",
-    formula: "x = 2cos(t), y = sin(t)",
-    desc: "Stretched circle",
+    formula: "x=2cos(t), y=sin(t)",
     xfn: (t) => 2 * Math.cos(t),
     yfn: (t) => Math.sin(t),
     tMax: TAU,
     color: "#34d399",
   },
 
-  // ==================== LISSAJOUS ====================
+  // Lissajous
   {
     label: "Lissajous (3:2)",
     category: "Lissajous",
-    formula: "x = cos(3t), y = sin(2t)",
-    desc: "Classic 3:2 ratio",
+    formula: "x=cos(3t), y=sin(2t)",
     xfn: (t) => Math.cos(3 * t),
     yfn: (t) => Math.sin(2 * t),
     tMax: TAU,
@@ -39,118 +45,61 @@ const EXAMPLES = [
   {
     label: "Lissajous (5:4)",
     category: "Lissajous",
-    formula: "x = cos(5t), y = sin(4t)",
-    desc: "Complex harmonic pattern",
+    formula: "x=cos(5t), y=sin(4t)",
     xfn: (t) => Math.cos(5 * t),
     yfn: (t) => Math.sin(4 * t),
     tMax: TAU,
     color: "#f472b6",
   },
-  {
-    label: "Lissajous (5:3)",
-    category: "Lissajous",
-    formula: "x = cos(5t), y = sin(3t)",
-    desc: "Intricate knot pattern",
-    xfn: (t) => Math.cos(5 * t),
-    yfn: (t) => Math.sin(3 * t),
-    tMax: TAU,
-    color: "#60a5fa",
-  },
 
-  // ==================== FOURIER ====================
+  // Fourier
   {
     label: "Square Wave",
     category: "Fourier",
-    formula: "y = (4/π) Σ sin((2k+1)t)/(2k+1)",
-    desc: "Fourier series of square wave",
+    formula: "y=(4/π)Σ sin((2k+1)t)/(2k+1)",
     xfn: (t) => t / Math.PI - 1,
     yfn: (t) =>
       (4 / Math.PI) * (Math.sin(t) + Math.sin(3 * t) / 3 + Math.sin(5 * t) / 5),
     tMax: TAU * 2,
     color: "#fb923c",
   },
-  {
-    label: "Sawtooth Wave",
-    category: "Fourier",
-    formula: "y ≈ Σ sin(kt)/k",
-    desc: "Fourier approximation",
-    xfn: (t) => t / Math.PI - 1,
-    yfn: (t) =>
-      (2 / Math.PI) * (Math.sin(t) + Math.sin(2 * t) / 2 + Math.sin(3 * t) / 3),
-    tMax: TAU * 2,
-    color: "#4ade80",
-  },
 
-  // ==================== LAPLACE / DAMPED ====================
+  // Laplace
   {
     label: "Damped Oscillator",
     category: "Laplace",
-    formula: "x = e^(-0.2t) cos(3t)",
-    desc: "Underdamped system",
+    formula: "x=e^(-0.2t)cos(3t)",
     xfn: (t) => Math.exp(-0.2 * t) * Math.cos(3 * t),
     yfn: (t) => Math.exp(-0.2 * t) * Math.sin(3 * t),
     tMax: 15,
     color: "#f59e0b",
   },
-  {
-    label: "Critically Damped",
-    category: "Laplace",
-    formula: "x = (1 + t)e^(-t)",
-    desc: "Fastest return to equilibrium",
-    xfn: (t) => (1 + t) * Math.exp(-t),
-    yfn: (t) => (1 + 0.5 * t) * Math.exp(-t * 1.1),
-    tMax: 12,
-    color: "#eab308",
-  },
-  {
-    label: "Overdamped",
-    category: "Laplace",
-    formula: "x = e^(-0.5t) - e^(-2t)",
-    desc: "Slow return without oscillation",
-    xfn: (t) => Math.exp(-0.5 * t) - Math.exp(-2 * t),
-    yfn: (t) => Math.exp(-0.4 * t) - Math.exp(-1.8 * t),
-    tMax: 12,
-    color: "#f43f5e",
-  },
 
-  // ==================== POLAR / ROSE ====================
+  // Polar
   {
     label: "Rose (3 petals)",
     category: "Polar",
-    formula: "r = cos(3θ)",
-    desc: "Three-petaled rose",
+    formula: "r=cos(3θ)",
     xfn: (t) => Math.cos(3 * t) * Math.cos(t),
     yfn: (t) => Math.cos(3 * t) * Math.sin(t),
     tMax: Math.PI,
     color: "#fbbf24",
   },
   {
-    label: "Rose (5 petals)",
-    category: "Polar",
-    formula: "r = cos(5θ)",
-    desc: "Five-petaled rose",
-    xfn: (t) => Math.cos(5 * t) * Math.cos(t),
-    yfn: (t) => Math.cos(5 * t) * Math.sin(t),
-    tMax: Math.PI,
-    color: "#c084fc",
-  },
-  {
     label: "Cardioid",
     category: "Polar",
-    formula: "r = 1 - cos(θ)",
-    desc: "Heart curve",
+    formula: "r=1-cos(θ)",
     xfn: (t) => (1 - Math.cos(t)) * Math.cos(t) * 0.9,
     yfn: (t) => (1 - Math.cos(t)) * Math.sin(t) * 0.9,
     tMax: TAU,
     color: "#f472b6",
   },
 
-  // ==================== SPECIAL ====================
+  // Special & Spirals
   {
     label: "Butterfly Curve",
     category: "Special",
-    formula: "Complex exponential curve",
-    desc: "One of the most beautiful",
+    formula: "Complex Butterfly",
     xfn: (t) =>
       Math.sin(t) *
       (Math.exp(Math.cos(t)) -
@@ -161,54 +110,21 @@ const EXAMPLES = [
       (Math.exp(Math.cos(t)) -
         2 * Math.cos(4 * t) -
         Math.pow(Math.sin(t / 12), 5)),
-    tMax: 12 * Math.PI,
+    tMax: 12 * TAU,
     color: "#a78bfa",
   },
   {
-    label: "Astroid",
-    category: "Special",
-    formula: "x³ + y³ = a³",
-    desc: "Hypocycloid with 4 cusps",
-    xfn: (t) => Math.pow(Math.cos(t), 3),
-    yfn: (t) => Math.pow(Math.sin(t), 3),
-    tMax: TAU,
-    color: "#22d3ee",
-  },
-  {
-    label: "Lemniscate of Bernoulli",
-    category: "Special",
-    formula: "r² = a² cos(2θ)",
-    desc: "Figure-eight curve",
-    xfn: (t) => Math.cos(2 * t) * Math.cos(t) * 1.2,
-    yfn: (t) => Math.cos(2 * t) * Math.sin(t) * 1.2,
-    tMax: TAU / 2,
-    color: "#34d399",
-  },
-
-  // ==================== SPIRALS ====================
-  {
     label: "Archimedean Spiral",
     category: "Spiral",
-    formula: "r = θ",
-    desc: "Linear spiral",
+    formula: "r=θ",
     xfn: (t) => t * Math.cos(t) * 0.13,
     yfn: (t) => t * Math.sin(t) * 0.13,
-    tMax: 8 * Math.PI,
+    tMax: 8 * TAU,
     color: "#4ade80",
-  },
-  {
-    label: "Logarithmic Spiral",
-    category: "Spiral",
-    formula: "r = e^(0.15θ)",
-    desc: "Golden spiral",
-    xfn: (t) => Math.exp(0.15 * t) * Math.cos(t) * 0.1,
-    yfn: (t) => Math.exp(0.15 * t) * Math.sin(t) * 0.1,
-    tMax: 6 * Math.PI,
-    color: "#fb923c",
   },
 ];
 
-function ParametricCanvas({ example, animated, speed, showAxes, zoom }) {
+function ParametricCanvas({ example, animated, speed, showAxes, zoom, color }) {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
   const progressRef = useRef(0);
@@ -219,12 +135,12 @@ function ParametricCanvas({ example, animated, speed, showAxes, zoom }) {
 
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
-    const W = canvas.offsetWidth * dpr;
-    const H = canvas.offsetHeight * dpr;
+    let W = canvas.offsetWidth * dpr;
+    let H = canvas.offsetHeight * dpr;
     canvas.width = W;
     canvas.height = H;
 
-    const N = 1800;
+    const N = 1600;
     const pts = [];
     for (let i = 0; i <= N; i++) {
       const t = (i / N) * example.tMax;
@@ -243,12 +159,10 @@ function ParametricCanvas({ example, animated, speed, showAxes, zoom }) {
     const rangeY = maxY - minY || 2;
     const mx = W / 2,
       my = H / 2;
-    const scale = Math.min(W / rangeX, H / rangeY) * 0.48 * zoom;
-    const cx = (minX + maxX) / 2,
-      cy = (minY + maxY) / 2;
+    let scale = Math.min(W / rangeX, H / rangeY) * 0.48 * zoom;
 
-    const toSX = (x) => mx + (x - cx) * scale;
-    const toSY = (y) => my - (y - cy) * scale;
+    const toSX = (x) => mx + (x - (minX + maxX) / 2) * scale;
+    const toSY = (y) => my - (y - (minY + maxY) / 2) * scale;
 
     const draw = (progress) => {
       ctx.clearRect(0, 0, W, H);
@@ -256,36 +170,26 @@ function ParametricCanvas({ example, animated, speed, showAxes, zoom }) {
       if (showAxes) {
         ctx.strokeStyle = "rgba(6,182,212,0.08)";
         ctx.lineWidth = 0.5;
-        for (let i = 0; i < W; i += W / 12) {
+        for (let i = 0; i < W; i += W / 10) {
           ctx.beginPath();
           ctx.moveTo(i, 0);
           ctx.lineTo(i, H);
           ctx.stroke();
         }
-        for (let i = 0; i < H; i += H / 12) {
+        for (let i = 0; i < H; i += H / 10) {
           ctx.beginPath();
           ctx.moveTo(0, i);
           ctx.lineTo(W, i);
           ctx.stroke();
         }
-        ctx.strokeStyle = "rgba(6,182,212,0.35)";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(mx, 0);
-        ctx.lineTo(mx, H);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(0, my);
-        ctx.lineTo(W, my);
-        ctx.stroke();
       }
 
       const count = Math.floor(pts.length * progress);
       if (count < 2) return;
 
       ctx.lineWidth = 2.8 * dpr;
-      ctx.strokeStyle = example.color;
-      ctx.shadowColor = example.color;
+      ctx.strokeStyle = color;
+      ctx.shadowColor = color;
       ctx.shadowBlur = 10;
 
       ctx.beginPath();
@@ -295,16 +199,6 @@ function ParametricCanvas({ example, animated, speed, showAxes, zoom }) {
       }
       ctx.stroke();
       ctx.shadowBlur = 0;
-
-      if (animated && count < pts.length) {
-        const p = pts[count - 1];
-        ctx.beginPath();
-        ctx.arc(toSX(p[0]), toSY(p[1]), 5, 0, Math.PI * 2);
-        ctx.fillStyle = "#fff";
-        ctx.shadowColor = example.color;
-        ctx.shadowBlur = 18;
-        ctx.fill();
-      }
     };
 
     if (animated) {
@@ -315,20 +209,19 @@ function ParametricCanvas({ example, animated, speed, showAxes, zoom }) {
         if (progressRef.current < 1)
           animRef.current = requestAnimationFrame(animate);
       };
-      if (animRef.current) cancelAnimationFrame(animRef.current);
       animRef.current = requestAnimationFrame(animate);
     } else {
       draw(1);
     }
 
     return () => cancelAnimationFrame(animRef.current);
-  }, [example, animated, speed, showAxes, zoom]);
+  }, [example, animated, speed, showAxes, zoom, color]);
 
   return (
     <canvas
       ref={canvasRef}
       className="w-full h-full rounded-2xl"
-      style={{ display: "block", background: "#020810" }}
+      style={{ background: "#020810", display: "block" }}
     />
   );
 }
@@ -339,7 +232,11 @@ export default function ParametricPage() {
   const [speed, setSpeed] = useState(1);
   const [showAxes, setShowAxes] = useState(true);
   const [zoom, setZoom] = useState(1);
+  const [colorScheme, setColorScheme] = useState("cyan");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const currentColor =
+    COLOR_SCHEMES.find((c) => c.id === colorScheme)?.color || "#22d3ee";
 
   const categories = [...new Set(EXAMPLES.map((e) => e.category))];
 
@@ -348,7 +245,6 @@ export default function ParametricPage() {
       className="flex flex-1 overflow-hidden"
       style={{ height: "calc(100vh - 56px)" }}
     >
-      {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 lg:hidden bg-black/70 backdrop-blur-sm"
@@ -358,52 +254,56 @@ export default function ParametricPage() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto w-80 xl:w-96 flex flex-col border-r transition-transform duration-300 lg:translate-x-0 overflow-y-auto ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed lg:relative inset-y-0 left-0 z-40 w-80 flex flex-col border-r transition-transform duration-300 lg:translate-x-0 overflow-y-auto ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{
-          borderColor: "rgba(249,115,22,0.15)",
           background: "linear-gradient(180deg,#020810,#100802)",
-          top: "56px",
-          height: "calc(100vh - 56px)",
+          borderColor: "rgba(139,92,246,0.15)",
         }}
       >
-        {/* Header */}
         <div
-          className="px-4 py-4 border-b"
-          style={{ borderColor: "rgba(249,115,22,0.1)" }}
+          className="p-4 border-b"
+          style={{ borderColor: "rgba(139,92,246,0.1)" }}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-orange-500/10 border border-orange-500/30">
-              <span className="text-orange-400 text-xl">∞</span>
-            </div>
-            <div>
-              <div className="font-orbitron font-bold text-sm tracking-widest text-orange-400">
-                PARAMETRIC
-              </div>
-              <div className="text-[10px] text-slate-400">
-                Curves • Fourier • Laplace
-              </div>
-            </div>
+          <h1 className="font-orbitron text-lg tracking-widest text-[#a78bfa]">
+            PARAMETRIC PLOTTER
+          </h1>
+        </div>
+
+        {/* Color Picker */}
+        <div
+          className="p-4 border-b"
+          style={{ borderColor: "rgba(139,92,246,0.1)" }}
+        >
+          <div className="text-xs text-slate-400 mb-2">COLOR</div>
+          <div className="flex flex-wrap gap-2">
+            {COLOR_SCHEMES.map((scheme) => (
+              <button
+                key={scheme.id}
+                onClick={() => setColorScheme(scheme.id)}
+                className={`w-9 h-9 rounded-2xl border-2 transition-all ${colorScheme === scheme.id ? "border-white scale-110" : "border-transparent"}`}
+                style={{ background: scheme.color }}
+              />
+            ))}
           </div>
         </div>
 
         {/* Controls */}
         <div
-          className="p-4 space-y-5 border-b"
-          style={{ borderColor: "rgba(249,115,22,0.08)" }}
+          className="p-4 space-y-4 border-b"
+          style={{ borderColor: "rgba(139,92,246,0.1)" }}
         >
-          {/* Toggles */}
           {[
-            { label: "Animate", value: animated, setter: setAnimated },
-            { label: "Show Axes", value: showAxes, setter: setShowAxes },
+            { label: "Animate", value: animated, set: setAnimated },
+            { label: "Show Axes", value: showAxes, set: setShowAxes },
           ].map((item) => (
             <div
               key={item.label}
-              className="flex items-center justify-between cursor-pointer"
-              onClick={() => item.setter(!item.value)}
+              className="flex justify-between items-center cursor-pointer"
+              onClick={() => item.set(!item.value)}
             >
-              <span className="text-sm">{item.label}</span>
+              <span>{item.label}</span>
               <div
-                className={`w-11 h-6 rounded-full relative ${item.value ? "bg-orange-500" : "bg-gray-700"}`}
+                className={`w-11 h-6 rounded-full relative transition-colors ${item.value ? "bg-emerald-500" : "bg-gray-700"}`}
               >
                 <div
                   className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all ${item.value ? "translate-x-6" : "translate-x-0.5"}`}
@@ -412,43 +312,39 @@ export default function ParametricPage() {
             </div>
           ))}
 
-          {/* Speed & Zoom */}
-          {animated && (
-            <div>
-              <label className="text-xs text-slate-400 block mb-1">Speed</label>
-              <input
-                type="range"
-                min="0.2"
-                max="5"
-                step="0.1"
-                value={speed}
-                onChange={(e) => setSpeed(+e.target.value)}
-                className="w-full accent-orange-400"
-              />
-              <div className="text-right text-xs text-slate-400">
-                {speed.toFixed(1)}x
-              </div>
-            </div>
-          )}
+          <div>
+            <label className="text-xs text-slate-400 block mb-1">Speed</label>
+            <input
+              type="range"
+              min="0.2"
+              max="5"
+              step="0.1"
+              value={speed}
+              onChange={(e) => setSpeed(+e.target.value)}
+              className="w-full accent-violet-400"
+            />
+          </div>
 
           <div>
-            <label className="text-xs text-slate-400 block mb-1">Zoom</label>
+            <label className="text-xs text-slate-400 block mb-1">
+              Zoom: {zoom.toFixed(1)}x
+            </label>
             <div className="flex gap-2">
               <button
                 onClick={() => setZoom((z) => Math.max(0.3, z * 0.75))}
-                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm"
+                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl"
               >
                 -
               </button>
               <button
                 onClick={() => setZoom(1)}
-                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm"
+                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-xs"
               >
-                Reset
+                RESET
               </button>
               <button
                 onClick={() => setZoom((z) => Math.min(5, z * 1.35))}
-                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm"
+                className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl"
               >
                 +
               </button>
@@ -456,12 +352,12 @@ export default function ParametricPage() {
           </div>
         </div>
 
-        {/* Examples List */}
+        {/* Examples */}
         <div className="flex-1 overflow-y-auto p-4">
           {categories.map((cat) => (
             <div key={cat} className="mb-6">
               <div className="text-orange-400 text-xs font-bold tracking-widest mb-2 pl-1">
-                {cat.toUpperCase()}
+                {cat}
               </div>
               {EXAMPLES.filter((e) => e.category === cat).map((ex) => (
                 <button
@@ -490,30 +386,22 @@ export default function ParametricPage() {
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* Main Area */}
       <main className="flex-1 flex flex-col overflow-hidden">
         <div
           className="border-b px-4 py-3 flex items-center justify-between bg-[#02060f]"
-          style={{ borderColor: "rgba(249,115,22,0.1)" }}
+          style={{ borderColor: "rgba(139,92,246,0.1)" }}
         >
           <div className="flex items-center gap-3">
             <div
               className="w-3 h-3 rounded-full"
-              style={{ background: selected.color }}
+              style={{ background: currentColor }}
             />
-            <div>
-              <div className="font-medium text-orange-300">
-                {selected.label}
-              </div>
-              <div className="text-xs text-slate-500 font-mono">
-                {selected.formula}
-              </div>
-            </div>
+            <span className="font-medium text-white">{selected.label}</span>
           </div>
-
           <button
             onClick={() => setAnimated(!animated)}
-            className="px-5 py-2 rounded-xl text-sm font-medium transition-all"
+            className="px-5 py-2 rounded-xl text-sm font-medium"
             style={{
               background: animated ? "#f59e0b" : "#334155",
               color: animated ? "#000" : "#fff",
@@ -530,6 +418,7 @@ export default function ParametricPage() {
             speed={speed}
             showAxes={showAxes}
             zoom={zoom}
+            color={currentColor}
           />
         </div>
       </main>
