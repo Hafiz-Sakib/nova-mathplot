@@ -528,32 +528,31 @@ export default function HomePage({ setPage }) {
               borderRadius: "1rem",
             }}
           >
-            {/* Background Grid - Strong Black (0.40) in Day Mode */}
-            {!isDark && (
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: "1rem",
-                  backgroundImage:
-                    "linear-gradient(rgba(0,0,0,0.40) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.40) 1px, transparent 1px)",
-                  backgroundSize: "32px 32px",
-                  pointerEvents: "none",
-                }}
-              />
-            )}
+            {/* Background Grid - Strong in BOTH Dark & Light Mode */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "1rem",
+                backgroundImage: isDark
+                  ? "linear-gradient(rgba(103,232,249,0.40) 1px, transparent 1px), linear-gradient(90deg, rgba(103,232,249,0.40) 1px, transparent 1px)"
+                  : "linear-gradient(rgba(0,0,0,0.40) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.40) 1px, transparent 1px)",
+                backgroundSize: "32px 32px",
+                pointerEvents: "none",
+              }}
+            />
 
             <div
               className="relative rounded-2xl overflow-hidden"
               style={{
                 background: isDark
-                  ? "rgba(4,10,24,0.82)"
+                  ? "rgba(4,10,24,0.85)"
                   : "rgba(255,255,255,0.96)",
                 border: isDark
-                  ? "1px solid rgba(6,182,212,0.18)"
+                  ? "1px solid rgba(6,182,212,0.25)"
                   : "1px solid rgba(100,149,237,0.32)",
                 boxShadow: isDark
-                  ? "0 0 60px rgba(6,182,212,0.1), 0 30px 60px rgba(0,0,0,0.5)"
+                  ? "0 0 60px rgba(6,182,212,0.15), 0 30px 60px rgba(0,0,0,0.5)"
                   : "0 10px 50px rgba(0,0,0,0.13), 0 2px 10px rgba(0,0,0,0.08)",
               }}
             >
@@ -562,7 +561,7 @@ export default function HomePage({ setPage }) {
                 className="flex items-center gap-3 px-5 py-3 border-b"
                 style={{
                   borderColor: isDark
-                    ? "rgba(6,182,212,0.1)"
+                    ? "rgba(6,182,212,0.15)"
                     : "rgba(100,149,237,0.25)",
                 }}
               >
@@ -624,7 +623,7 @@ export default function HomePage({ setPage }) {
                     className="rounded-xl p-3"
                     style={{
                       background: isDark
-                        ? "rgba(6,18,40,0.6)"
+                        ? "rgba(6,18,40,0.65)"
                         : "rgba(255,255,255,0.90)",
                       border: `1px solid ${item.color}20`,
                     }}
