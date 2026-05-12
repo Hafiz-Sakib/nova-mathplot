@@ -1,5 +1,7 @@
 import { useTheme } from "../ThemeContext";
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 const TAU = 2 * Math.PI;
 
@@ -46,7 +48,7 @@ const EXAMPLES = [
   {
     label: "Parabola",
     category: "Basic 2D",
-    formula: "x=t, y=t²",
+    formula: "x=t, y=t^2",
     is3d: false,
     xfn: (t) => t,
     yfn: (t) => t * t * 0.3,
@@ -113,7 +115,7 @@ const EXAMPLES = [
   {
     label: "Square Wave",
     category: "Fourier",
-    formula: "(4/π)Σ sin((2k+1)t)/(2k+1)",
+    formula: "(4/pi)* sum sin((2k+1)t)/(2k+1)",
     is3d: false,
     xfn: (t) => t / Math.PI - 1,
     yfn: (t) =>
@@ -127,7 +129,7 @@ const EXAMPLES = [
   {
     label: "Sawtooth Wave",
     category: "Fourier",
-    formula: "Σ sin(nt)/n",
+    formula: "sum sin(nt)/n",
     is3d: false,
     xfn: (t) => t / Math.PI - 1,
     yfn: (t) =>
@@ -140,7 +142,7 @@ const EXAMPLES = [
   {
     label: "Triangle Wave",
     category: "Fourier",
-    formula: "Σ (-1)^k sin((2k+1)t)/(2k+1)²",
+    formula: "sum (-1)^k sin((2k+1)t)/(2k+1)^2",
     is3d: false,
     xfn: (t) => t / Math.PI - 1,
     yfn: (t) =>
@@ -151,7 +153,7 @@ const EXAMPLES = [
   {
     label: "Damped Oscillator",
     category: "Laplace",
-    formula: "e^(-0.2t)·[cos,sin](3t)",
+    formula: "e^(-0.2t)*[cos,sin](3t)",
     is3d: false,
     xfn: (t) => Math.exp(-0.2 * t) * Math.cos(3 * t),
     yfn: (t) => Math.exp(-0.2 * t) * Math.sin(3 * t),
@@ -180,16 +182,16 @@ const EXAMPLES = [
   {
     label: "Euler Spiral",
     category: "Euler",
-    formula: "e^(-t²/20)·[cos,sin](t)",
+    formula: "e^(-t^2/20)*[cos,sin](t)",
     is3d: false,
     xfn: (t) => Math.exp((-t * t) / 20) * Math.cos(t),
     yfn: (t) => Math.exp((-t * t) / 20) * Math.sin(t),
     tMax: 10,
   },
   {
-    label: "e^(iωt) 3D Helix",
+    label: "e^(iwt) 3D Helix",
     category: "Euler",
-    formula: "Re=cos(ωt), Im=sin(ωt), z=t",
+    formula: "Re=cos(wt), Im=sin(wt), z=t",
     is3d: true,
     xfn: (t) => Math.cos(2 * t),
     yfn: (t) => Math.sin(2 * t),
@@ -197,7 +199,7 @@ const EXAMPLES = [
     tMax: TAU * 3.5,
   },
   {
-    label: "Fresnel Integral (approx)",
+    label: "Fresnel Integral",
     category: "Euler",
     formula: "C(t), S(t) Fresnel",
     is3d: false,
@@ -210,7 +212,7 @@ const EXAMPLES = [
   {
     label: "Rose (3 petals)",
     category: "Polar",
-    formula: "r=cos(3θ)",
+    formula: "r=cos(3*theta)",
     is3d: false,
     xfn: (t) => Math.cos(3 * t) * Math.cos(t),
     yfn: (t) => Math.cos(3 * t) * Math.sin(t),
@@ -219,7 +221,7 @@ const EXAMPLES = [
   {
     label: "Rose (5 petals)",
     category: "Polar",
-    formula: "r=cos(5θ)",
+    formula: "r=cos(5*theta)",
     is3d: false,
     xfn: (t) => Math.cos(5 * t) * Math.cos(t),
     yfn: (t) => Math.cos(5 * t) * Math.sin(t),
@@ -228,7 +230,7 @@ const EXAMPLES = [
   {
     label: "Rose (7 petals)",
     category: "Polar",
-    formula: "r=cos(7θ)",
+    formula: "r=cos(7*theta)",
     is3d: false,
     xfn: (t) => Math.cos(7 * t) * Math.cos(t),
     yfn: (t) => Math.cos(7 * t) * Math.sin(t),
@@ -237,7 +239,7 @@ const EXAMPLES = [
   {
     label: "Cardioid",
     category: "Polar",
-    formula: "r=1-cos(θ)",
+    formula: "r=1-cos(theta)",
     is3d: false,
     xfn: (t) => (1 - Math.cos(t)) * Math.cos(t) * 0.9,
     yfn: (t) => (1 - Math.cos(t)) * Math.sin(t) * 0.9,
@@ -246,7 +248,7 @@ const EXAMPLES = [
   {
     label: "Limacon",
     category: "Polar",
-    formula: "r=0.5+cos(θ)",
+    formula: "r=0.5+cos(theta)",
     is3d: false,
     xfn: (t) => (0.5 + Math.cos(t)) * Math.cos(t),
     yfn: (t) => (0.5 + Math.cos(t)) * Math.sin(t),
@@ -255,7 +257,7 @@ const EXAMPLES = [
   {
     label: "Lemniscate",
     category: "Polar",
-    formula: "r²=cos(2θ)",
+    formula: "r^2=cos(2*theta)",
     is3d: false,
     xfn: (t) => Math.cos(2 * t) * Math.cos(t) * 1.1,
     yfn: (t) => Math.cos(2 * t) * Math.sin(t) * 1.1,
@@ -266,7 +268,7 @@ const EXAMPLES = [
   {
     label: "Astroid",
     category: "Special",
-    formula: "x=cos³(t), y=sin³(t)",
+    formula: "x=cos^3(t), y=sin^3(t)",
     is3d: false,
     xfn: (t) => Math.pow(Math.cos(t), 3),
     yfn: (t) => Math.pow(Math.sin(t), 3),
@@ -292,7 +294,7 @@ const EXAMPLES = [
   {
     label: "Archimedean Spiral",
     category: "Special",
-    formula: "r=θ",
+    formula: "r=theta",
     is3d: false,
     xfn: (t) => t * Math.cos(t) * 0.13,
     yfn: (t) => t * Math.sin(t) * 0.13,
@@ -301,7 +303,7 @@ const EXAMPLES = [
   {
     label: "Logarithmic Spiral",
     category: "Special",
-    formula: "r=e^(0.15θ)",
+    formula: "r=e^(0.15*theta)",
     is3d: false,
     xfn: (t) => Math.exp(0.15 * t) * Math.cos(t) * 0.08,
     yfn: (t) => Math.exp(0.15 * t) * Math.sin(t) * 0.08,
@@ -337,10 +339,28 @@ const EXAMPLES = [
   {
     label: "Deltoid",
     category: "Special",
-    formula: "x=2cos(t)+cos(2t), y=2sin(t)-sin(2t)",
+    formula: "x=2cos(t)+cos(2t)",
     is3d: false,
     xfn: (t) => 2 * Math.cos(t) + Math.cos(2 * t),
     yfn: (t) => 2 * Math.sin(t) - Math.sin(2 * t),
+    tMax: TAU,
+  },
+  {
+    label: "Hypocycloid (5)",
+    category: "Special",
+    formula: "5-cusped hypocycloid",
+    is3d: false,
+    xfn: (t) => 4 * Math.cos(t) + Math.cos(4 * t),
+    yfn: (t) => 4 * Math.sin(t) - Math.sin(4 * t),
+    tMax: TAU,
+  },
+  {
+    label: "Nephroid",
+    category: "Special",
+    formula: "Epicycloid (2,1)",
+    is3d: false,
+    xfn: (t) => 3 * Math.cos(t) - Math.cos(3 * t),
+    yfn: (t) => 3 * Math.sin(t) - Math.sin(3 * t),
     tMax: TAU,
   },
 
@@ -455,53 +475,6 @@ const EXAMPLES = [
     zfn: (t) => t * 0.25 + Math.sin(3 * t) * 0.4,
     tMax: TAU * 6,
   },
-
-  // More Curves
-  {
-    label: "Hypocycloid (5)",
-    category: "Special",
-    formula: "5-cusped hypocycloid",
-    is3d: false,
-    xfn: (t) => 4 * Math.cos(t) + Math.cos(4 * t),
-    yfn: (t) => 4 * Math.sin(t) - Math.sin(4 * t),
-    tMax: TAU,
-  },
-  {
-    label: "Superellipse",
-    category: "Special",
-    formula: "x=cos³(t), y=sin³(t) variant",
-    is3d: false,
-    xfn: (t) => Math.sign(Math.cos(t)) * Math.pow(Math.abs(Math.cos(t)), 0.6),
-    yfn: (t) => Math.sign(Math.sin(t)) * Math.pow(Math.abs(Math.sin(t)), 2.4),
-    tMax: TAU,
-  },
-  {
-    label: "Sine Wave Envelope",
-    category: "Special",
-    formula: "t * sin(t)",
-    is3d: false,
-    xfn: (t) => t * 0.25,
-    yfn: (t) => t * Math.sin(t) * 0.12,
-    tMax: 25,
-  },
-  {
-    label: "Nephroid",
-    category: "Special",
-    formula: "Epicycloid (2,1)",
-    is3d: false,
-    xfn: (t) => 3 * Math.cos(t) - Math.cos(3 * t),
-    yfn: (t) => 3 * Math.sin(t) - Math.sin(3 * t),
-    tMax: TAU,
-  },
-  {
-    label: "Ranunculoid",
-    category: "Special",
-    formula: "Rose-like",
-    is3d: false,
-    xfn: (t) => (1 + 1.5 * Math.cos(t)) * Math.cos(t),
-    yfn: (t) => (1 + 1.5 * Math.cos(t)) * Math.sin(t),
-    tMax: TAU,
-  },
   {
     label: "3D Rose",
     category: "3D Curves",
@@ -524,7 +497,7 @@ const EXAMPLES = [
   },
 ];
 
-// ── 3D math ──────────────────────────────────────────────────────────────────
+// ── 3D math ───────────────────────────────────────────────────────────────────
 const rotX = ([x, y, z], a) => [
   x,
   y * Math.cos(a) - z * Math.sin(a),
@@ -536,9 +509,9 @@ const rotY = ([x, y, z], a) => [
   -x * Math.sin(a) + z * Math.cos(a),
 ];
 const project = ([x, y, z], W, H) => {
-  const fov = 700;
-  const d = fov / (fov + z * 55);
-  const s = Math.min(W, H) * 0.26;
+  const fov = 700,
+    d = fov / (fov + z * 55),
+    s = Math.min(W, H) * 0.26;
   return [W / 2 + x * d * s, H / 2 - y * d * s];
 };
 
@@ -553,10 +526,12 @@ function ParametricCanvas({
   rx,
   ry,
   isDark,
+  onHover,
 }) {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
   const progressRef = useRef(0);
+  const scParamsRef = useRef({ s2: 1, cx: 0, cy: 0, W: 1, H: 1 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -594,6 +569,7 @@ function ParametricCanvas({
       cx = (mnX + mxX) / 2;
       cy = (mnY + mxY) / 2;
     }
+    scParamsRef.current = { s2, cx, cy, W, H };
 
     const toSc = (pt) => {
       if (example.is3d) {
@@ -760,8 +736,8 @@ function ParametricCanvas({
       ctx.lineCap = "round";
       for (let i = 1; i < cnt; i++) {
         const alpha = 0.25 + 0.75 * (i / cnt);
-        const [sx, sy] = toSc(raw[i - 1]);
-        const [ex, ey] = toSc(raw[i]);
+        const [sx, sy] = toSc(raw[i - 1]),
+          [ex, ey] = toSc(raw[i]);
         ctx.globalAlpha = alpha;
         ctx.strokeStyle = color;
         ctx.lineWidth = 2.4 * dpr;
@@ -806,9 +782,50 @@ function ParametricCanvas({
     return () => cancelAnimationFrame(animRef.current);
   }, [example, animated, speed, showAxes, zoom, color, rx, ry, isDark]);
 
+  // ── Mouse hover → coordinate tooltip ─────────────────────────────────────
+  const handleMouseMove = useCallback(
+    (e) => {
+      if (!onHover) return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const mx = (e.clientX - rect.left) * dpr;
+      const my = (e.clientY - rect.top) * dpr;
+      const { s2, cx, cy, W, H } = scParamsRef.current;
+
+      if (!example?.is3d && s2 > 0) {
+        // invert canvas coords → world coords
+        const wx = (mx - W / 2) / s2 + cx;
+        const wy = -(my - H / 2) / s2 + cy;
+        onHover({
+          x: wx,
+          y: wy,
+          screenX: e.clientX - rect.left,
+          screenY: e.clientY - rect.top,
+        });
+      } else {
+        // 3D: no meaningful (x,y) → just pass screen pos so we can show a dot
+        onHover({
+          x: null,
+          y: null,
+          screenX: e.clientX - rect.left,
+          screenY: e.clientY - rect.top,
+        });
+      }
+    },
+    [example, onHover],
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    onHover && onHover(null);
+  }, [onHover]);
+
   return (
     <canvas
       ref={canvasRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       style={{
         width: "100%",
         height: "100%",
@@ -822,6 +839,7 @@ function ParametricCanvas({
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function ParametricPage() {
   const { isDark } = useTheme();
+
   const [selected, setSelected] = useState(EXAMPLES[0]);
   const [animated, setAnimated] = useState(true);
   const [speed, setSpeed] = useState(1);
@@ -832,16 +850,17 @@ export default function ParametricPage() {
   const [openCat, setOpenCat] = useState("Basic 2D");
   const [rx, setRx] = useState(-0.35);
   const [ry, setRy] = useState(0.5);
+  const [hoverInfo, setHoverInfo] = useState(null);
 
   const dragRef = useRef(null);
-  const touchRef = useRef(null);
+  const pinchRef = useRef(null); // pinch-to-zoom state
   const wrapRef = useRef(null);
 
   const color =
     COLOR_SCHEMES.find((c) => c.id === colorScheme)?.color || "#a78bfa";
   const cats = [...new Set(EXAMPLES.map((e) => e.category))];
 
-  // Mouse drag → 3D rotation
+  // ── Mouse 3D drag ────────────────────────────────────────────────────────
   const onMouseDown = useCallback(
     (e) => {
       if (!selected.is3d) return;
@@ -853,38 +872,83 @@ export default function ParametricPage() {
 
   const onMouseMove = useCallback((e) => {
     if (!dragRef.current) return;
-    const dx = e.clientX - dragRef.current.x,
-      dy = e.clientY - dragRef.current.y;
-    setRy(dragRef.current.ry + dx * 0.008);
-    setRx(dragRef.current.rx + dy * 0.008);
+    setRy(dragRef.current.ry + (e.clientX - dragRef.current.x) * 0.008);
+    setRx(dragRef.current.rx + (e.clientY - dragRef.current.y) * 0.008);
   }, []);
 
   const onMouseUp = useCallback(() => {
     dragRef.current = null;
   }, []);
 
-  // Touch drag → 3D rotation
+  // ── Touch: pinch-to-zoom on ALL modes + single-drag 3D rotate ────────────
   const onTouchStart = useCallback(
     (e) => {
-      if (!selected.is3d) return;
-      const t = e.touches[0];
-      touchRef.current = { x: t.clientX, y: t.clientY, rx, ry };
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const t0 = e.touches[0],
+          t1 = e.touches[1];
+        const dist = Math.hypot(
+          t1.clientX - t0.clientX,
+          t1.clientY - t0.clientY,
+        );
+        pinchRef.current = { startDist: dist, startZoom: zoom };
+        dragRef.current = null; // cancel any single-touch drag
+      } else if (e.touches.length === 1) {
+        const t = e.touches[0];
+        if (selected.is3d) {
+          dragRef.current = {
+            x: t.clientX,
+            y: t.clientY,
+            rx,
+            ry,
+            mode: "rotate",
+          };
+        } else {
+          // 2D: vertical swipe zooms
+          dragRef.current = {
+            x: t.clientX,
+            y: t.clientY,
+            startZoom: zoom,
+            mode: "zoom2d",
+          };
+        }
+      }
     },
-    [selected.is3d, rx, ry],
+    [selected.is3d, rx, ry, zoom],
   );
 
   const onTouchMove = useCallback((e) => {
-    if (!touchRef.current) return;
-    const t = e.touches[0];
-    setRy(touchRef.current.ry + (t.clientX - touchRef.current.x) * 0.01);
-    setRx(touchRef.current.rx + (t.clientY - touchRef.current.y) * 0.01);
+    e.preventDefault();
+    if (e.touches.length === 2 && pinchRef.current) {
+      // ── Pinch zoom ──
+      const t0 = e.touches[0],
+        t1 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+      const scale = dist / pinchRef.current.startDist;
+      setZoom(Math.max(0.15, Math.min(6, pinchRef.current.startZoom * scale)));
+    } else if (e.touches.length === 1 && dragRef.current) {
+      const t = e.touches[0];
+      if (dragRef.current.mode === "rotate") {
+        // ── 3D rotate ──
+        setRy(dragRef.current.ry + (t.clientX - dragRef.current.x) * 0.01);
+        setRx(dragRef.current.rx + (t.clientY - dragRef.current.y) * 0.01);
+      } else if (dragRef.current.mode === "zoom2d") {
+        // ── 2D vertical swipe zoom ──
+        const dy = t.clientY - dragRef.current.y;
+        const factor = Math.pow(0.992, dy);
+        setZoom(
+          Math.max(0.15, Math.min(6, dragRef.current.startZoom * factor)),
+        );
+      }
+    }
   }, []);
 
-  const onTouchEnd = useCallback(() => {
-    touchRef.current = null;
+  const onTouchEnd = useCallback((e) => {
+    if (e.touches.length < 2) pinchRef.current = null;
+    if (e.touches.length === 0) dragRef.current = null;
   }, []);
 
-  // Scroll → zoom
+  // ── Scroll → zoom ─────────────────────────────────────────────────────────
   const onWheel = useCallback((e) => {
     e.preventDefault();
     setZoom((z) =>
@@ -892,14 +956,23 @@ export default function ParametricPage() {
     );
   }, []);
 
+  // Attach wheel + touch listeners with passive:false so we can preventDefault
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
     el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [onWheel]);
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [onWheel, onTouchStart, onTouchMove, onTouchEnd]);
 
-  // Zoom toolbar helpers (matches 2D/3D page style)
+  // ── Zoom toolbar helpers ───────────────────────────────────────────────────
   const zoomIn = useCallback(() => setZoom((z) => Math.min(6, z * 1.35)), []);
   const zoomOut = useCallback(
     () => setZoom((z) => Math.max(0.15, z * 0.74)),
@@ -907,6 +980,7 @@ export default function ParametricPage() {
   );
   const zoomReset = useCallback(() => setZoom(1), []);
 
+  // ── Inner components ───────────────────────────────────────────────────────
   const Toggle = ({ label, value, set }) => (
     <div
       className="flex justify-between items-center py-1 cursor-pointer"
@@ -937,7 +1011,6 @@ export default function ParametricPage() {
     </div>
   );
 
-  // Shared zoom button style (matches GraphPanel ZoomBtn from 2D/3D pages)
   const ZoomBtn = ({ onClick, title, children, wide }) => (
     <button
       onClick={onClick}
@@ -965,6 +1038,7 @@ export default function ParametricPage() {
     </button>
   );
 
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div
       className="flex flex-1 overflow-hidden"
@@ -978,17 +1052,38 @@ export default function ParametricPage() {
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseUp}
     >
-      {/* Mobile backdrop */}
+      {/* ── Mobile backdrop ── */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-30 lg:hidden bg-black/75 backdrop-blur-sm"
+          className="fixed inset-0 z-30 lg:hidden"
+          style={{
+            background: isDark ? "rgba(0,0,0,0.7)" : "rgba(30,41,59,0.5)",
+            backdropFilter: "blur(4px)",
+          }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* ── SIDEBAR ── */}
+      {/* ══ FAB hamburger button (Complex-page style) — only on small screens ══ */}
+      <button
+        onClick={() => setSidebarOpen((o) => !o)}
+        className="lg:hidden fixed bottom-6 left-4 z-50 w-12 h-12 rounded-full flex items-center justify-center"
+        aria-label={sidebarOpen ? "Close menu" : "Open menu"}
+        style={{
+          background: `linear-gradient(135deg, ${color} 0%, ${color}bb 100%)`,
+          border: `1px solid ${color}`,
+          boxShadow: `0 0 20px ${color}60, 0 8px 24px ${color}35`,
+          transition: "all 0.25s",
+        }}
+      >
+        <span style={{ color: "#fff", fontSize: "1.1rem" }}>
+          <FontAwesomeIcon icon={sidebarOpen ? faXmark : faBars} />
+        </span>
+      </button>
+
+      {/* ══ SIDEBAR ══ */}
       <aside
-        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto flex flex-col border-r w-72 sm:w-88 xl:w-[26rem] 2xl:w-[28rem] flex-shrink-0 overflow-y-auto transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto flex flex-col border-r w-72 xl:w-80 flex-shrink-0 overflow-y-auto transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{
           background: isDark
             ? "linear-gradient(180deg,#0e0520 0%,#070212 100%)"
@@ -998,7 +1093,15 @@ export default function ParametricPage() {
           height: "calc(100vh - 60px)",
         }}
       >
-        {/* Header */}
+        {/* Top accent */}
+        <div
+          className="h-px w-full flex-shrink-0"
+          style={{
+            background: `linear-gradient(90deg,transparent,${color}70,${color}40,transparent)`,
+          }}
+        />
+
+        {/* Sidebar header */}
         <div
           className="p-3 sm:p-4 border-b flex-shrink-0"
           style={{ borderColor: `${color}18` }}
@@ -1017,14 +1120,14 @@ export default function ParametricPage() {
           </div>
         </div>
 
-        {/* Color theme — smaller swatches */}
+        {/* Theme color swatches */}
         <div
           className="px-3 sm:px-4 py-3 border-b flex-shrink-0"
           style={{ borderColor: `${color}12` }}
         >
           <div
             className="text-[9px] font-mono tracking-[3px] uppercase mb-2"
-            style={{ color: isDark ? `${color}60` : `${color}` }}
+            style={{ color: isDark ? `${color}60` : color }}
           >
             THEME
           </div>
@@ -1060,7 +1163,7 @@ export default function ParametricPage() {
         >
           <div
             className="text-[9px] font-mono tracking-[3px] uppercase mb-1"
-            style={{ color: isDark ? `${color}60` : `${color}` }}
+            style={{ color: isDark ? `${color}60` : color }}
           >
             CONTROLS
           </div>
@@ -1091,7 +1194,6 @@ export default function ParametricPage() {
             />
           </div>
 
-          {/* Sidebar zoom buttons (always visible for mobile) */}
           <div>
             <div className="flex justify-between mb-1.5">
               <span
@@ -1268,9 +1370,9 @@ export default function ParametricPage() {
         </div>
       </aside>
 
-      {/* ── MAIN ── */}
+      {/* ══ MAIN ══ */}
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {/* Topbar */}
+        {/* Top bar */}
         <div
           className="flex-shrink-0 flex items-center justify-between px-3 sm:px-5 py-2"
           style={{
@@ -1280,7 +1382,7 @@ export default function ParametricPage() {
           }}
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            {/* Mobile hamburger */}
+            {/* Inline hamburger in topbar (also shown on small screens) */}
             <button
               onClick={() => setSidebarOpen((o) => !o)}
               className="lg:hidden flex flex-col gap-[4px] justify-center w-7 h-7 p-1 rounded flex-shrink-0"
@@ -1304,7 +1406,6 @@ export default function ParametricPage() {
                 />
               ))}
             </button>
-
             <div
               className="w-2.5 h-2.5 rounded-full flex-shrink-0"
               style={{ background: color, boxShadow: `0 0 8px ${color}` }}
@@ -1360,7 +1461,7 @@ export default function ParametricPage() {
           </div>
         </div>
 
-        {/* ── ZOOM TOOLBAR (desktop, matches 2D/3D/Complex page style) ── */}
+        {/* Desktop zoom toolbar */}
         <div
           className="hidden lg:flex flex-shrink-0 items-center gap-1.5 px-3 py-2 border-b"
           style={{
@@ -1368,7 +1469,6 @@ export default function ParametricPage() {
             background: isDark ? "rgba(7,2,18,0.6)" : "rgba(238,244,255,0.7)",
           }}
         >
-          {/* Zoom group */}
           <div className="flex items-center gap-1">
             <ZoomBtn onClick={zoomIn} title="Zoom In">
               +
@@ -1380,8 +1480,6 @@ export default function ParametricPage() {
               RST
             </ZoomBtn>
           </div>
-
-          {/* 3D rotation reset — only for 3D curves */}
           {selected.is3d && (
             <>
               <div
@@ -1400,33 +1498,26 @@ export default function ParametricPage() {
               </ZoomBtn>
             </>
           )}
-
           <div className="w-px h-5 mx-1" style={{ background: `${color}20` }} />
-
-          {/* Zoom readout */}
           <span
-            className="font-mono text-[9px] hidden sm:inline"
+            className="font-mono text-[9px]"
             style={{ color: `${color}70` }}
           >
             zoom {zoom.toFixed(2)}×
           </span>
-
-          {/* Scroll / drag hint */}
           <span
             className="ml-auto font-mono text-[9px] hidden sm:flex items-center gap-1"
             style={{ color: "#334155" }}
           >
             <span style={{ color }}>⊙</span> scroll to zoom
-            {selected.is3d ? " · drag to rotate" : ""}
+            {selected.is3d ? " · drag to rotate" : " · hover for coords"}
           </span>
-
-          {/* Zoom status right-aligned */}
           <span className="font-mono text-[9px]" style={{ color: "#334155" }}>
             t ∈ [0, {selected.tMax.toFixed(2)}]
           </span>
         </div>
 
-        {/* Canvas wrapper */}
+        {/* Canvas area */}
         <div className="flex-1 p-2 sm:p-3 lg:p-4 min-h-0 flex items-stretch">
           <div
             ref={wrapRef}
@@ -1441,11 +1532,9 @@ export default function ParametricPage() {
                 : `inset 0 0 40px rgba(139,92,246,0.05)`,
               cursor: selected.is3d ? "grab" : "crosshair",
               userSelect: "none",
+              touchAction: "none", // let our own handlers manage all touch
             }}
             onMouseDown={onMouseDown}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
           >
             {/* Corner accents */}
             {[
@@ -1496,13 +1585,79 @@ export default function ParametricPage() {
               {selected.formula}
             </div>
 
-            {/* Mobile hint (hidden on desktop since toolbar handles it) */}
+            {/* Mobile hint */}
             <div
               className="lg:hidden absolute bottom-3 right-3 z-10 text-[9px] font-mono pointer-events-none"
               style={{ color: `${color}35` }}
             >
-              scroll zoom{selected.is3d ? " · drag rotate" : ""}
+              pinch zoom{selected.is3d ? " · drag rotate" : ""}
             </div>
+
+            {/* ── Coordinate tooltip (2D only) ── */}
+            {hoverInfo && !selected.is3d && hoverInfo.x !== null && (
+              <div
+                className="pointer-events-none absolute z-20 font-mono text-[10px] rounded-xl px-2.5 py-2"
+                style={{
+                  left:
+                    hoverInfo.screenX + (hoverInfo.screenX > 200 ? -130 : 14),
+                  top: Math.max(hoverInfo.screenY - 52, 4),
+                  background: isDark
+                    ? "rgba(5,1,18,0.93)"
+                    : "rgba(255,255,255,0.97)",
+                  border: `1px solid ${color}45`,
+                  boxShadow: `0 4px 20px ${color}20, 0 0 0 1px ${color}15`,
+                  backdropFilter: "blur(10px)",
+                  color: isDark ? "#e2e8f0" : "#1e293b",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <div
+                  style={{
+                    color: isDark ? "#475569" : "#94a3b8",
+                    fontSize: "8px",
+                    marginBottom: 3,
+                    letterSpacing: "1.5px",
+                  }}
+                >
+                  COORDINATES
+                </div>
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span style={{ color: `${color}` }}>x</span>
+                  <span style={{ color: isDark ? "#475569" : "#94a3b8" }}>
+                    =
+                  </span>
+                  <span style={{ fontWeight: 600 }}>
+                    {hoverInfo.x.toFixed(4)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span style={{ color: `${color}` }}>y</span>
+                  <span style={{ color: isDark ? "#475569" : "#94a3b8" }}>
+                    =
+                  </span>
+                  <span style={{ fontWeight: 600 }}>
+                    {hoverInfo.y.toFixed(4)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Crosshair dot on hover (2D) */}
+            {hoverInfo && !selected.is3d && (
+              <div
+                className="pointer-events-none absolute z-20"
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: "50%",
+                  left: hoverInfo.screenX - 6,
+                  top: hoverInfo.screenY - 6,
+                  border: `2px solid ${color}`,
+                  background: `${color}25`,
+                  boxShadow: `0 0 10px ${color}60`,
+                }}
+              />
+            )}
 
             <ParametricCanvas
               example={selected}
@@ -1514,6 +1669,7 @@ export default function ParametricPage() {
               rx={rx}
               ry={ry}
               isDark={isDark}
+              onHover={setHoverInfo}
             />
           </div>
         </div>
@@ -1535,6 +1691,14 @@ export default function ParametricPage() {
               <span>·</span>
               <span>
                 rx={rx.toFixed(2)} ry={ry.toFixed(2)}
+              </span>
+            </>
+          )}
+          {hoverInfo && !selected.is3d && hoverInfo.x !== null && (
+            <>
+              <span>·</span>
+              <span style={{ color: `${color}80` }}>
+                ({hoverInfo.x.toFixed(3)}, {hoverInfo.y.toFixed(3)})
               </span>
             </>
           )}
