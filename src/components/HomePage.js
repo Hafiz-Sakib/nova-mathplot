@@ -916,7 +916,7 @@ export default function HomePage({ setPage }) {
               className="font-mono text-xs tracking-[0.25em] uppercase"
               style={{ color: isDark ? "#22d3ee" : "#6366f1" }}
             >
-              Scientific Visualization Platform · v4.0
+              Scientific Visualization Platform · v3.0
             </span>
           </div>
           {/* Main title */}
@@ -2420,7 +2420,7 @@ export default function HomePage({ setPage }) {
                 className="font-mono text-xs mb-5"
                 style={{ color: textMuted }}
               >
-                Scientific Visualization Platform v4.0
+                Scientific Visualization Platform v3.0
               </div>
               <div className="flex flex-col gap-2">
                 {[
