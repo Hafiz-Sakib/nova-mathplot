@@ -11,6 +11,15 @@ import {
   faCode,
   faCube,
   faCubes,
+  faBolt,
+  faBrain,
+  faThLarge,
+  faFunction,
+  faSquareRootVariable,
+  faLayerGroup,
+  faTableCells,
+  faChartArea,
+  faInfinity,
 } from "@fortawesome/free-solid-svg-icons";
 /* ═══════════════════════════════════════════════════════════════════
    MINI SVG PREVIEW COMPONENTS (preserved from original)
@@ -630,12 +639,42 @@ const FEATURES = [
 ];
 
 const STATS = [
-  { num: "350+", label: "Example Functions", color: "#22d3ee", icon: "f(x)" },
-  { num: "18", label: "Activation Functions", color: "#a78bfa", icon: "σ" },
-  { num: "5", label: "Visualization Modes", color: "#10b981", icon: "⊞" },
-  { num: "100%", label: "Browser-Based", color: "#fb923c", icon: "⚡" },
-  { num: "3D", label: "GPU Rendering", color: "#f472b6", icon: "🌌" },
-  { num: "∞", label: "Possibilities", color: "#fbbf24", icon: "∞" },
+  {
+    num: "350+",
+    label: "Example Functions",
+    color: "#22d3ee",
+    icon: <FontAwesomeIcon icon={faChartLine} />,
+  },
+  {
+    num: "18",
+    label: "Activation Functions",
+    color: "#a78bfa",
+    icon: <FontAwesomeIcon icon={faBrain} />,
+  },
+  {
+    num: "5",
+    label: "Visualization Modes",
+    color: "#10b981",
+    icon: <FontAwesomeIcon icon={faTableCells} />,
+  },
+  {
+    num: "100%",
+    label: "Browser-Based",
+    color: "#fb923c",
+    icon: <FontAwesomeIcon icon={faBolt} />,
+  },
+  {
+    num: "3D",
+    label: "GPU Rendering",
+    color: "#f472b6",
+    icon: <FontAwesomeIcon icon={faCubes} />,
+  },
+  {
+    num: "200+",
+    label: "Visualization Presets",
+    color: "#fbbf24",
+    icon: <FontAwesomeIcon icon={faInfinity} />,
+  },
 ];
 
 const TECH_STACK = [
