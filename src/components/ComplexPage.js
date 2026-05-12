@@ -18,6 +18,8 @@ import {
 } from "recharts";
 import * as math from "mathjs";
 import { useTheme } from "../ThemeContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBars, faXmark, faAtom } from "@fortawesome/free-solid-svg-icons";
 
 const POINTS = 600;
 const SCOPE = { pi: Math.PI, e: Math.E, tau: 2 * Math.PI };
@@ -995,13 +997,15 @@ export default function ComplexPage() {
         onClick={() => setSidebarOpen((o) => !o)}
         className="lg:hidden fixed bottom-6 left-4 z-50 w-12 h-12 rounded-full flex items-center justify-center"
         style={{
-          background:
-            "linear-gradient(135deg,rgba(236,72,153,0.3),rgba(139,92,246,0.2))",
-          border: "1px solid rgba(236,72,153,0.4)",
-          boxShadow: "0 0 20px rgba(236,72,153,0.3)",
+          background: "linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)",
+          border: "1px solid #ec4899",
+          boxShadow:
+            "0 0 20px rgba(236,72,153,0.45), 0 8px 24px rgba(139,92,246,0.35)",
         }}
       >
-        <span style={{ color: "#f472b6", fontSize: "1.1rem" }}>ℂ</span>
+        <span style={{ color: "#ffffff", fontSize: "1.1rem" }}>
+          <FontAwesomeIcon icon={faBars} />
+        </span>
       </button>
 
       {/* ── Sidebar ── */}
