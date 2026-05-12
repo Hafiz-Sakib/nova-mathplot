@@ -1397,10 +1397,11 @@ export default function HomePage({ setPage }) {
       </section>
 
       {/* ══════════════════════════════════════════════════
-          MATHEMATICAL WORLDS
-      ══════════════════════════════════════════════════ */}
+    MATHEMATICAL WORLDS - Improved Animation
+══════════════════════════════════════════════════ */}
       <section className="px-4 sm:px-8 pb-24 max-w-7xl mx-auto">
         <div className="nova-divider mb-14" />
+
         <RevealSection>
           <SectionHeader
             eyebrow="Domains"
@@ -1409,62 +1410,79 @@ export default function HomePage({ setPage }) {
             subtitle="Explore the rich domains of mathematics that NOVA MathPlot helps you visualize and understand."
             color="#10b981"
           />
+
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {MATH_WORLDS.map((world, i) => (
-              <RevealSection key={world.name} delay={i * 60}>
-                <TiltCard intensity={10}>
+              <RevealSection key={world.name} delay={i * 45} className="group">
+                <TiltCard intensity={12}>
                   <div
-                    className="p-5 rounded-2xl text-center h-full cursor-default transition-all duration-300"
+                    className="p-6 rounded-3xl h-full cursor-default relative overflow-hidden transition-all duration-500 group-hover:-translate-y-3"
                     style={{
                       background:
                         hoveredWorld === world.name
                           ? isDark
-                            ? `rgba(${world.color
-                                .replace("#", "")
-                                .match(/.{2}/g)
-                                .map((h) => parseInt(h, 16))
-                                .join(",")},0.12)`
-                            : `${world.color}08`
+                            ? `rgba(16, 185, 129, 0.12)` // fallback + custom per card below
+                            : `${world.color}15`
                           : cardBg,
-                      border: `1px solid ${hoveredWorld === world.name ? world.color + "50" : world.color + "20"}`,
+                      border: `1px solid ${hoveredWorld === world.name ? world.color + "60" : world.color + "25"}`,
                       boxShadow:
                         hoveredWorld === world.name
-                          ? `0 0 30px ${world.color}20`
-                          : "none",
+                          ? `0 25px 50px -12px ${world.color}40`
+                          : "0 10px 15px -3px rgb(0 0 0 / 0.1)",
                     }}
                     onMouseEnter={() => setHoveredWorld(world.name)}
                     onMouseLeave={() => setHoveredWorld(null)}
                   >
+                    {/* Dynamic Background Glow */}
                     <div
-                      className="font-orbitron font-black text-3xl mb-2"
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
                       style={{
-                        color: world.color,
-                        textShadow: `0 0 20px ${world.color}50`,
+                        background: `radial-gradient(circle at 40% 25%, ${world.color}30, transparent 70%)`,
                       }}
-                    >
-                      {world.symbol}
-                    </div>
-                    <div
-                      className="font-orbitron font-bold text-[10px] tracking-wider mb-2"
-                      style={{ color: world.color }}
-                    >
-                      {world.name}
-                    </div>
-                    <p
-                      className="font-rajdhani text-xs leading-relaxed mb-2"
-                      style={{ color: textSecondary }}
-                    >
-                      {world.desc}
-                    </p>
-                    <div
-                      className="font-mono text-[9px] px-2 py-1 rounded-lg"
-                      style={{
-                        background: `${world.color}10`,
-                        color: world.color,
-                        border: `1px solid ${world.color}25`,
-                      }}
-                    >
-                      {world.formula}
+                    />
+
+                    <div className="relative z-10 flex flex-col h-full">
+                      {/* Symbol */}
+                      <div
+                        className="font-orbitron font-black text-4xl mb-3 transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1"
+                        style={{
+                          color: world.color,
+                          textShadow:
+                            hoveredWorld === world.name
+                              ? `0 0 35px ${world.color}80`
+                              : `0 0 20px ${world.color}50`,
+                        }}
+                      >
+                        {world.symbol}
+                      </div>
+
+                      {/* Name */}
+                      <div
+                        className="font-orbitron font-bold text-xs tracking-[2px] mb-3 transition-all"
+                        style={{ color: world.color }}
+                      >
+                        {world.name}
+                      </div>
+
+                      {/* Description */}
+                      <p
+                        className="font-rajdhani text-sm leading-relaxed mb-5 flex-1 transition-colors duration-300"
+                        style={{ color: textSecondary }}
+                      >
+                        {world.desc}
+                      </p>
+
+                      {/* Formula */}
+                      <div
+                        className="font-mono text-[10px] px-4 py-2.5 rounded-2xl text-center transition-all duration-500 group-hover:scale-105 group-hover:shadow-inner"
+                        style={{
+                          background: `${world.color}12`,
+                          color: world.color,
+                          border: `1px solid ${world.color}35`,
+                        }}
+                      >
+                        {world.formula}
+                      </div>
                     </div>
                   </div>
                 </TiltCard>
