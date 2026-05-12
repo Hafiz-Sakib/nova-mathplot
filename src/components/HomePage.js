@@ -1,5 +1,6 @@
 import { useTheme } from "../ThemeContext";
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 
 /* ═══════════════════════════════════════════════════════════════════
    MINI SVG PREVIEW COMPONENTS (preserved from original)
@@ -869,7 +870,6 @@ export default function HomePage({ setPage }) {
               Scientific Visualization Platform · v3.0
             </span>
           </div>
-
           {/* Main title */}
           <h1
             className="font-orbitron font-black leading-none mb-2"
@@ -885,7 +885,6 @@ export default function HomePage({ setPage }) {
           >
             NOVA
           </h1>
-
           <h2
             className="font-orbitron font-bold mb-6"
             style={{
@@ -896,7 +895,6 @@ export default function HomePage({ setPage }) {
           >
             MATHPLOT PLATFORM
           </h2>
-
           <p
             className="font-rajdhani text-xl sm:text-2xl font-light mb-3 max-w-3xl mx-auto"
             style={{ color: textSecondary }}
@@ -904,7 +902,6 @@ export default function HomePage({ setPage }) {
             Where mathematics meets machine learning, visualization, and
             scientific discovery
           </p>
-
           <div
             className="font-mono text-sm max-w-2xl mx-auto mb-12 leading-relaxed"
             style={{ color: textMuted }}
@@ -917,7 +914,6 @@ export default function HomePage({ setPage }) {
             <span style={{ color: "#fb923c" }}>ReLU</span>(x) ·{" "}
             <span style={{ color: "#fbbf24" }}>∇</span>f(x){" }"}
           </div>
-
           {/* CTA Buttons */}
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-14">
             <button
@@ -939,82 +935,93 @@ export default function HomePage({ setPage }) {
               σ Neural Activations
             </button>
           </div>
-
           {/* Hero preview panel */}
-          <TiltCard intensity={5} style={{ maxWidth: 760, margin: "0 auto" }}>
-            <div
+          <TiltCard intensity={8} style={{ maxWidth: 760, margin: "0 auto" }}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
               style={{
                 background: isDark
-                  ? "rgba(4,10,24,0.9)"
+                  ? "rgba(4,10,24,0.95)"
                   : "rgba(255,255,255,0.97)",
                 border: isDark
-                  ? "1px solid rgba(6,182,212,0.25)"
+                  ? "1px solid rgba(6,182,212,0.3)"
                   : "1px solid rgba(99,102,241,0.28)",
                 borderRadius: "1.25rem",
                 boxShadow: isDark
-                  ? "0 0 60px rgba(6,182,212,0.12), 0 30px 80px rgba(0,0,0,0.5)"
-                  : "0 20px 60px rgba(99,102,241,0.12), 0 4px 20px rgba(0,0,0,0.08)",
+                  ? "0 0 70px rgba(6,182,212,0.15), 0 30px 80px rgba(0,0,0,0.6)"
+                  : "0 20px 60px rgba(99,102,241,0.15), 0 4px 20px rgba(0,0,0,0.1)",
                 overflow: "hidden",
                 position: "relative",
               }}
             >
-              {/* Grid overlay */}
+              {/* Grid Overlay */}
               <div
                 style={{
                   position: "absolute",
                   inset: 0,
                   borderRadius: "1.25rem",
                   backgroundImage: isDark
-                    ? "linear-gradient(rgba(103,232,249,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(103,232,249,0.35) 1px, transparent 1px)"
-                    : "linear-gradient(rgba(0,0,0,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.35) 1px, transparent 1px)",
-                  backgroundSize: "32px 32px",
+                    ? "linear-gradient(rgba(103,232,249,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(103,232,249,0.4) 1px, transparent 1px)"
+                    : "linear-gradient(rgba(0,0,0,0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.25) 1px, transparent 1px)",
+                  backgroundSize: "40px 40px",
+                  opacity: 0.6,
                   pointerEvents: "none",
                 }}
               />
+
               {/* Titlebar */}
               <div
                 className="flex items-center gap-3 px-5 py-3 border-b relative"
                 style={{
                   borderColor: isDark
-                    ? "rgba(6,182,212,0.15)"
-                    : "rgba(99,102,241,0.2)",
+                    ? "rgba(6,182,212,0.2)"
+                    : "rgba(99,102,241,0.25)",
                 }}
               >
                 <div className="flex gap-1.5">
-                  {["#ef4444", "#f59e0b", "#10b981"].map((c) => (
-                    <div
-                      key={c}
-                      className="w-2.5 h-2.5 rounded-full"
+                  {["#ef4444", "#f59e0b", "#10b981"].map((c, i) => (
+                    <motion.div
+                      key={i}
+                      whileHover={{ scale: 1.2 }}
+                      className="w-3 h-3 rounded-full cursor-pointer"
                       style={{ background: c }}
                     />
                   ))}
                 </div>
+
                 <span
-                  className="font-mono text-xs flex-1"
-                  style={{ color: isDark ? "#334155" : "#475569" }}
+                  className="font-mono text-xs flex-1 truncate"
+                  style={{ color: isDark ? "#94a3b8" : "#475569" }}
                 >
                   f(x) = sin(x)·cos(2x) + e^(-x²/4)
                 </span>
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{
-                      background: "#22d3ee",
-                      animation: "pulse 2s ease infinite",
-                    }}
+
+                <div className="flex items-center gap-2">
+                  <motion.div
+                    className="w-2 h-2 rounded-full bg-emerald-400"
+                    animate={{ scale: [1, 1.3, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    style={{ boxShadow: "0 0 10px #10b981" }}
                   />
                   <span
-                    className="font-mono text-[10px]"
-                    style={{ color: "#22d3ee" }}
+                    className="font-mono text-xs font-medium tracking-widest"
+                    style={{ color: "#10b981" }}
                   >
                     LIVE
                   </span>
                 </div>
               </div>
-              <div className="p-4 relative">
+
+              {/* Main Plot Area */}
+              <div className="p-5 relative">
                 <AnimatedSine />
               </div>
-              <div className="px-4 pb-4 grid grid-cols-3 gap-3 relative">
+
+              {/* Bottom Previews - Staggered Animation */}
+              <div className="px-5 pb-6 grid grid-cols-3 gap-4 relative">
                 {[
                   {
                     label: "Gaussian",
@@ -1031,28 +1038,60 @@ export default function HomePage({ setPage }) {
                     content: <ActivationPreview isDark={isDark} />,
                     color: "#fb923c",
                   },
-                ].map((item) => (
-                  <div
+                ].map((item, index) => (
+                  <motion.div
                     key={item.label}
-                    className="rounded-xl p-3"
+                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{
+                      duration: 0.5,
+                      delay: 0.1 + index * 0.1,
+                      type: "spring",
+                      stiffness: 120,
+                      damping: 18,
+                    }}
+                    whileHover={{
+                      y: -6,
+                      scale: 1.03,
+                      transition: { duration: 0.3 },
+                    }}
+                    className="group rounded-2xl p-4 cursor-default"
                     style={{
                       background: isDark
-                        ? "rgba(6,18,40,0.85)"
+                        ? "rgba(6,18,40,0.9)"
                         : "rgba(248,250,255,0.95)",
-                      border: `1px solid ${item.color}35`,
+                      border: `1px solid ${item.color}30`,
                     }}
                   >
-                    {item.content}
+                    <motion.div
+                      className="transition-transform"
+                      whileHover={{ scale: 1.08 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      {item.content}
+                    </motion.div>
+
                     <p
-                      className="font-mono text-[10px] text-center mt-1.5"
+                      className="font-mono text-[10px] text-center mt-3 transition-colors"
                       style={{ color: item.color }}
                     >
                       {item.label}
                     </p>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+
+              {/* Subtle bottom glow */}
+              <div
+                className="absolute bottom-0 left-0 right-0 h-28 pointer-events-none"
+                style={{
+                  background: isDark
+                    ? "linear-gradient(transparent, rgba(6,182,212,0.1))"
+                    : "linear-gradient(transparent, rgba(99,102,241,0.1))",
+                }}
+              />
+            </motion.div>
           </TiltCard>
         </div>
 
