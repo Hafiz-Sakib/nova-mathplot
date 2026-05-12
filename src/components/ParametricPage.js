@@ -1041,9 +1041,10 @@ export default function ParametricPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div
-      className="flex flex-1 overflow-hidden"
+      className="flex overflow-hidden"
       style={{
-        height: "calc(100vh - 60px)",
+        height: "100vh",
+        maxHeight: "100vh",
         background: isDark
           ? "#070212"
           : "linear-gradient(145deg,#eef4ff,#e8f0fc)",
@@ -1083,14 +1084,14 @@ export default function ParametricPage() {
 
       {/* ══ SIDEBAR ══ */}
       <aside
-        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto flex flex-col border-r w-72 xl:w-80 flex-shrink-0 overflow-y-auto transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto flex flex-col border-r w-80 xl:w-96 flex-shrink-0 overflow-y-auto transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
         style={{
           background: isDark
             ? "linear-gradient(180deg,#0e0520 0%,#070212 100%)"
             : "linear-gradient(180deg,#eef4ff 0%,#e8f0fc 100%)",
           borderColor: `${color}18`,
-          top: "60px",
-          height: "calc(100vh - 60px)",
+          top: 0,
+          height: "100vh",
         }}
       >
         {/* Top accent */}
@@ -1371,7 +1372,7 @@ export default function ParametricPage() {
       </aside>
 
       {/* ══ MAIN ══ */}
-      <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <main className="flex-1 flex flex-col overflow-hidden min-w-0 min-h-0">
         {/* Top bar */}
         <div
           className="flex-shrink-0 flex items-center justify-between px-3 sm:px-5 py-2"
@@ -1518,7 +1519,7 @@ export default function ParametricPage() {
         </div>
 
         {/* Canvas area */}
-        <div className="flex-1 p-2 sm:p-3 lg:p-4 min-h-0 flex items-stretch">
+        <div className="flex-1 p-2 sm:p-3 lg:p-4 min-h-0 flex items-stretch overflow-hidden">
           <div
             ref={wrapRef}
             className="relative flex-1 rounded-2xl overflow-hidden"
