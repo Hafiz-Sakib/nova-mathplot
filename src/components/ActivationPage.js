@@ -1,10 +1,16 @@
 import { useTheme } from "../ThemeContext";
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 
 /* ─────────────────────────────────────────────
    ACTIVATION FUNCTION DEFINITIONS
 ───────────────────────────────────────────── */
-const ALPHA = 0.01; // Leaky ReLU default
+const ALPHA = 0.01;
 const ELU_A = 1.0;
 const SELU_LAMBDA = 1.0507;
 const SELU_ALPHA = 1.6733;
@@ -224,7 +230,6 @@ const ACTIVATIONS = [
     group: "Output",
     desc: "Multi-class probability distribution. Output sums to 1. Standard for classification heads.",
     fn: (x) => {
-      // Visualize as applied to [x, 0, 0] → first component
       const e0 = Math.exp(Math.min(x, 80));
       const e1 = Math.exp(0);
       return e0 / (e0 + e1 + e1);
@@ -285,7 +290,6 @@ function Sparkline({ fn, color, showDerivative = false, derivFn }) {
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H}>
-      {/* zero x line */}
       <line
         x1={W / 2}
         y1={0}
@@ -294,7 +298,6 @@ function Sparkline({ fn, color, showDerivative = false, derivFn }) {
         stroke="rgba(255,255,255,0.06)"
         strokeWidth="0.5"
       />
-      {/* zero y line */}
       {yMin < 0 && yMax > 0 && (
         <line
           x1={0}
@@ -329,13 +332,21 @@ function Sparkline({ fn, color, showDerivative = false, derivFn }) {
 }
 
 /* ─────────────────────────────────────────────
-   MAIN PLOT CANVAS
+   MAIN PLOT CANVAS  — with coordinate tooltip + pinch zoom
 ───────────────────────────────────────────── */
-function MainPlot({ selected, showDerivative, xRange, onXRangeChange, isDark }) {
+function MainPlot({
+  selected,
+  showDerivative,
+  xRange,
+  onXRangeChange,
+  isDark,
+}) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
+  const [tooltip, setTooltip] = useState(null); // { px, py, x, values }
+  const pinchRef = useRef(null); // { dist, xRange }
 
-  // Mouse-wheel zoom: zoom toward cursor x position
+  // ── Scroll-to-zoom (mouse wheel) ──────────────────────────────
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
@@ -345,32 +356,148 @@ function MainPlot({ selected, showDerivative, xRange, onXRangeChange, isDark }) 
       const PAD_L = 48,
         PAD_R = 20;
       const plotW = rect.width - PAD_L - PAD_R;
-      // Fraction of plot width where cursor is (0 = left edge, 1 = right)
       const frac = Math.max(
         0,
         Math.min(1, (e.clientX - rect.left - PAD_L) / plotW),
       );
-
       const [xMin, xMax] = xRange;
       const span = xMax - xMin;
-      const ZOOM_FACTOR = e.deltaY > 0 ? 1.15 : 1 / 1.15; // scroll down = zoom out
+      const ZOOM_FACTOR = e.deltaY > 0 ? 1.15 : 1 / 1.15;
       const newSpan = Math.min(40, Math.max(1, span * ZOOM_FACTOR));
-      const pivot = xMin + frac * span; // x-value under cursor
-      const newMin = pivot - frac * newSpan;
-      const newMax = pivot + (1 - frac) * newSpan;
-      onXRangeChange([newMin, newMax]);
+      const pivot = xMin + frac * span;
+      onXRangeChange([pivot - frac * newSpan, pivot + (1 - frac) * newSpan]);
     };
     el.addEventListener("wheel", handler, { passive: false });
     return () => el.removeEventListener("wheel", handler);
   }, [xRange, onXRangeChange]);
 
+  // ── Pinch-to-zoom (touch) ─────────────────────────────────────
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+
+    const getTouchDist = (touches) => {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const onTouchStart = (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        pinchRef.current = {
+          dist: getTouchDist(e.touches),
+          xRange: [...xRange],
+        };
+      } else {
+        pinchRef.current = null;
+      }
+    };
+
+    const onTouchMove = (e) => {
+      if (e.touches.length === 2 && pinchRef.current) {
+        e.preventDefault();
+        const newDist = getTouchDist(e.touches);
+        const scale = pinchRef.current.dist / newDist;
+        const [xMin, xMax] = pinchRef.current.xRange;
+        const mid = (xMin + xMax) / 2;
+        const halfSpan = ((xMax - xMin) / 2) * scale;
+        const newHalf = Math.min(20, Math.max(0.5, halfSpan));
+        onXRangeChange([mid - newHalf, mid + newHalf]);
+      }
+    };
+
+    const onTouchEnd = () => {
+      pinchRef.current = null;
+    };
+
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd);
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [xRange, onXRangeChange]);
+
+  // ── Mouse move → coordinate tooltip ──────────────────────────
+  const handleMouseMove = useCallback(
+    (e) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const PAD = { l: 48, r: 20, t: 24, b: 40 };
+
+      const cssW = rect.width;
+      const cssH = rect.height;
+      const plotW = cssW - PAD.l - PAD.r;
+      const plotH = cssH - PAD.t - PAD.b;
+
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      // Hide tooltip when mouse is outside plotting area
+      if (mx < PAD.l || mx > cssW - PAD.r || my < PAD.t || my > cssH - PAD.b) {
+        setTooltip(null);
+        return;
+      }
+
+      const [xMin, xMax] = xRange;
+      const yMin = -2.5;
+      const yMax = 2.5;
+
+      // Convert mouse pixel position to graph coordinates
+      const x = xMin + ((mx - PAD.l) / plotW) * (xMax - xMin);
+      const y = yMax - ((my - PAD.t) / plotH) * (yMax - yMin);
+
+      // Calculate each activation value at x
+      const values = selected.map((act) => {
+        let fy;
+        try {
+          fy = act.fn(x);
+        } catch {
+          fy = NaN;
+        }
+
+        return {
+          name: act.name,
+          color: act.color,
+          y: Number.isFinite(fy) ? fy : NaN,
+        };
+      });
+
+      // Include both x and mouse y-coordinate in tooltip
+      setTooltip({
+        px: mx,
+        py: my,
+        x,
+        y, // <- graph-space Y coordinate of the cursor
+        values,
+      });
+    },
+    [xRange, selected],
+  );
+
+  const handleMouseLeave = useCallback(() => setTooltip(null), []);
+
+  // ── Draw canvas ───────────────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    const W = canvas.width;
-    const H = canvas.height;
 
+    // Use device pixel ratio for crisp rendering
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.offsetWidth;
+    const cssH = canvas.offsetHeight;
+    canvas.width = cssW * dpr;
+    canvas.height = cssH * dpr;
+    ctx.scale(dpr, dpr);
+
+    const W = cssW;
+    const H = cssH;
     ctx.clearRect(0, 0, W, H);
 
     const PAD = { l: 48, r: 20, t: 24, b: 40 };
@@ -384,8 +511,10 @@ function MainPlot({ selected, showDerivative, xRange, onXRangeChange, isDark }) 
     const toCanvasX = (x) => PAD.l + ((x - xMin) / (xMax - xMin)) * plotW;
     const toCanvasY = (y) => PAD.t + (1 - (y - yMin) / (yMax - yMin)) * plotH;
 
-    // Background grid
-    ctx.strokeStyle = isDark ? "rgba(255,255,255,0.04)" : "rgba(100,116,139,0.15)";
+    // Grid
+    ctx.strokeStyle = isDark
+      ? "rgba(255,255,255,0.04)"
+      : "rgba(100,116,139,0.15)";
     ctx.lineWidth = 0.7;
     for (let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx++) {
       ctx.beginPath();
@@ -426,7 +555,6 @@ function MainPlot({ selected, showDerivative, xRange, onXRangeChange, isDark }) 
 
     const STEPS = 500;
     selected.forEach((act) => {
-      // Main function
       ctx.beginPath();
       let first = true;
       for (let i = 0; i <= STEPS; i++) {
@@ -452,7 +580,6 @@ function MainPlot({ selected, showDerivative, xRange, onXRangeChange, isDark }) 
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Derivative
       if (showDerivative && act.derivative) {
         ctx.beginPath();
         first = true;
@@ -483,17 +610,137 @@ function MainPlot({ selected, showDerivative, xRange, onXRangeChange, isDark }) 
     });
   }, [selected, showDerivative, xRange, isDark]);
 
+  // Tooltip position clamping
+  const tooltipW = 160;
+  const tooltipLeft = tooltip
+    ? Math.min(
+        tooltip.px + 14,
+        (wrapRef.current?.offsetWidth || 999) - tooltipW - 8,
+      )
+    : 0;
+  const tooltipTop = tooltip ? Math.max(8, tooltip.py - 20) : 0;
+
   return (
     <div
       ref={wrapRef}
-      style={{ width: "100%", height: "100%", cursor: "crosshair" }}
+      style={{
+        width: "100%",
+        height: "100%",
+        cursor: "crosshair",
+        position: "relative",
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
       <canvas
         ref={canvasRef}
-        width={800}
-        height={440}
         style={{ width: "100%", height: "100%", display: "block" }}
       />
+
+      {/* ── Coordinate crosshair tooltip ── */}
+      {tooltip && (
+        <div
+          style={{
+            position: "absolute",
+            left: tooltipLeft,
+            top: tooltipTop,
+            pointerEvents: "none",
+            zIndex: 20,
+            background: isDark
+              ? "rgba(4,10,24,0.92)"
+              : "rgba(255,255,255,0.95)",
+            border: "1px solid rgba(139,92,246,0.35)",
+            borderRadius: 8,
+            padding: "6px 10px",
+            backdropFilter: "blur(8px)",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            minWidth: tooltipW,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "monospace",
+              fontSize: 10,
+              color: "#64748b",
+              marginBottom: 4,
+            }}
+          >
+            x = <span style={{ color: "#a78bfa" }}>{tooltip.x.toFixed(3)}</span>
+          </div>
+
+          <div
+            style={{
+              fontFamily: "monospace",
+              fontSize: 10,
+              color: "#64748b",
+              marginBottom: 6,
+            }}
+          >
+            y = <span style={{ color: "#22d3ee" }}>{tooltip.y.toFixed(3)}</span>
+          </div>
+          {tooltip.values.map((v) => (
+            <div
+              key={v.name}
+              style={{
+                fontFamily: "monospace",
+                fontSize: 10,
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 8,
+              }}
+            >
+              <span style={{ color: v.color }}>{v.name}</span>
+              <span style={{ color: isDark ? "#e2e8f0" : "#1e293b" }}>
+                {isFinite(v.y) ? v.y.toFixed(4) : "—"}
+              </span>
+            </div>
+          ))}
+          {showDerivative && (
+            <div
+              style={{
+                fontFamily: "monospace",
+                fontSize: 9,
+                color: "#475569",
+                marginTop: 3,
+                borderTop: "1px solid rgba(255,255,255,0.06)",
+                paddingTop: 3,
+              }}
+            >
+              dashed = f′(x)
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Crosshair lines */}
+      {tooltip && (
+        <>
+          <div
+            style={{
+              position: "absolute",
+              left: tooltip.px,
+              top: 24,
+              bottom: 40,
+              width: 1,
+              background: "rgba(139,92,246,0.25)",
+              pointerEvents: "none",
+              zIndex: 10,
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: tooltip.py,
+              left: 48,
+              right: 20,
+              height: 1,
+              background: "rgba(139,92,246,0.18)",
+              pointerEvents: "none",
+              zIndex: 10,
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -530,7 +777,9 @@ export default function ActivationPage({ setPage }) {
     <div
       className="min-h-screen"
       style={{
-        background: isDark ? "rgb(2,8,20)" : "linear-gradient(145deg, #eef4ff 0%, #e8f0fc 100%)",
+        background: isDark
+          ? "rgb(2,8,20)"
+          : "linear-gradient(145deg, #eef4ff 0%, #e8f0fc 100%)",
         fontFamily: "'Space Grotesk', sans-serif",
       }}
     >
@@ -539,7 +788,6 @@ export default function ActivationPage({ setPage }) {
         className="relative px-4 sm:px-8 pt-10 pb-8 border-b overflow-hidden"
         style={{ borderColor: "rgba(139,92,246,0.15)" }}
       >
-        {/* BG glow */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -550,7 +798,6 @@ export default function ActivationPage({ setPage }) {
 
         <div className="relative max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            {/* breadcrumb */}
             <div className="flex items-center gap-2 mb-3">
               <button
                 onClick={() => setPage && setPage("home")}
@@ -604,7 +851,9 @@ export default function ActivationPage({ setPage }) {
               style={{
                 background: showDerivative
                   ? "rgba(139,92,246,0.15)"
-                  : isDark ? "rgba(15,23,42,0.8)" : "rgba(255,255,255,0.88)",
+                  : isDark
+                    ? "rgba(15,23,42,0.8)"
+                    : "rgba(255,255,255,0.88)",
                 border: `1px solid ${showDerivative ? "rgba(139,92,246,0.4)" : "rgba(139,92,246,0.15)"}`,
                 color: showDerivative ? "#c084fc" : "#64748b",
               }}
@@ -618,7 +867,9 @@ export default function ActivationPage({ setPage }) {
               onClick={() => setSelectedIds([])}
               className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
               style={{
-                background: isDark ? "rgba(15,23,42,0.8)" : "rgba(255,255,255,0.88)",
+                background: isDark
+                  ? "rgba(15,23,42,0.8)"
+                  : "rgba(255,255,255,0.88)",
                 border: "1px solid rgba(139,92,246,0.1)",
                 color: "#475569",
               }}
@@ -643,7 +894,6 @@ export default function ActivationPage({ setPage }) {
             top: 80,
           }}
         >
-          {/* Group filter */}
           <div
             className="flex flex-wrap gap-1 mb-2 pb-3"
             style={{ borderBottom: "1px solid rgba(139,92,246,0.1)" }}
@@ -686,7 +936,6 @@ export default function ActivationPage({ setPage }) {
                 }}
               >
                 <div className="flex items-start gap-2.5">
-                  {/* Color dot */}
                   <div
                     className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 transition-all"
                     style={{
@@ -738,7 +987,9 @@ export default function ActivationPage({ setPage }) {
           <div
             className="rounded-2xl overflow-hidden"
             style={{
-              background: isDark ? "rgba(4,10,24,0.9)" : "rgba(255,255,255,0.88)",
+              background: isDark
+                ? "rgba(4,10,24,0.9)"
+                : "rgba(255,255,255,0.88)",
               border: "1px solid rgba(139,92,246,0.15)",
               boxShadow: "0 0 40px rgba(139,92,246,0.06)",
             }}
@@ -793,6 +1044,7 @@ export default function ActivationPage({ setPage }) {
                   </div>
                 )}
               </div>
+
               {/* Zoom controls */}
               <div className="flex items-center gap-1.5">
                 <span
@@ -801,57 +1053,55 @@ export default function ActivationPage({ setPage }) {
                 >
                   x: [{xRange[0].toFixed(1)}, {xRange[1].toFixed(1)}]
                 </span>
-                <button
-                  onClick={() => {
-                    const [a, b] = xRange;
-                    const mid = (a + b) / 2;
-                    const half = (b - a) / 2;
-                    const newHalf = Math.max(0.5, half / 1.3);
-                    setXRange([mid - newHalf, mid + newHalf]);
-                  }}
-                  title="Zoom In"
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold transition-all"
-                  style={{
-                    background: "rgba(139,92,246,0.1)",
-                    border: "1px solid rgba(139,92,246,0.25)",
-                    color: "#c084fc",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "rgba(139,92,246,0.22)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "rgba(139,92,246,0.1)")
-                  }
-                >
-                  +
-                </button>
-                <button
-                  onClick={() => {
-                    const [a, b] = xRange;
-                    const mid = (a + b) / 2;
-                    const half = (b - a) / 2;
-                    const newHalf = Math.min(20, half * 1.3);
-                    setXRange([mid - newHalf, mid + newHalf]);
-                  }}
-                  title="Zoom Out"
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold transition-all"
-                  style={{
-                    background: "rgba(139,92,246,0.1)",
-                    border: "1px solid rgba(139,92,246,0.25)",
-                    color: "#c084fc",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "rgba(139,92,246,0.22)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "rgba(139,92,246,0.1)")
-                  }
-                >
-                  −
-                </button>
+                {[
+                  [
+                    "+",
+                    () => {
+                      const [a, b] = xRange,
+                        mid = (a + b) / 2,
+                        half = (b - a) / 2;
+                      setXRange([
+                        mid - Math.max(0.5, half / 1.3),
+                        mid + Math.max(0.5, half / 1.3),
+                      ]);
+                    },
+                  ],
+                  [
+                    "−",
+                    () => {
+                      const [a, b] = xRange,
+                        mid = (a + b) / 2,
+                        half = (b - a) / 2;
+                      setXRange([
+                        mid - Math.min(20, half * 1.3),
+                        mid + Math.min(20, half * 1.3),
+                      ]);
+                    },
+                  ],
+                ].map(([label, fn]) => (
+                  <button
+                    key={label}
+                    onClick={fn}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold transition-all"
+                    style={{
+                      background: "rgba(139,92,246,0.1)",
+                      border: "1px solid rgba(139,92,246,0.25)",
+                      color: "#c084fc",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background =
+                        "rgba(139,92,246,0.22)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background =
+                        "rgba(139,92,246,0.1)")
+                    }
+                  >
+                    {label}
+                  </button>
+                ))}
                 <button
                   onClick={() => setXRange([-6, 6])}
-                  title="Reset zoom"
                   className="px-2 h-7 rounded-lg text-[10px] font-mono transition-all"
                   style={{
                     background: "rgba(139,92,246,0.06)",
@@ -883,7 +1133,7 @@ export default function ActivationPage({ setPage }) {
                 className="absolute bottom-3 right-4 font-mono text-[9px] pointer-events-none"
                 style={{ color: "rgba(71,85,105,0.6)" }}
               >
-                scroll to zoom
+                scroll/pinch to zoom · hover for coords
               </div>
             </div>
           </div>
@@ -896,11 +1146,12 @@ export default function ActivationPage({ setPage }) {
                   key={act.id}
                   className="rounded-xl p-4 relative overflow-hidden"
                   style={{
-                    background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.88)",
+                    background: isDark
+                      ? "rgba(4,10,24,0.85)"
+                      : "rgba(255,255,255,0.88)",
                     border: `1px solid ${act.color}25`,
                   }}
                 >
-                  {/* top accent */}
                   <div
                     className="absolute top-0 left-0 right-0 h-px"
                     style={{
@@ -973,7 +1224,9 @@ export default function ActivationPage({ setPage }) {
             <div
               className="rounded-xl p-4"
               style={{
-                background: isDark ? "rgba(4,10,24,0.9)" : "rgba(255,255,255,0.88)",
+                background: isDark
+                  ? "rgba(4,10,24,0.9)"
+                  : "rgba(255,255,255,0.88)",
                 border: "1px solid rgba(139,92,246,0.15)",
               }}
             >
@@ -1015,7 +1268,9 @@ export default function ActivationPage({ setPage }) {
           <div
             className="rounded-2xl overflow-hidden"
             style={{
-              background: isDark ? "rgba(4,10,24,0.85)" : "rgba(255,255,255,0.88)",
+              background: isDark
+                ? "rgba(4,10,24,0.85)"
+                : "rgba(255,255,255,0.88)",
               border: "1px solid rgba(139,92,246,0.12)",
             }}
           >
