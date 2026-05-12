@@ -283,7 +283,7 @@ export default function Navbar({ page, setPage }) {
               className="font-mono-code text-xs"
               style={{ color: isDark ? "#475569" : "#64748b" }}
             >
-              v3.0
+              v4.0
             </span>
           </div>
 

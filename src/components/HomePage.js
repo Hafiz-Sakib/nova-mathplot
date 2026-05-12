@@ -1,7 +1,17 @@
 import { useTheme } from "../ThemeContext";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faHouse,
+  faChartLine,
+  faAtom,
+  faWaveSquare,
+  faDiagramProject,
+  faCode,
+  faCube,
+  faCubes,
+} from "@fortawesome/free-solid-svg-icons";
 /* ═══════════════════════════════════════════════════════════════════
    MINI SVG PREVIEW COMPONENTS (preserved from original)
 ═══════════════════════════════════════════════════════════════════ */
@@ -867,7 +877,7 @@ export default function HomePage({ setPage }) {
               className="font-mono text-xs tracking-[0.25em] uppercase"
               style={{ color: isDark ? "#22d3ee" : "#6366f1" }}
             >
-              Scientific Visualization Platform · v3.0
+              Scientific Visualization Platform · v4.0
             </span>
           </div>
           {/* Main title */}
@@ -926,13 +936,13 @@ export default function HomePage({ setPage }) {
               onClick={() => setPage("plotter3d")}
               className="btn-secondary text-sm sm:text-base px-6 sm:px-8 py-2.5 sm:py-3"
             >
-              🌌 3D Visualizer
+              <FontAwesomeIcon icon={faCube} /> 3D Visualizer
             </button>
             <button
               onClick={() => setPage("activation")}
               className="btn-accent text-sm sm:text-base px-5 sm:px-6 py-2.5 sm:py-3"
             >
-              σ Neural Activations
+              <FontAwesomeIcon icon={faAtom} /> Neural Activations
             </button>
           </div>
           {/* Hero preview panel */}
@@ -2371,7 +2381,7 @@ export default function HomePage({ setPage }) {
                 className="font-mono text-xs mb-5"
                 style={{ color: textMuted }}
               >
-                Scientific Visualization Platform v3.0
+                Scientific Visualization Platform v4.0
               </div>
               <div className="flex flex-col gap-2">
                 {[
