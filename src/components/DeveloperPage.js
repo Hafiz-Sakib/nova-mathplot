@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import developerImg from "../images/developer.png";
+import developerImg from "../images/developer_pic/developer.png";
 import { useTheme } from "../ThemeContext";
 
 /* ─── Skills data ─── */
