@@ -30,15 +30,15 @@ const PROJECTS = [
     desc: "Location-based travel guide app — latest personal project exploring interactive maps and point-of-interest discovery.",
     tech: ["React", "Maps API", "Firebase"],
     color: "#34d399",
-    link: "https://hafizsakib.vercel.app/",
-    github: "https://github.com/Hafiz-Sakib",
+    link: "https://sababa-tours.vercel.app/",
+    github: "https://github.com/Hafiz-Sakib/Sababa-Tours",
   },
   {
     name: "Open Source Contributions",
     desc: "Actively contributing to and collaborating on open source projects. Solving competitive programming problems on multiple judges.",
     tech: ["C++", "Python", "Algorithms"],
     color: "#a78bfa",
-    link: "https://github.com/Hafiz-Sakib",
+    link: "https://hafizsakib.vercel.app/",
     github: "https://github.com/Hafiz-Sakib",
   },
 ];
