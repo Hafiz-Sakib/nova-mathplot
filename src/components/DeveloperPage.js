@@ -1,6 +1,13 @@
 import React, { useState, useRef } from "react";
 import developerImg from "../images/developer_pic/developer.png";
 import { useTheme } from "../ThemeContext";
+import { faGlobe, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import {
+  faGithub,
+  faLinkedinIn,
+  faXTwitter,
+} from "@fortawesome/free-brands-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 /* ─── Skills data ─── */
 const SKILLS = [
@@ -47,32 +54,32 @@ const SOCIAL_LINKS = [
   {
     label: "Portfolio",
     href: "https://hafizsakib.vercel.app/",
-    icon: "🌐",
+    icon: <FontAwesomeIcon icon={faGlobe} />,
     color: "#22d3ee",
   },
   {
     label: "GitHub",
     href: "https://github.com/Hafiz-Sakib",
-    icon: "⌥",
+    icon: <FontAwesomeIcon icon={faGithub} />,
     color: "#a78bfa",
   },
   {
     label: "LinkedIn",
     href: "https://linkedin.com/in/hafizsakib",
-    icon: "in",
+    icon: <FontAwesomeIcon icon={faLinkedinIn} />,
     color: "#0ea5e9",
   },
   {
     label: "Email",
     href: "https://mail.google.com/mail/u/0/?fs=1&to=hafizsakib5@gmail.com&tf=cm",
-    icon: "✉",
+    icon: <FontAwesomeIcon icon={faEnvelope} />,
     color: "#34d399",
   },
   {
     label: "Twitter/X",
     href: "https://twitter.com/hafiz_sakib1",
-    icon: "𝕏",
-    color: "#64748b",
+    icon: <FontAwesomeIcon icon={faXTwitter} />,
+    color: "#ffffff",
   },
 ];
 
@@ -255,31 +262,44 @@ export default function DeveloperPage({ setPage }) {
 
               {/* Social links */}
               <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                {SOCIAL_LINKS.map((s) => (
-                  <a
-                    key={s.label}
-                    href={s.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all"
-                    style={{
-                      background: `${s.color}0d`,
-                      border: `1px solid ${s.color}25`,
-                      color: s.color,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = `${s.color}18`;
-                      e.currentTarget.style.borderColor = `${s.color}50`;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = `${s.color}0d`;
-                      e.currentTarget.style.borderColor = `${s.color}25`;
-                    }}
-                  >
-                    <span style={{ fontSize: "0.75rem" }}>{s.icon}</span>
-                    {s.label}
-                  </a>
-                ))}
+                {SOCIAL_LINKS.map((s) => {
+                  const isTwitter = s.label === "Twitter/X";
+
+                  return (
+                    <a
+                      key={s.label}
+                      href={s.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono transition-all"
+                      style={{
+                        // Make only Twitter/X have a black background
+                        background: isTwitter ? "#111827" : `${s.color}0d`,
+                        border: `1px solid ${isTwitter ? "#000000" : `${s.color}25`}`,
+                        color: isTwitter ? "#ffffff" : s.color,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = isTwitter
+                          ? "#111111"
+                          : `${s.color}18`;
+                        e.currentTarget.style.borderColor = isTwitter
+                          ? "#222222"
+                          : `${s.color}50`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = isTwitter
+                          ? "#000000"
+                          : `${s.color}0d`;
+                        e.currentTarget.style.borderColor = isTwitter
+                          ? "#000000"
+                          : `${s.color}25`;
+                      }}
+                    >
+                      <span style={{ fontSize: "0.75rem" }}>{s.icon}</span>
+                      {s.label}
+                    </a>
+                  );
+                })}
               </div>
             </div>
           </div>
