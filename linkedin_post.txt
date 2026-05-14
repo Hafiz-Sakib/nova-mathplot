@@ -22,7 +22,7 @@ Explore more than 60 mathematical structures, including the Lorenz Attractor, Kl
 🌀 **Parametric Curves**
 Watch elegant curves such as Lissajous figures, Euler spirals, and torus knots animate themselves in real time.
 
-ℂ **Complex Analysis**
+🌐 **Complex Analysis**
 Visualize the real part, imaginary part, and magnitude of complex-valued functions simultaneously.
 
 🧠 **Neural Activation Explorer**
