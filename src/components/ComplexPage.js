@@ -978,7 +978,6 @@ export default function ComplexPage() {
   return (
     <div
       className="flex flex-1 overflow-hidden"
-      style={{ height: "calc(100vh - 60px)" }}
     >
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -1016,6 +1015,7 @@ export default function ComplexPage() {
           transition-transform duration-300
           lg:translate-x-0
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          top-14 sm:top-16 lg:top-0 h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] lg:h-full
         `}
         style={{
           /* responsive width: full on mobile, fixed on desktop */
@@ -1025,8 +1025,6 @@ export default function ComplexPage() {
           background: isDark
             ? "linear-gradient(180deg,#020810,#0a020e)"
             : "linear-gradient(180deg,#eef4ff,#e8f0fc)",
-          top: "60px",
-          height: "calc(100vh - 60px)",
         }}
       >
         {sidebar}

@@ -1041,10 +1041,8 @@ export default function ParametricPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div
-      className="flex overflow-hidden"
+      className="flex flex-1 overflow-hidden"
       style={{
-        height: "100vh",
-        maxHeight: "100vh",
         background: isDark
           ? "#070212"
           : "linear-gradient(145deg,#eef4ff,#e8f0fc)",
@@ -1084,14 +1082,12 @@ export default function ParametricPage() {
 
       {/* ══ SIDEBAR ══ */}
       <aside
-        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto flex flex-col border-r w-80 xl:w-96 flex-shrink-0 overflow-y-auto transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto flex flex-col border-r w-80 xl:w-96 flex-shrink-0 overflow-y-auto transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} top-14 sm:top-16 lg:top-0 h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] lg:h-full`}
         style={{
           background: isDark
             ? "linear-gradient(180deg,#0e0520 0%,#070212 100%)"
             : "linear-gradient(180deg,#eef4ff 0%,#e8f0fc 100%)",
           borderColor: `${color}18`,
-          top: 0,
-          height: "100vh",
         }}
       >
         {/* Top accent */}

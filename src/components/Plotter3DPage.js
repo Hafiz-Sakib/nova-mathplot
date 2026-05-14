@@ -515,7 +515,6 @@ export default function Plotter3DPage() {
   return (
     <div
       className="flex flex-1 overflow-hidden"
-      style={{ height: "calc(100vh - 56px)" }}
     >
       {sidebarOpen && (
         <div
@@ -543,15 +542,13 @@ export default function Plotter3DPage() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto flex flex-col border-r transition-transform duration-300 lg:translate-x-0 overflow-y-auto ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto flex flex-col border-r transition-transform duration-300 lg:translate-x-0 overflow-y-auto ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} top-14 sm:top-16 lg:top-0 h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] lg:h-full`}
         style={{
           width: "clamp(260px, 30vw, 300px)",
           borderColor: "rgba(139,92,246,0.15)",
           background: isDark
             ? "linear-gradient(180deg,#020810 0%,#060418 100%)"
             : "linear-gradient(180deg,#eef4ff 0%,#e8f0fc 100%)",
-          top: "56px",
-          height: "calc(100vh - 56px)",
         }}
       >
         <div

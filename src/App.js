@@ -109,7 +109,7 @@ function AppContent() {
         }}
       />
 
-      <div className="relative z-10 flex flex-col min-h-screen">
+      <div className="relative z-10 flex flex-col h-screen">
         <Navbar page={page} setPage={handleSetPage} />
         {page === "home" && <HomePage setPage={handleSetPage} />}
         {page === "plotter2d" && <PlotterPage />}

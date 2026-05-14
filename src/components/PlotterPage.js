@@ -65,7 +65,7 @@ export default function PlotterPage() {
   const mutedText = isDark ? "#334155" : "#64748b";
 
   return (
-    <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 60px)" }}>
+    <div className="flex flex-1 overflow-hidden">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 lg:hidden"
@@ -89,8 +89,8 @@ export default function PlotterPage() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto w-80 xl:w-96 flex flex-col border-r transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} overflow-y-auto`}
-        style={{ borderColor: borderCol, background: sidebarBg, top: "60px", height: "calc(100vh - 60px)" }}
+        className={`fixed lg:relative inset-y-0 left-0 z-40 lg:z-auto w-80 xl:w-96 flex flex-col border-r transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} overflow-y-auto top-14 sm:top-16 lg:top-0 h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] lg:h-full`}
+        style={{ borderColor: borderCol, background: sidebarBg }}
       >
         <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, rgba(6,182,212,0.4), rgba(16,185,129,0.3), transparent)" }} />
         <div className="px-4 py-4 border-b" style={{ borderColor: borderCol }}>
