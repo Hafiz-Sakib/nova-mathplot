@@ -3397,12 +3397,17 @@ export const PRESETS = [
     animated: true,
     category: "Waves & Physics",
     range: [
-      [-4, 4],
-      [-4, 4],
+      [-8, 8],
+      [-5, 5],
     ],
-    fn: (x, z, t = 0) => {
-      const sech = 1 / Math.cosh(x - t);
-      return [x, sech * Math.cos(x * 0.5 - t * 0.25 + z * 0.3) * 2.5, z];
+    fn: (u, v, t = 0) => {
+      const speed = 2.5;
+      const sech = 1 / Math.cosh(1.1 * (u - t * speed));
+
+      const phase = u * 1.2 - t * 2.2 + v * 0.8;
+      const envelope = sech * (2 + 0.6 * Math.sin(phase * 2));
+
+      return [u * 0.95, envelope * Math.cos(phase) * 2.6, v];
     },
     type: "surface",
   },

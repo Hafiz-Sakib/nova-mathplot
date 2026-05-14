@@ -141,6 +141,10 @@ function SurfaceMesh({ preset, colorScheme, wireframe, opacity, animSpeed }) {
   const meshRef = useRef();
   const timeRef = useRef(0);
   const N = 60;
+  // Add this useEffect to reset time when preset changes
+  useEffect(() => {
+    timeRef.current = 0; // Reset animation time
+  }, [preset.id]); // Important: depend on preset.id
 
   // Build geometry — recompute only when preset changes
   const { geometry, rawPts, yMinBase, yMaxBase } = useMemo(() => {
