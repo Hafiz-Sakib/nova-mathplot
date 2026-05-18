@@ -504,13 +504,13 @@ export default function DeveloperPage({ setPage }) {
                 },
                 {
                   degree: "Higher Secondary (HSC)",
-                  institute: "Sir Ashotush Govt. College",
+                  institute: "Govt. Hazi Mohammad Mohsin College",
                   year: "2018–2020",
                   color: "#34d399",
                 },
                 {
                   degree: "Secondary (SSC)",
-                  institute: "High School",
+                  institute: "Govt. Muslim High School",
                   year: "–2018",
                   color: "#a78bfa",
                 },
