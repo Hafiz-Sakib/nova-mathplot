@@ -103,7 +103,7 @@ export default function DeveloperPage({ setPage }) {
         background: isDark
           ? "rgb(2,8,20)"
           : "linear-gradient(145deg, #eef4ff 0%, #e8f0fc 100%)",
-        fontFamily: "'Space Grotesk', sans-serif",
+        fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
       }}
     >
       {/* ── PAGE HEADER ── */}
@@ -658,7 +658,7 @@ export default function DeveloperPage({ setPage }) {
                   background: "rgba(244,114,182,0.12)",
                   border: "1px solid rgba(244,114,182,0.3)",
                   color: "#f472b6",
-                  fontFamily: "Space Grotesk, sans-serif",
+                  fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                 }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.background = "rgba(244,114,182,0.2)")
@@ -678,7 +678,7 @@ export default function DeveloperPage({ setPage }) {
                   background: "rgba(139,92,246,0.1)",
                   border: "1px solid rgba(139,92,246,0.25)",
                   color: "#a78bfa",
-                  fontFamily: "Space Grotesk, sans-serif",
+                  fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                 }}
                 onMouseEnter={(e) =>
                   (e.target.style.background = "rgba(139,92,246,0.2)")
@@ -698,7 +698,7 @@ export default function DeveloperPage({ setPage }) {
                   background: "rgba(34,211,238,0.08)",
                   border: "1px solid rgba(34,211,238,0.2)",
                   color: "#22d3ee",
-                  fontFamily: "Space Grotesk, sans-serif",
+                  fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                 }}
                 onMouseEnter={(e) =>
                   (e.target.style.background = "rgba(34,211,238,0.15)")

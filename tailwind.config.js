@@ -4,9 +4,10 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        orbitron: ['Orbitron', 'sans-serif'],
-        syne: ['Syne', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        orbitron: ['Nunito', 'system-ui', '-apple-system', 'sans-serif'],
+        syne: ['Nunito', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['Nunito', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['Nunito', 'system-ui', '-apple-system', 'sans-serif'],
       },
       colors: {
         green: {

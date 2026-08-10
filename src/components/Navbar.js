@@ -235,7 +235,7 @@ export default function Navbar({ page, setPage }) {
                 onClick={() => setPage(link.page)}
                 className="flex items-center gap-1.5 px-2.5 lg:px-3 py-1.5 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0"
                 style={{
-                  fontFamily: "Space Grotesk, sans-serif",
+                  fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                   background: isActive ? accent.on : "transparent",
                   color: isActive ? accent.text : dimTextColor,
                   border: `1px solid ${isActive ? accent.border : "transparent"}`,
@@ -351,7 +351,7 @@ export default function Navbar({ page, setPage }) {
                 }}
                 className="w-full flex items-center gap-3 px-4 py-3 border-b text-sm"
                 style={{
-                  fontFamily: "Space Grotesk, sans-serif",
+                  fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                   borderColor: isDark
                     ? "rgba(6,182,212,0.06)"
                     : "rgba(6,182,212,0.1)",

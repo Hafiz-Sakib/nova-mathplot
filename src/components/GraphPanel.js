@@ -428,7 +428,7 @@ export default function GraphPanel({
                 tickCount={9}
                 tick={{
                   fill: isDark ? "#334155" : "#475569",
-                  fontFamily: "JetBrains Mono",
+                  fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                   fontSize: 9,
                 }}
                 axisLine={{ stroke: "rgba(139,92,246,0.2)" }}
@@ -441,7 +441,7 @@ export default function GraphPanel({
                 tickCount={7}
                 tick={{
                   fill: isDark ? "#334155" : "#475569",
-                  fontFamily: "JetBrains Mono",
+                  fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                   fontSize: 9,
                 }}
                 axisLine={{ stroke: "rgba(139,92,246,0.2)" }}
@@ -465,7 +465,7 @@ export default function GraphPanel({
                   <span
                     style={{
                       color: entry.color,
-                      fontFamily: "JetBrains Mono",
+                      fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                       fontSize: 10,
                     }}
                   >

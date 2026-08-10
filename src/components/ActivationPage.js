@@ -659,7 +659,7 @@ function MainPlot({
         >
           <div
             style={{
-              fontFamily: "monospace",
+              fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
               fontSize: 10,
               color: "#64748b",
               marginBottom: 4,
@@ -670,7 +670,7 @@ function MainPlot({
 
           <div
             style={{
-              fontFamily: "monospace",
+              fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
               fontSize: 10,
               color: "#64748b",
               marginBottom: 6,
@@ -682,7 +682,7 @@ function MainPlot({
             <div
               key={v.name}
               style={{
-                fontFamily: "monospace",
+                fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                 fontSize: 10,
                 display: "flex",
                 justifyContent: "space-between",
@@ -698,7 +698,7 @@ function MainPlot({
           {showDerivative && (
             <div
               style={{
-                fontFamily: "monospace",
+                fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                 fontSize: 9,
                 color: "#475569",
                 marginTop: 3,
@@ -780,7 +780,7 @@ export default function ActivationPage({ setPage }) {
         background: isDark
           ? "rgb(2,8,20)"
           : "linear-gradient(145deg, #eef4ff 0%, #e8f0fc 100%)",
-        fontFamily: "'Space Grotesk', sans-serif",
+        fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
       }}
     >
       {/* ── PAGE HEADER ── */}
@@ -858,7 +858,7 @@ export default function ActivationPage({ setPage }) {
                 color: showDerivative ? "#c084fc" : "#64748b",
               }}
             >
-              <span style={{ fontFamily: "serif", fontSize: "0.9rem" }}>
+              <span style={{ fontFamily: "'Nunito', system-ui, -apple-system, sans-serif", fontSize: "0.9rem" }}>
                 f′
               </span>
               Show Derivative

@@ -484,7 +484,7 @@ export default function ExamplesPanel({ onLoad }) {
             border: "1px solid rgba(6,182,212,0.15)",
             borderRadius: 10,
             color: "#64748b",
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
             fontSize: "0.78rem",
             padding: "7px 32px 7px 30px",
             outline: "none",

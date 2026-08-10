@@ -537,7 +537,7 @@ function AnimatedCounter({ target, suffix = "", color }) {
       style={{
         color,
         textShadow: `0 0 20px ${color}60`,
-        fontFamily: "Orbitron, sans-serif",
+        fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
         fontWeight: 900,
       }}
     >
@@ -1461,7 +1461,7 @@ export default function HomePage({ setPage }) {
                     onClick={() => setPage(f.page)}
                     className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-200"
                     style={{
-                      fontFamily: "Space Grotesk, sans-serif",
+                      fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                       background: f.bgColor,
                       border: `1px solid ${f.borderColor}`,
                       color: f.color,
@@ -1653,7 +1653,7 @@ export default function HomePage({ setPage }) {
                     <span
                       style={{
                         color: step.color,
-                        fontFamily: "Orbitron",
+                        fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                         fontSize: "0.75rem",
                         fontWeight: 800,
                       }}
@@ -2225,7 +2225,7 @@ export default function HomePage({ setPage }) {
                     onClick={() => setPage(btn.page)}
                     className="px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200"
                     style={{
-                      fontFamily: "Space Grotesk, sans-serif",
+                      fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                       background: `${btn.color}15`,
                       border: `1px solid ${btn.color}40`,
                       color: btn.color,

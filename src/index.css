@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Orbitron:wght@400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900;1000&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -90,7 +90,7 @@
   }
 
   body {
-    font-family: "Space Grotesk", sans-serif;
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
     background-color: var(--c-bg);
     color: var(--c-text);
     min-height: 100vh;
@@ -135,16 +135,16 @@
 ══════════════════════════════════════════ */
 @layer components {
   .font-orbitron {
-    font-family: "Orbitron", monospace;
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
   }
   .font-rajdhani {
-    font-family: "Rajdhani", sans-serif;
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
   }
   .font-space-grotesk {
-    font-family: "Space Grotesk", sans-serif;
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
   }
   .font-mono-code {
-    font-family: "JetBrains Mono", monospace;
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
   }
 
   /* Dark grid background */
@@ -171,7 +171,7 @@
     gap: 8px;
     padding: 10px 24px;
     border-radius: 12px;
-    font-family: "Orbitron", monospace;
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
     font-weight: 700;
     font-size: 0.8rem;
     letter-spacing: 0.08em;

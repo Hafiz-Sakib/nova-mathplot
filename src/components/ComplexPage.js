@@ -598,7 +598,7 @@ const zoomBtnStyle = {
   width: 28,
   height: 28,
   borderRadius: 7,
-  fontFamily: "JetBrains Mono, monospace",
+  fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
   fontSize: "0.8rem",
   fontWeight: 700,
   background: "rgba(236,72,153,0.1)",
@@ -795,7 +795,7 @@ export default function ComplexPage() {
             style={{
               background: "linear-gradient(90deg,#f472b6,#a78bfa)",
               color: "#fff",
-              fontFamily: "Space Grotesk, sans-serif",
+              fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
             }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.filter = "brightness(1.12)")
@@ -1148,7 +1148,7 @@ export default function ComplexPage() {
                   tickCount={7}
                   tick={{
                     fill: isDark ? "#334155" : "#475569",
-                    fontFamily: "JetBrains Mono",
+                    fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                     fontSize: 8,
                   }}
                   axisLine={{ stroke: "rgba(236,72,153,0.18)" }}
@@ -1160,7 +1160,7 @@ export default function ComplexPage() {
                   tickCount={7}
                   tick={{
                     fill: isDark ? "#334155" : "#475569",
-                    fontFamily: "JetBrains Mono",
+                    fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                     fontSize: 8,
                   }}
                   axisLine={{ stroke: "rgba(236,72,153,0.18)" }}
@@ -1176,7 +1176,7 @@ export default function ComplexPage() {
                     <span
                       style={{
                         color: entry.color,
-                        fontFamily: "JetBrains Mono",
+                        fontFamily: "'Nunito', system-ui, -apple-system, sans-serif",
                         fontSize: 9,
                       }}
                     >

@@ -45,7 +45,7 @@
 }
 
 .logo-main {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
   font-weight: 800;
   font-size: 1.35rem;
   color: var(--cyan);
@@ -54,7 +54,7 @@
 }
 
 .logo-sub {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
   font-size: 0.6rem;
   color: var(--text-muted);
   letter-spacing: 3px;
@@ -68,7 +68,7 @@
 }
 
 .header-badge {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
   font-size: 0.75rem;
   color: var(--cyan-dim);
   background: var(--cyan-glow);

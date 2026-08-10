@@ -12,7 +12,7 @@
 
 .info-text {
   flex: 1;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
   font-size: 0.7rem;
   color: var(--text-dim);
   letter-spacing: 0.3px;
