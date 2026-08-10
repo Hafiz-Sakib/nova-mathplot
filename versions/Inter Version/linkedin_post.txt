@@ -1,0 +1,61 @@
+🔭 I Built a Tool That Turns Math Into Something You Can Actually See
+
+A few weeks ago, I came across an Instagram reel showing a beautiful 3D mathematical surface spinning on screen. It looked like digital art — but it was created entirely from an equation.
+
+That single reel sparked an idea.
+
+I wondered: **Why can't students and learners explore mathematics like this directly in their browser, for free?**
+
+So I built **NOVA MathPlot** — an interactive scientific visualization platform that makes mathematics more visual, intuitive, and engaging.
+
+🌐 Live Demo: [NOVA MathPlot](https://nova-mathplot.vercel.app?utm_source=chatgpt.com)
+💻 GitHub: [NOVA MathPlot on GitHub](https://github.com/Hafiz-Sakib/nova-mathplot?utm_source=chatgpt.com)
+
+## 🚀 What NOVA MathPlot Can Do
+
+📈 **2D Function Plotter**
+Enter expressions like `sin(x)`, `x² - 3x`, or `e^(-x²)` and see them plotted instantly. You can visualize multiple functions at the same time.
+
+🧊 **3D Surface Visualizer**
+Explore more than 60 mathematical structures, including the Lorenz Attractor, Klein Bottle, Möbius Strip, and DNA Helix, with real-time rotation and zoom.
+
+🌀 **Parametric Curves**
+Watch elegant curves such as Lissajous figures, Euler spirals, and torus knots animate themselves in real time.
+
+🌐 **Complex Analysis**
+Visualize the real part, imaginary part, and magnitude of complex-valued functions simultaneously.
+
+🧠 **Neural Activation Explorer**
+Study 17 activation functions used in machine learning, including ReLU, Sigmoid, GELU, and Mish, along with their derivatives.
+
+## ✨ Key Features
+
+* 350+ example mathematical functions
+* 60+ 3D presets
+* 40+ parametric curve presets
+* 17 neural network activation functions
+* Premium dark and light themes
+* Fully client-side with no backend required 
+
+## 🛠 Built With
+
+* React
+* Three.js
+* React Three Fiber
+* mathjs
+* Recharts
+* Tailwind CSS
+
+## 💡 Inspiration
+
+This entire project started because of a short Instagram reel. It reminded me that mathematics is not just symbols and formulas — it can be visual, interactive, and genuinely beautiful.
+
+I built NOVA MathPlot to help students and curious learners see mathematics from a new perspective.
+
+## 💬 I'd Love Your Feedback
+
+If you explore the project, I would be grateful to hear your thoughts and suggestions.
+
+What feature would you like to see next?
+
+#OpenSource #ReactJS #ThreeJS #Mathematics #DataVisualization #MachineLearning #WebDevelopment #StudentProject #BuildInPublic #MathVisualization #STEM #JavaScript
