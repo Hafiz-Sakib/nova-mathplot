@@ -1,0 +1,38 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  flex: 1;
+  height: calc(100vh - 72px);
+  overflow: hidden;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background: var(--bg-panel);
+  gap: 0;
+}
+
+.graph-area {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    height: auto;
+  }
+  .sidebar { max-height: 50vh; }
+  .graph-area { height: 60vh; }
+}

@@ -1,0 +1,32 @@
+.info-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+  min-height: 40px;
+}
+
+.info-icon { font-size: 0.85rem; }
+
+.info-text {
+  flex: 1;
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  letter-spacing: 0.3px;
+}
+
+.info-next {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  transition: all 0.15s;
+}
+
+.info-next:hover { border-color: var(--cyan); color: var(--cyan); }
